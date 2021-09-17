@@ -1,0 +1,348 @@
+<template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <div class="header">
+      <div class="header-top">
+        <span class="leftStule">帐户:</span>
+        <div class="rightStule">
+          <el-select v-model="from.mailId" placeholder="请选择">
+            <el-option
+              v-for="item in mailUserList"
+              :key="item.mailId"
+              :label="item.mailUsername"
+              :value="item.mailId"
+            ></el-option>
+          </el-select>
+        </div>
+      </div>
+      <div class="header-top">
+        <span class="leftStule">收件人:</span>
+        <div class="rightStule">
+          <el-input v-model="from.receive" placeholder="请输入收件人"></el-input>
+        </div>
+      </div>
+      <div class="header-top">
+        <span class="leftStule">抄送:</span>
+        <div class="rightStule">
+          <el-input v-model="from.cc" placeholder="请输入抄送"></el-input>
+        </div>
+      </div>
+      <div class="header-top">
+        <span class="leftStule">邮件主题:</span>
+        <div class="rightStule">
+          <el-input v-model="from.title" placeholder="请输入内容"></el-input>
+          <el-checkbox
+                :value="from.isUrgent === 1"
+                @change="val => $set(from,'isUrgent',val ? 1 : 0)"
+              >紧急邮件</el-checkbox>
+        </div>
+      </div>
+      <!-- <div class="header-top">
+        <span class="leftStule">添加附件:</span>
+        <div class="rightStule">
+          <el-input v-model="input" placeholder="请输入内容"></el-input>
+        </div>
+      </div>-->
+      <div class="header-top" style="width:100%;margin:0">
+        <span class="leftStule">上传附件:</span>
+        <a href="javascript:;" class="a-upload">
+          <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+        </a>
+        <ul class="uploadStyle">
+          <li v-for="(item,index) in fileList" :key="index">
+            <span>{{item.name}}</span>
+            <i @click="deleteUpload(index)" class="el-icon-close"></i>
+          </li>
+        </ul>
+      </div>
+      <div class="wrap">
+        <vue-ueditor-wrap v-model="from.content" :config="myConfig"></vue-ueditor-wrap>
+      </div>
+      <div class="btnStyle">
+        <el-button @click="send" type="primary">立即发送</el-button>
+        <el-button @click="drafts" type="primary">保存至草稿箱</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { mailSendSendMail, mailSendFindAccount } from "@/api/email/email";
+import { mailSendUpload } from "@/api/common";
+import Lockr from "lockr";
+import VueUeditorWrap from "vue-ueditor-wrap";
+
+export default {
+  name: "grglIndex",
+  computed: {},
+  components: {
+    VueUeditorWrap,
+  },
+  data() {
+    return {
+      myConfig: {
+        // 编辑器不自动被内容撑高
+        autoHeightEnabled: false,
+        // 初始容器高度
+        initialFrameHeight: 450,
+        // 初始容器宽度
+        initialFrameWidth: "100%",
+        // 上传文件接口（这个地址是我为了方便各位体验文件上传功能搭建的临时接口，请勿在生产环境使用！！！）
+        serverUrl: "",
+        // UEditor 资源文件的存放路径，如果你使用的是 vue-cli 生成的项目，通常不需要设置该选项，vue-ueditor-wrap 会自动处理常见的情况，如果需要特殊配置，参考下方的常见问题2
+      },
+      list: [],
+      from: {
+        receive: "",
+        cc: "",
+        title: "",
+        mailId: "",
+        content: "",
+        status: "",
+        isUrgent: "0",
+        file: "",
+      },
+      mailUsername: "",
+      mailUserList: [],
+      title: "",
+      input: "",
+      editorOption: {
+        placeholder: "请输入",
+        theme: "snow", // or 'bubble'
+        modules: {
+          toolbar: {
+            container: "#toolbar",
+          },
+        },
+      },
+      fileList: [],
+    };
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.queryPageList();
+  },
+  activated() {
+    this.queryPageList();
+  },
+  methods: {
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      mailSendUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    mailSendSend() {
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.mailFile = arr.join(","),
+      mailSendSendMail(this.from)
+        .then((res) => {
+          if (this.from.status == 1) {
+            this.msgSuccess("发送成功");
+          } else {
+            this.msgSuccess("保存成功");
+          }
+          this.from.receive = "";
+          this.from.cc = "";
+          this.from.title = "";
+          this.from.content = null;
+        })
+        .catch((res) => {});
+    },
+    send() {
+      console.log(this.from)
+      return
+      let str = this.from.content.substring(
+        0,
+        this.from.content.indexOf("/") - 1
+      );
+      if (this.from.receive == "") {
+        this.msgInfo("请输入收件人!");
+        return;
+      }
+
+      if (this.from.title == "") {
+        this.msgInfo("请输入邮件标题!");
+        return;
+      }
+      this.from.status = 1;
+      this.from.content = this.from.content.substring(
+        str.lastIndexOf(">") + 1,
+        this.from.content.indexOf("/") - 1
+      );
+      this.mailSendSend();
+    },
+    drafts() {
+      let str = this.from.content.substring(
+        0,
+        this.from.content.indexOf("/") - 1
+      );
+      if (this.from.receive == "") {
+        this.msgInfo("请输入收件人!");
+        return;
+      }
+      if (this.from.cc == "") {
+        this.msgInfo("请输入抄送人!");
+        return;
+      }
+      if (this.from.title == "") {
+        this.msgInfo("请输入邮件标题!");
+        return;
+      }
+      this.from.status = 0;
+      this.from.content = this.from.content.substring(
+        str.lastIndexOf(">") + 1,
+        this.from.content.indexOf("/") - 1
+      );
+      this.mailSendSend();
+    },
+    queryPageList() {
+      mailSendFindAccount({
+        userId: Lockr.get("loginUserInfo").userId,
+      })
+        .then((res) => {
+          this.mailUserList = res.data;
+          this.from.mailId = res.data[0].mailId;
+        })
+        .catch((res) => {});
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../assets/font.css";
+.btnStyle {
+  width: 100%;
+  text-align: center;
+  line-height: 40px;
+  margin-top: 40px;
+  background: #fff;
+  float: left;
+}
+.header {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #e6e6e6;
+  float: left;
+  background: #fff;
+  .header-top {
+    width: 100%;
+    line-height: 40px;
+    border-bottom: 1px solid #e6e6e6;
+    float: left;
+  }
+  .leftStule {
+    width: 15%;
+    border-right: 1px solid #e6e6e6;
+    margin-left: 20px;
+    float: left;
+  }
+  .rightStule {
+    margin-left: 20px;
+    width: 80%;
+    float: left;
+    .el-input {
+      width: 70%;
+    }
+    .el-select {
+      width: 70%;
+    }
+  }
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+}
+.wrap {
+  float: left;
+  width: 100%;
+  height: 500px;
+}
+
+.a-upload {
+  padding: 4px 10px;
+  margin-top: 5px;
+  height: 30px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

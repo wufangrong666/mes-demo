@@ -1,0 +1,118 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">业务单据是否应用数据权限设置：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.sfyysjqx" @change="qxChagne" :label="0">否</el-radio>
+          <el-radio v-model="from.sfyysjqx" @change="qxChagne" :label="1">是</el-radio>
+          <el-checkbox
+            v-show="qxFlag"
+            :value="from.czy == 1?true:false"
+            @change="val => $set(from,'czy',val ? 1 : 0)"
+          >操作员(创建人)</el-checkbox>
+          <el-checkbox
+            v-show="qxFlag"
+            :value="from.ywy == 1?true:false"
+            @change="val => $set(from,'ywy',val ? 1 : 0)"
+          >业务员</el-checkbox>
+          <el-checkbox
+            v-show="qxFlag"
+            :value="from.cgy == 1?true:false"
+            @change="val => $set(from,'cgy',val ? 1 : 0)"
+          >销售负责人(采购员)</el-checkbox>
+          <el-checkbox
+            v-show="qxFlag"
+            :value="from.gxr == 1?true:false"
+            @change="val => $set(from,'gxr',val ? 1 : 0)"
+          >共享人</el-checkbox>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminSjqxQuerySjqxSet,
+  adminSjqxUpdateSjqxSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {
+        sfyysjqx: "",
+        czy: "",
+        ywy: "",
+        cgy:"",
+        gxr:""
+      },
+      qxFlag: false,
+    };
+  },
+
+  methods: {
+    qxChagne(val) {
+      if (val == 0) {
+        this.qxFlag = false;
+      } else {
+        this.qxFlag = true;
+      }
+    },
+    submit() {
+      adminSjqxUpdateSjqxSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.dataSte();
+        })
+        .catch((res) => {});
+    },
+    dataSte() {
+      adminSjqxQuerySjqxSet()
+        .then((res) => {
+          this.from = res.data;
+          if (res.data.sfyysjqx == 0) {
+            this.qxFlag = false;
+          } else {
+            this.qxFlag = true;
+          }
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.dataSte();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

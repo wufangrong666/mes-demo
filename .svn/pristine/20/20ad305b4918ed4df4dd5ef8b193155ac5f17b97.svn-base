@@ -1,0 +1,473 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">方案编号:</label>
+            <div v-text="from.fabh"></div>
+            <!-- <el-input :disabled="true" v-model="from.fabh" placeholder="请输入内容"></el-input> -->
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">方案名称:</label>
+            <el-input v-model="from.famc" placeholder="请输入内容"></el-input>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">
+              <span style="color:red;">*</span>客户名称:
+            </label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.customerName">
+              <el-button @click="dialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">对应机会:</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="xsjhName">
+              <el-button @click="dyjh" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">
+              <span style="color:red;">*</span>负责人:
+            </label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.fzrName">
+              <el-button @click="dialogpop" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">最后期限:</label>
+            <el-date-picker
+              value-format="yyyy-MM-dd"
+              v-model="from.zhqx"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">方案阶段:</label>
+            <el-select v-model="from.fajd" clearable placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.label"
+                :label="item.label"
+                :value="item.label"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">创建人:</label>
+            <div v-text="from.creatorName"></div>
+          </div>
+
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">创建日期:</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">共享人:</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.gxrName">
+              <el-button @click="sharePopAdd" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+
+          <div class="input-box" style="width:100%">
+            <label class="input-label">添加附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+
+          <div class="input-boxB" style="width:100%">
+            <label class="input-label">
+              <span style="color:red">*</span>方案内容:
+            </label>
+            <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="from.content"></el-input>
+          </div>
+
+          <div class="input-boxB">
+            <label class="input-label">客户反馈:</label>
+            <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="from.khfk"></el-input>
+          </div>
+        </sections>
+      </div>
+      <!-- 其他 -->
+      <div class="create-flex">
+        <sections title="其他" style="margin-top: 10px;">
+          <div class="input-boxB">
+            <label class="input-label">备注:</label>
+            <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="from.remark"></el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar" style="margin-top: 20px;">
+        <el-button type="primary" @click="successClick(-1)">保存</el-button>
+        <el-button type="success" @click="successClick(0)">提交</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <khDialog @hkDialog="hkDialog" @colse="dialogVisible = false" :dialogVisible="dialogVisible"></khDialog>
+    <treeDlalog
+      @dialogTreeData="treedelog"
+      @close="treedialogVisible = false"
+      :dialogStatus="treedialogVisible"
+    ></treeDlalog>
+    <gxrDialog
+      @gxrDialogTreeData="gxrdialog"
+      @close="gxrDialogVisible = false"
+      :gxrDialogStatus="gxrDialogVisible"
+    ></gxrDialog>
+
+    <xsjhDialog
+      @xsjhQuery="xsjhQuery"
+      @colse="dialogVisibleXsjh = false"
+      :dialogVisibleXsjh="dialogVisibleXsjh"
+    ></xsjhDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import Lockr from "lockr";
+import khDialog from "../../components/khDialog";
+import treeDlalog from "../../components/treeDlalog";
+import gxrDialog from "../../components/gxrDialog";
+import {
+  crmJjfaQueryForAdd, //jjfa主页接口
+  crmJjfaAddOrUpdate, //jjfa新建页接口
+  crmJjfaFileQueryByJjfaId, //查询上传附件
+  crmJjfaFileUpload, //附件上传
+  crmJjfaQueryById, //查看编辑审核删除
+  crmJjfaFileRemoveById, //附件删除
+} from "@/api/crm/jjfa";
+import xsjhDialog from "../../components/xsjhDialog";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    khDialog,
+    treeDlalog,
+    gxrDialog,
+    xsjhDialog
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      dialogVisibleXsjh:false,
+      options: [
+        {
+          label: "提交",
+        },
+        {
+          label: "接收",
+        },
+        {
+          label: "已解決",
+        },
+        {
+          label: "未解決",
+        },
+        {
+          label: "上报方案",
+        },
+      ],
+      loading: false,
+      from: {
+        fzrId: "", //负责人id
+        fzrName: "",
+        gxrName: "", //共享人
+        fabh: "", //方案编号
+        famc: "", //方案名称
+        creatorName: "", //客户名称
+        xsjhId: "", //对应机会
+        fzr: "", //负责人
+        zhqx: "", //最后期限
+        fajd: "", //方案阶段
+        creatorName: "", //创建人
+        creatorId: "",
+        createDate: "", //创建日期
+        gxr: "", //共享人id
+        content: "", //方案内容
+        khfk: "", //客户反馈
+        remark: "", //备注
+        crmCustomerName: "",
+        customerName: "",
+        customerId: "", //客户id
+      },
+      xsjhName:'',
+      value: "",
+      fileList: [],
+      dialogVisible: false, // 客户信息弹框隐藏
+      treedialogVisible: false, // 负责人弹框隐藏
+      gxrDialogVisible: false, //共享人弹框隐藏
+    };
+  },
+
+  methods: {
+    xsjhQuery(name,id){
+      this.xsjhName = name
+      this.from.xsjhId = id
+    },
+    dyjh(){
+      this.dialogVisibleXsjh = true
+    },
+    // 客户信息
+    hkDialog(name, id) {
+      this.from.customerName = name;
+      this.from.customerId = id;
+    },
+    // 负责人
+    treedelog(id, name) {
+      this.from.fzr = id;
+      this.from.fzrName = name;
+    },
+    // 共享人
+    gxrdialog(id, name) {
+      console.log(id, name);
+      this.from.gxr = id;
+      this.from.gxrName = name;
+    },
+    // +客户信息弹框展示
+    dialog() {
+      this.dialogVisible = true;
+    },
+    // +负责人弹框显示
+    dialogpop() {
+      this.treedialogVisible = true;
+    },
+    // +共享人弹框显示
+    sharePopAdd() {
+      this.gxrDialogVisible = true;
+    },
+    //
+    deleteUpload(index, item) {
+      this.fileList.splice(index, 1);
+      crmJjfaFileRemoveById({
+        id: item.fileId,
+      })
+        .then((res) => {
+          this.msgSuccess("删除成功");
+          // console.log(res);
+        })
+        .catch((res) => {});
+    },
+
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    //附件上传crmJjfaFileUpload
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmJjfaFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    //
+    hidenView() {
+      window.top.close();
+    },
+    successClick(status) {
+      let arr = [];
+      // console.log(this.from)
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.fileIds = arr.join(",");
+
+      if (this.from.customerId == "") {
+        this.msgInfo("请选择客户");
+        return;
+      }
+      if (this.from.fzr == "") {
+        this.msgInfo("请选择负责人");
+        return;
+      }
+      if (this.content == "") {
+        this.msgInfo("请完善方案内容");
+        return;
+      }
+      this.from.status = status; //-1保存还是0提交
+      crmJjfaAddOrUpdate(this.from)
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "提交成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      crmJjfaQueryForAdd().then((res) => {
+        this.from.fabh = res.data.fabh;
+        this.from.creatorName = res.data.creator; //
+        this.from.createDate = res.data.createDate; //创建日期
+      });
+      if (this.widowData.type == "edit") {
+        crmJjfaQueryById({
+          id: this.widowData.id,
+        }).then((res) => {
+          this.from = res.data;
+          this.from.gxr = res.data.gxr;
+          this.from.gxrName = res.data.gxrName
+            .map(function (item) {
+              return item.realname;
+            })
+            .join(",");
+          this.from.fzrName = res.data.fzrName;
+          this.xsjhName = res.data.crmXsjh.jhbh
+          this.from.creatorName = res.data.creatorName;
+          this.from.creatorId = res.data.creator;
+          this.from.customerName = res.data.crmCustomerName;
+          this.from.customerId = res.data.customerId;
+        });
+      } else {
+      }
+      // 查询附件上传
+      crmJjfaFileQueryByJjfaId({
+        jjfaId: this.widowData.id,
+      }).then((res) => {
+        console.log(res);
+        this.fileList = res.data;
+      });
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.establishPop = Lockr.get("loginUserInfo").realname; //创建人
+    this.createDate = this.getTime();
+    this.queryData();
+    // this.from.jjfa =
+    //   new Date().getFullYear() +
+    //   "-" +
+    //   (new Date().getMonth() + 1) +
+    //   "-" +
+    //   new Date().getDate();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

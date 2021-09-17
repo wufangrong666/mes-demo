@@ -1,0 +1,2456 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.gysName">
+              <el-button @click="dialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.contactName">
+              <el-button @click="contactDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+            <!-- <el-select v-model="from.contactId" placeholder="请选择" @change="contactChange">
+              <el-option
+                v-for="item in contactList"
+                :key="item.contactId"
+                :label="item.contactName"
+                :value="item.contactId"
+              ></el-option>
+            </el-select>-->
+          </div>
+          <div class="input-box">
+            <label class="input-label">发票类型</label>
+            <el-select v-model="from.fplx" placeholder="请选择" @change="dwttChange">
+              <el-option
+                v-for="item in fplxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">订单单号</label>
+            <el-input placeholder="订单单号" :readonly="true" v-model="from.cgddDh"></el-input>
+          </div>
+          <div class="input-box" v-show="widowData.type == 'sgxt'">
+            <label class="input-label">交货地址</label>
+            <el-input placeholder="交货地址" v-model="from.jhdz"></el-input>
+          </div>
+          <div class="input-box" v-show="widowData.type == 'edit'">
+            <label class="input-label">对方报价单号</label>
+            <el-input placeholder="对方报价单号" v-model="from.bjdh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系电话</label>
+            <el-input placeholder="联系电话" maxlength="11" v-model="from.contactPhone"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交货日期</label>
+            <el-date-picker
+              v-model="from.jhrq"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">制单员</label>
+            <div v-text="from.czyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <el-input placeholder="备注" maxlength="50" v-model="from.remark"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员</label>
+            <el-input :readonly="true" clearable placeholder="请选择业务员" v-model="ywyName">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款期限</label>
+            <el-date-picker
+              v-model="from.fkqx"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">货期</label>
+            <el-input placeholder="请输入货期" clearable v-model="from.hq"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <el-select :disabled="true" v-model="from.dwtt" placeholder="请选择" @change="dwttChange">
+              <el-option
+                v-for="item in dwttList"
+                :key="item.id"
+                :label="item.nameCn"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <el-radio v-model="from.sfbd" label="是">是</el-radio>
+            <el-radio v-model="from.sfbd" label="否">否</el-radio>
+          </div>
+          <div class="input-box">
+            <label class="input-label">整单折扣(%)</label>
+            <el-input placeholder="请输入整单折扣" clearable v-model="from.zdzk"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购订单类型</label>
+            <el-select v-model="from.cgddlx" placeholder="请选择">
+              <el-option
+                v-for="item in cgddlxList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款方式</label>
+            <el-select v-model="from.fksf" placeholder="请选择">
+              <el-option
+                v-for="item in fkfsList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">入货仓库</label>
+            <el-select v-model="from.ck" placeholder="请选择">
+              <el-option
+                v-for="item in ckList"
+                :key="item.ckId"
+                :label="item.ckName"
+                :value="item.ckId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <el-input :readonly="true" clearable placeholder="请选择共享人" v-model="gxrName">
+              <el-button @click="gxrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商订单号</label>
+            <el-input placeholder="供应商订单号" clearable v-model="from.gysdddh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商发票单号</label>
+            <el-input placeholder="供应商发票单号" clearable v-model="from.gysfpdh"></el-input>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">订货方式</label>
+            <el-select v-model="from.bjlx" placeholder="请选择" @change="bjlxChange">
+              <el-option
+                v-for="item in bjlxList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">实际重量</label>
+            <el-input placeholder="实际重量" clearable v-model="from.actualkg"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">实际体积</label>
+            <el-input placeholder="实际体积" clearable v-model="from.actualv"></el-input>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label" v-text="from.bjlx == 3?'快递费':' 国外运杂费'"></label>
+            <el-input placeholder="国外运杂费" @input="zgwyzfInput" clearable v-model="from.gwyzf"></el-input>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx == 3">
+            <label class="input-label">采购总成本</label>
+            <div style="line-height:25px" v-text="from.cbzje"></div>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx !== 3">
+            <label class="input-label" v-text="from.bjlx == 1?'国际运费':' 国际快递(海运)'"></label>
+            <el-input placeholder="国际运费" @input="zgjyfInput" clearable v-model="from.gjyf"></el-input>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx !== 3">
+            <label class="input-label">外币币种</label>
+            <el-select v-model="from.wbbz" placeholder="请选择" @change="wbbzChange">
+              <el-option
+                v-for="item in wbbzList"
+                :key="item.bzid"
+                :label="item.bzmc"
+                :value="item.bzid"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx !== 3">
+            <label class="input-label">汇率</label>
+            <el-input placeholder="汇率" v-model="from.hl"></el-input>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx == 2">
+            <label class="input-label">银行转账费</label>
+            <el-input @input="zyhzzfHjInput" clearable v-model="from.yhzzf"></el-input>
+          </div>
+          <div class="input-boxB" v-show="from.bjlx !== 3">
+            <label class="input-label">其他外币费用合计</label>
+            <el-input placeholder="其他外币费用合计" :readonly="true" clearable v-model="from.qtwbfyhj"></el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">其他本币费用合计</label>
+            <el-input placeholder="其他本币费用合计" :readonly="true" clearable v-model="from.qtbbfyhj"></el-input>
+          </div>
+          <div style="width:10%;float:left">
+            <el-button type="primary" @click="ftClick" v-text="btnStr"></el-button>
+          </div>
+          <div class="ftStyle" v-show="ftStatus">
+            <el-button @click="wbfyClick" v-show="from.bjlx !== 3" type="primary">增加外币费用</el-button>
+            <el-button @click="bbfyClick" type="primary">增加本币费用</el-button>
+            <el-table :key="tableKey" :data="tableDataFy" style="width: 100%" class="tableStyle">
+              <el-table-column prop="dydddh" label="对应订单单号">
+                <template slot-scope="scope">
+                  <span
+                    @click="dydddhClick(scope.row)"
+                    style="color:#3E84E9;cursor: pointer"
+                    v-text="scope.row.dydddh"
+                  ></span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="gwyzf" :label="from.bjlx == 3?'快递费':' 国外运杂费'">
+                <template slot-scope="scope">
+                  <el-input @input="gwyzfInput" clearable v-model="scope.row.gwyzf"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column
+                v-if="from.bjlx !== 3"
+                prop="gjyf"
+                :label="from.bjlx == 1?'国际运费':' 国际快递(海运)'"
+              >
+                <template slot-scope="scope">
+                  <el-input @input="gjyfInput" clearable v-model="scope.row.gjyf"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column v-if="from.bjlx !== 3" prop="zzs" label="增值税">
+                <template slot-scope="scope">
+                  <el-input @input="zzsInput" clearable v-model="scope.row.zzs"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column v-if="from.bjlx == 2" prop="yhzzf" label="银行转账费">
+                <template slot-scope="scope">
+                  <el-input @input="yhzzfInput" clearable v-model="scope.row.yhzzf"></el-input>
+                </template>
+              </el-table-column>
+              <!-- 外币 -->
+              <el-table-column v-for="(item,index) in wbHeader" :key="index" prop="wbList">
+                <template slot="header" slot-scope="scope">
+                  <el-input type="index" clearable v-model="item.value"></el-input>
+                  <i style="color:#0000ff" @click="wbClick(index)" class="el-icon-circle-close"></i>
+                </template>
+                <template slot-scope="scope">
+                  <el-input
+                    :ket="Math.round()"
+                    @input="tableWbhj"
+                    clearable
+                    v-model="scope.row.wbList[index]"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <!-- 本币  -->
+              <el-table-column v-for="(item,index) in bbHeader" :key="index + 'i'" prop="bbList">
+                <template slot="header" slot-scope="scope">
+                  <el-input clearable v-model="item.value"></el-input>
+                  <i style="color:#0000ff" @click="bbClick(index)" class="el-icon-circle-close"></i>
+                </template>
+                <template slot-scope="scope">
+                  <el-input
+                    :ket="Math.round()"
+                    @input="tableBbhj"
+                    clearable
+                    v-model="scope.row.bbList[index]"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column prop="remark" label="备注"></el-table-column>
+            </el-table>
+            <el-table
+              :data="hjTableData"
+              :show-header="false"
+              style="width: 100%"
+              class="tableStyle"
+            >
+              <el-table-column prop="hj"></el-table-column>
+              <el-table-column prop="name" :label="from.bjlx == 3?'快递费':' 国外运杂费'">
+                <template slot-scope="scope">
+                  <el-input @input="gwyzfHjInput" clearable v-model="gwyzfHj"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column prop="name" label="国外运杂费" v-if="from.bjlx !== 3">
+                <template slot-scope="scope">
+                  <el-input @input="gwyzfHjInput" clearable v-model="gjyfHj"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column prop="name" label="增值税" v-if="from.bjlx !== 3">
+                <template slot-scope="scope">
+                  <el-input @input="zzsHjInput" clearable v-model="zzs"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column v-if="from.bjlx == 2" prop="name" label="银行转账费">
+                <template slot-scope="scope">
+                  <el-input @input="yhzzfHjInput" clearable v-model="yhzzf"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="name"
+                label="外币费用"
+                v-for="(item,index) in wbConte"
+                :key="index"
+              >
+                <template slot-scope="scope">
+                  <el-input clearable v-model="item.conte"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="name"
+                label="本币费用"
+                v-for="(item,index) in bbConte"
+                :key="index + 'i'"
+              >
+                <template slot-scope="scope">
+                  <el-input clearable v-model="item.conte"></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column prop="address" label="备注"></el-table-column>
+            </el-table>
+          </div>
+
+          <el-table
+            max-height="300px"
+            id="elTable"
+            :data="tableList"
+            style="width: 100%"
+            show-summary
+          >
+            <el-table-column label="品牌" fixed>
+              <template slot-scope="scopr">
+                <el-input
+                  placeholder="请选择"
+                  :readonly="true"
+                  clearable
+                  v-model="scopr.row.brandName"
+                >
+                  <el-button
+                    @click="customerCliuck(scopr.$index)"
+                    slot="append"
+                    icon="el-icon-plus"
+                  ></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名" fixed>
+              <template slot-scope="scopr">
+                <!-- <el-input v-model="scopr.row.nameCn"></el-input> -->
+                <el-input :readonly="true" clearable placeholder="品名" v-model="scopr.row.nameCn">
+                  <el-button
+                    @click="comnameIdClick(scopr.$index)"
+                    slot="append"
+                    icon="el-icon-plus"
+                  ></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号" fixed>
+              <template slot-scope="scopr">
+                <el-input v-if="widowData.type == 'sgxt'" v-model="scopr.row.productModelnum"></el-input>
+                <el-input v-else v-model="scopr.row.modelnum"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName1 != ''" :label="zdyName1" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType1 == '1'" v-model="scopr.row.ylzd1" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName2 != ''" :label="zdyName2" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType2 ==1" v-model="scopr.row.ylzd2" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName3 != ''" :label="zdyName3" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType3 ==1" v-model="scopr.row.ylzd3" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName4 != ''" :label="zdyName4" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType4 ==1" v-model="scopr.row.ylzd4" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName5 != ''" :label="zdyName5" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType5 ==1" v-model="scopr.row.ylzd5" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName6 != ''" :label="zdyName6" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType6 ==1" v-model="scopr.row.ylzd6" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName7 != ''" :label="zdyName7" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType7 ==1" v-model="scopr.row.ylzd7" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName8 != ''" :label="zdyName8" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType8 ==1" v-model="scopr.row.ylzd8" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName9 != ''" :label="zdyName9" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType9 == 1" v-model="scopr.row.ylzd9" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName10 != ''" :label="zdyName10" fixed>
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType10 == 1" v-model="scopr.row.ylzd10" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="单位" v-if="from.bjlx == 3" fixed>
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.measureName"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量" fixed>
+              <template slot-scope="scopr">
+                <el-input @input="orderQuantityInput(scopr)" v-model="scopr.row.orderQuantity"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="未税单价" v-if="from.bjlx == 3" fixed>
+              <template slot="header" slot-scope="scope">
+                <span>未税单价</span>
+                <el-checkbox @change="hsdjChecked = false" v-model="wsdjChecked"></el-checkbox>
+              </template>
+              <template slot-scope="scopr">
+                <el-input
+                  @input="wsdjInput(scopr)"
+                  :readonly="hsdjChecked"
+                  v-model="scopr.row.wbdj"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column
+              fixed
+              :label="widowData.type== 'sgxt'?'外币单价':'采购单价'"
+              v-if="from.bjlx !== 3"
+            >
+              <template slot-scope="scopr">
+                <el-input @input="cgdjInput(scopr)" v-model="scopr.row.cgdj"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="税率(%)" fixed>
+              <template slot-scope="scopr">
+                <el-input @input="slInput(scopr)" v-model="scopr.row.sl"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="含税单价" v-if="from.bjlx == 3" fixed>
+              <template slot="header" slot-scope="scope">
+                <span>含税单价</span>
+                <el-checkbox @change="wsdjChecked = false" v-model="hsdjChecked"></el-checkbox>
+              </template>
+              <template slot-scope="scopr">
+                <el-input
+                  @input="hsdjInput(scopr)"
+                  :readonly="wsdjChecked"
+                  v-model="scopr.row.wbhsdj"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="外币含税单价" v-if="from.bjlx !== 3" fixed>
+              <template slot-scope="scopr">
+                <el-input
+                  :readonly="true"
+                  v-model="scopr.row.wbhsdj"
+                  clearable
+                >{{wbhsdjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbsj" :label="from.bjlx == 3?'税金':'外币税金'">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.wbsj">{{wbsjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbhk" :label="from.bjlx == 3?'货款':'外币货款'">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.wbhk">{{wbhkComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="关税" v-if="from.bjlx !== 3" fixed>
+              <template slot-scope="scopr">
+                <el-input @input="gsInput(scopr)" v-model="scopr.row.gs"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbhj" :label="from.bjlx == 3?'合计':'外币合计'">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.wbhj">{{wbhjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="重量(KG)" v-if="from.bjlx == 3" fixed>
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.cpkg"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="人民币单价" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.rmbdj" :readonly="true"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="人民币合计" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.rmbhj" :readonly="true">{{rmbhjCount(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.zy"></el-input>
+              </template>
+            </el-table-column>
+            <!-- <el-table-column label="操作">
+              <template slot-scope="scopr">
+                <el-button style="color:#f56c6c" @click="deletClick(scopr.$index)" type="text">删除</el-button>
+              </template>
+            </el-table-column>-->
+          </el-table>
+          <ul class="tableButton">
+            <li
+              :style="{'width':width}"
+              v-for="index of widthList"
+              :key="index"
+            >{{index == 1?'折扣后合计':index == widthList-6?wbsjHjCount():index == widthList-5?wbhkHjCount():index == widthList-3?wbhjZkhCount():''}}</li>
+          </ul>
+        </sections>
+        <div class="conditions">
+          <div class="conditions-top">
+            <div style="width:20%;float:left">
+              <span>合同条款主题</span>
+              <el-select
+                v-model="from.typeofcontract"
+                placeholder="请选择"
+                @change="typeofcontactChange"
+              >
+                <el-option
+                  v-for="item in typeofcontactList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+            </div>
+            <div style="width:70%;float:left;text-align: center;">合同条款内容</div>
+            <div style="width:10%;float:left">操作</div>
+          </div>
+          <div class="conditions-center" style="height:120px">
+            <div style="float:left;width:100%" v-for="(item,index) in jxcXsddHttkList" :key="index">
+              <div style="width:20%;float:left">
+                <el-input v-model="item.htzt"></el-input>
+              </div>
+              <div style="width:70%;float:left;text-align: center;">
+                <el-input v-model="item.htnr"></el-input>
+              </div>
+              <div style="width:10%;float:left">
+                <el-button @click="deleteHttk(index)" type="text">删除</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="handle-bar" style="margin-bottom:30px">
+        <el-button
+          style="float:left"
+          icon="el-icon-plus"
+          @click="typeofcontactClick"
+          type="text"
+        >添加一行</el-button>
+        <el-button type="success" @click="successClick(-1)">保存</el-button>
+        <el-button type="primary" @click="successClick(0)">提交</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <!-- 品牌选择 -->
+    <el-dialog
+      title="产品列表"
+      :visible.sync="customerVisible"
+      width="70%"
+      :before-close="handleCloseVisible"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-cascader
+          v-model="cascaderIds"
+          :options="options"
+          :props="props"
+          :show-all-levels="false"
+          collapse-tags
+          clearable
+        ></el-cascader>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-input placeholder="请输入品牌" clearable v-model="customerFrom.brandName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品名</label>
+        <el-input placeholder="请输入品名" clearable v-model="customerFrom.productName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">规格型号</label>
+        <el-input placeholder="请输入规格型号" clearable v-model="customerFrom.productModelnum"></el-input>
+      </div>
+      <div style="width:100%;text-align: center;margin-bottom:20px">
+        <el-button type="primary" @click="customerSearch">查询</el-button>
+        <el-button @click="customerReset">重置</el-button>
+      </div>
+      <div class="customer-box">
+        <el-table
+          :data="customerList"
+          style="width: 100%"
+          height="400"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column label="品牌">
+            <template slot-scope="scope">
+              <span
+                @click="customerClick(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.brandName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="productName" label="品名"></el-table-column>
+          <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+          <el-table-column prop="measureName" label="单位"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChangeA"
+        @current-change="handleCurrentChangeA"
+        :current-page.sync="customerFrom.page"
+        :page-size="customerFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span
+        slot="footer"
+        class="dialog-footer"
+        style="width: 100%;
+    display: inline-block;
+    text-align: center;"
+      >
+        <el-button type="success" @click="customerAdd">确认</el-button>
+        <el-button @click="customerVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 选择品名 -->
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品名"
+      :visible.sync="dialogComname"
+      width="50%"
+      :before-close="handleComname"
+    >
+      <div style="float:left;height:400px;width:100%">
+        <div style="width:30%;float:left;height:400px;">
+          <el-input style="width:70%;" placeholder="输入关键字进行过滤" v-model="comnameText"></el-input>
+          <div style="width:100%;height:356px;overflow: auto;margin-top:10px">
+            <el-tree
+              class="filter-tree"
+              :data="comnameData"
+              node-key="brandId"
+              :props="defaultPropscomname"
+              default-expand-all
+              :filter-node-method="comnameNode"
+              ref="trees"
+              @node-click="comnameClick"
+            ></el-tree>
+          </div>
+        </div>
+        <ul class="comnameRight">
+          <li>
+            <span>品名:</span>
+            <span v-text="comnameList.nameCn"></span>
+          </li>
+          <li>
+            <span>英文品名:</span>
+            <span v-text="comnameList.nameEn"></span>
+          </li>
+          <li>
+            <span>创建人:</span>
+            <span v-text="comnameList.realname"></span>
+          </li>
+          <li>
+            <span>创建日期:</span>
+            <span v-text="comnameList.createDate"></span>
+          </li>
+          <li>
+            <span>关税(%):</span>
+            <span v-text="comnameList.tariff"></span>
+          </li>
+          <li>
+            <span>海关编码:</span>
+            <span v-text="comnameList.hgbm"></span>
+          </li>
+          <li>
+            <span>最后修改日期:</span>
+            <span v-text="comnameList.lastEdittime"></span>
+          </li>
+          <li>
+            <span>功能:</span>
+            <span v-text="comnameList.function"></span>
+          </li>
+          <li>
+            <span>原理:</span>
+            <span v-text="comnameList.theory"></span>
+          </li>
+          <li>
+            <span>用途:</span>
+            <span v-text="comnameList.usage"></span>
+          </li>
+          <li>
+            <span>德国HS CODE:</span>
+            <span v-text="comnameList.hsCode"></span>
+          </li>
+        </ul>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleComname">关闭</el-button>
+        <el-button type="primary" @click="submit">选择此品名</el-button>
+      </span>
+    </el-dialog>
+
+    <gysDialog
+      @gysDialog="gysDialog"
+      @close="dialogVisibleGys = false"
+      :dialogVisibleGys="dialogVisibleGys"
+    ></gysDialog>
+
+    <treeDlalog
+      @dialogTreeData="dialogTreeData"
+      :trddId="treeId"
+      @close="dialogStatus = false"
+      :dialogStatus="dialogStatus"
+    ></treeDlalog>
+
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+
+    <lxrGysDialog
+      @lxrDialog="lxrDialog"
+      @colse="lxrdialogVisible = false"
+      :gysId="from.gysId"
+      :lxrdialogVisible="lxrdialogVisible"
+    ></lxrGysDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  jxcXsddQueryck,
+  sgdSgdToCgdd,
+  cgddFindHttk,
+  cgddAddOrUpdate,
+  cgddFindCgddInfoByCgddId,
+  cgddFindDwtt,
+  cgddFindSl,
+  sgdHttk,
+  cgddFileRemoveById,
+} from "@/api/jxc/jxc";
+import { crmGysQueryPageList, crmGysQueryById } from "@/api/crm/gysxx";
+import { bjdQueryDwtt, httkQueryTypeOfContact } from "@/api/crm/xsbjd";
+import { usersList, cgddFileUpload } from "@/api/common";
+import {
+  xbjQueryBzhl,
+  xbjQueryBrandTree,
+  xbjQueryProduct,
+  adminYszdGetYlzdSetByType,
+} from "@/api/crm/xbjTable";
+import gysDialog from "../../components/gysDialog";
+import treeDlalog from "../../components/treeDlalog";
+import Lockr from "lockr";
+import gxrDialog from "../../components/gxrDialog";
+import { findAllComnameNameAndId } from "@/api/crm/cpxx";
+import { crmProductComnameQueryById } from "@/api/crm/pmgl";
+import lxrGysDialog from "../../components/lxrGysDialog";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    gysDialog,
+    treeDlalog,
+    gxrDialog,
+    lxrGysDialog,
+  },
+  watch: {
+    comnameText(val) {
+      this.$refs.trees.filter(val);
+    },
+  },
+  computed: {
+    wbsjHjCount() {
+      return () => {
+        let num = 0;
+        for (var i in this.tableList) {
+          num += Number(this.tableList[i].wbsj);
+        }
+        return (num * (this.from.zdzk / 100)).toFixed(2);
+      };
+    },
+    wbhkHjCount() {
+      return () => {
+        let num = 0;
+        for (var i in this.tableList) {
+          num += Number(this.tableList[i].wbhk);
+        }
+        return (num * (this.from.zdzk / 100)).toFixed(2);
+      };
+    },
+    wbhjZkhCount() {
+      return () => {
+        let num = 0;
+        for (var i in this.tableList) {
+          num += Number(this.tableList[i].wbhj);
+        }
+        return (num * (this.from.zdzk / 100)).toFixed(2);
+      };
+    },
+    rmbhjCount() {
+      return (data) => {
+        this.tableList[data.$index].rmbhj = (
+          Number(this.tableList[data.$index].orderQuantity) *
+          Number(this.tableList[data.$index].rmbdj)
+        ).toFixed(2);
+      };
+    },
+    wbhsdjComputed() {
+      return (data) => {
+        this.tableList[data.$index].wbhsdj = (
+          Number(this.tableList[data.$index].cgdj) +
+          Number(this.tableList[data.$index].cgdj) *
+            (Number(this.tableList[data.$index].sl) * 0.01)
+        ).toFixed(2);
+      };
+    },
+    wbsjComputed() {
+      return (data) => {
+        if (this.from.bjlx != 3) {
+          this.tableList[data.$index].wbsj = (
+            Number(this.tableList[data.$index].orderQuantity) *
+            Number(this.tableList[data.$index].cgdj) *
+            (Number(this.tableList[data.$index].sl) * 0.01)
+          ).toFixed(2);
+        }
+      };
+    },
+    wbhkComputed() {
+      return (data) => {
+        if (this.from.bjlx != 3) {
+          this.tableList[data.$index].wbhk = (
+            Number(this.tableList[data.$index].orderQuantity) *
+            Number(this.tableList[data.$index].cgdj)
+          ).toFixed(2);
+        }
+      };
+    },
+    wbhjComputed() {
+      return (data) => {
+        if (this.from.bjlx != 3) {
+          this.tableList[data.$index].wbhj = (
+            Number(this.tableList[data.$index].orderQuantity) *
+            Number(this.tableList[data.$index].wbhsdj)
+          ).toFixed(2);
+        }
+      };
+    },
+  },
+  props: {
+    cgddId: {
+      type: Object,
+    },
+  },
+  data() {
+    return {
+      widowData: {},
+      tableListHj: [
+        {
+          hj: "折扣后合计",
+          pm: "",
+          xh: "",
+          mxsl: "",
+          dj: "",
+          sl: "",
+          wbhsdjHj: "",
+          wbsjHj: 0,
+          wbhkHj: 0,
+          gs: "",
+          wbhjZkh: 0,
+          rmbdj: "",
+          rmbhj: "",
+          zy: "",
+        },
+      ],
+      hjTableData: [
+        {
+          hj: "合计",
+        },
+      ],
+      gwyzfHj: 0,
+      yhzzf: 0,
+      gjyfHj: 0,
+      bbConte: [],
+      wbConte: [],
+      tableDataFy: [],
+      bbHeader: [],
+      wbHeader: [],
+      btnStr: "查看订单分摊费用",
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      cgddTitle: "",
+      typeofcontactList: [],
+      jxcXsddHttkList: [],
+      dragtableData: [{}],
+      dialogft: false,
+      customerList: [],
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },
+      customerVisible: false,
+      options: [],
+      cascaderIds: [],
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      hl: "",
+      zzs: "",
+      wbbz: "",
+      wbbzList: [],
+      dwttList: [],
+      contactList: [],
+      total: 0,
+      tableData: [],
+      ckList: [],
+      ywyList: [],
+      bjlxList: [
+        { name: "大货", id: 1 },
+        { name: "单独", id: 2 },
+        { name: "国内", id: 3 },
+      ],
+      cgddlxList: [
+        { name: "新建", id: 2 },
+        { name: "申购生成", id: 1 },
+      ],
+      fplxList: [
+        {
+          name: "增值税发票",
+        },
+        {
+          name: "普通发票",
+        },
+      ],
+      loading: false,
+      dialogVisible: false,
+      dialogVisibleGys: false,
+      dialogStatus: false,
+      gxrDialogStatus: false,
+      treeId: "",
+      from: {
+        wbbz: "",
+        hl: "",
+        gysName: "",
+        contactPhone: "",
+        wbsum: "12312",
+        cgddId: "",
+        gysId: "",
+        contactId: "",
+        contactName: "",
+        fplx: "增值税发票",
+        cgddDh: "",
+        jhrq: "",
+        czy: "",
+        czyName: "",
+        remark: "",
+        ywy: "",
+        fkqx: "",
+        createDate: "",
+        dwtt: "",
+        bjlx: 1,
+        sfbd: "否",
+        zdzk: "100",
+        cgddlx: 2,
+        ck: "",
+        gysddDh: "",
+        gsyfpdh: "",
+        gwyzf: 0,
+        gjyf: 0,
+        typeofcontract: "",
+        zzs: "",
+        jhdz: "",
+        remark: "",
+        fksf: "正在跟进",
+        gxr: "",
+        qtwbfyhj: "",
+        qtbbfyhj: "",
+        sgdId: "",
+        cbzje: 0,
+        yhzzf: "",
+        gysdddh: "",
+        gysfpdh: "",
+        bjdh: "",
+      },
+      fkfsList: [{ name: "正在跟进" }],
+      typeofcontract: [],
+      tableList: [
+        {
+          cgddmxId: "",
+          cgddId: "",
+          sgdmxId: "",
+          productId: "",
+          productName: "",
+          productModelnum: "",
+          brandId: "",
+          brandName: "",
+          commnameId: "",
+          commnameName: "",
+          measureName: "",
+          measureUnitid: "",
+          orderQuantity: "",
+          wbdj: "",
+          sl: "",
+          wbbz: "",
+          cgdj: "",
+          hl: "",
+          zzs: "",
+          wbhsdj: "",
+          wbsj: "",
+          wbhk: "",
+          gs: "",
+          zk: "",
+          gwyzf: "",
+          wbhj: "",
+          rmbdj: "",
+          rmbhj: "",
+          bbsum: "",
+          gjyf: "",
+          zy: "",
+        },
+      ],
+      fileList: [],
+      ywyName: "",
+      gxrName: "",
+      ftStatus: false,
+      fileIds: [],
+      tableKey: 0,
+      wsdjChecked: true,
+      hsdjChecked: false,
+      comnameText: "",
+      dialogComname: false,
+      comnameData: [],
+      defaultPropscomname: {
+        children: "children",
+        label: "name",
+      },
+      comnameList: [],
+      scopeIndex: 0,
+      width: "",
+      widthList: 0,
+      lxrdialogVisible: false,
+    };
+  },
+  methods: {
+    lxrDialog(id, name, phone) {
+      this.from.contactName = name;
+      this.contactName = name;
+      this.from.contactPhone = phone;
+      this.from.contactId = id;
+    },
+    contactDialog() {
+      if (this.from.gysId == "") {
+        this.msgInfo("请选择供应商");
+        return;
+      }
+      this.lxrdialogVisible = true;
+    },
+    dydddhClick(row) {
+      this.windowOpen("/addPrice", {
+        id: this.encode(row.xsddId),
+        type: "toView",
+        listType: "jxc_xsdd",
+      });
+    },
+    contactChange(val) {
+      for (var i in this.contactList) {
+        if (this.contactList[i].contactId == val) {
+          this.from.contactPhone = this.contactList[i].contactPhone;
+        }
+      }
+    },
+    comnameNode(value, data) {
+      if (!value) return true;
+      return data.name.indexOf(value) !== -1;
+    },
+    comnameClick(data) {
+      this.tableList[this.scopeIndex].nameCn = data.name;
+      this.tableList[this.scopeIndex].comnameId = data.id;
+      crmProductComnameQueryById({
+        id: data.id,
+      })
+        .then((res) => {
+          this.comnameList = res.data;
+        })
+        .catch((res) => {});
+    },
+    submit() {
+      this.dialogComname = false;
+    },
+    handleComname() {
+      this.dialogComname = false;
+      this.tableList[this.scopeIndex].nameCn = "";
+      this.tableList[this.scopeIndex].comnameId = "";
+    },
+    comnameIdClick(index) {
+      this.scopeIndex = index;
+      this.dialogComname = true;
+      this.comnameText = "";
+      this.comnameTree();
+    },
+    comnameTree() {
+      findAllComnameNameAndId()
+        .then((res) => {
+          this.comnameData = res.data;
+        })
+        .catch((res) => {});
+    },
+    orderQuantityInput(scope) {
+      this.rmbdjCount(scope);
+      if (this.wsdjChecked) {
+        this.wsdjInput(scope);
+      } else {
+        this.hsdjInput(scope);
+      }
+    },
+    cgdjInput(scope) {
+      this.rmbdjCount(scope);
+    },
+    gsInput(scope) {
+      this.rmbdjCount(scope);
+    },
+    //表格输入合计
+    rmbdjCount(data) {
+      let num = 0;
+      let gsNum = 0;
+      let pjGs = 0;
+      let slCgGs = 0;
+      let zwbX = 0;
+      let zbbY = 0;
+      let zrmbR = 0;
+      let zzs = 0;
+      let rmbhjNum = 0;
+      let cgzcbW = 0;
+      for (var i in this.tableList) {
+        num += Number(this.tableList[i].orderQuantity);
+        gsNum +=
+          Number(this.tableList[i].orderQuantity) *
+          Number(this.tableList[i].gs);
+        slCgGs +=
+          Number(this.tableList[i].orderQuantity) *
+          Number(this.tableList[i].gs) *
+          Number(this.tableList[i].cgdj);
+        cgzcbW +=
+          Number(this.tableList[i].orderQuantity) *
+          Number(this.tableList[i].wbhsdj);
+      }
+      pjGs = (gsNum / num).toFixed(2);
+      zzs = this.zzs;
+      if (this.from.bjlx == 1) {
+        zwbX =
+          slCgGs +
+          Number(this.from.gwyzf) * pjGs +
+          Number(this.from.gjyf) * pjGs +
+          Number(this.from.qtwbfyhj) * pjGs;
+        zrmbR =
+          zwbX * zzs * this.from.hl * 1.03 + Number(this.from.qtbbfyhj) * zzs;
+        rmbhjNum =
+          (
+            (zrmbR / slCgGs) *
+            Number(data.row.cgdj) *
+            Number(data.row.gs)
+          ).toFixed(2) !== "NaN"
+            ? (
+                (zrmbR / slCgGs) *
+                Number(data.row.cgdj) *
+                Number(data.row.gs)
+              ).toFixed(2)
+            : "";
+      } else if (this.from.bjlx == 2) {
+        zwbX =
+          slCgGs +
+          Number(this.from.gwyzf) * pjGs +
+          Number(this.from.qtwbfyhj) * pjGs;
+        zbbY =
+          Number(this.from.gjyf) * pjGs * zzs +
+          Number(this.from.qtbbfyhj) * zzs +
+          Number(this.from.yhzzf);
+        zrmbR = zwbX * zzs * this.from.hl * 1.03 + zbbY;
+        rmbhjNum =
+          (
+            (zrmbR / slCgGs) *
+            Number(data.row.cgdj) *
+            Number(data.row.gs)
+          ).toFixed(2) !== "NaN"
+            ? (
+                (zrmbR / slCgGs) *
+                Number(data.row.cgdj) *
+                Number(data.row.gs)
+              ).toFixed(2)
+            : "";
+      } else {
+        zrmbR = cgzcbW + this.from.gwyzf + this.from.qtbbfyhj * zzs;
+        this.from.cbzje = zrmbR;
+      }
+      data.row.rmbdj = rmbhjNum;
+    },
+    //分摊输入合计
+    ftRmbdjCount() {
+      let num = 0;
+      let gsNum = 0;
+      let pjGs = 0;
+      let slCgGs = 0;
+      let zwbX = 0;
+      let zbbY = 0;
+      let zrmbR = 0;
+      let zzs = 0;
+      let rmbhjNum = 0;
+      let cgzcbW = 0;
+      for (var i in this.tableList) {
+        num += Number(this.tableList[i].orderQuantity);
+        gsNum +=
+          Number(this.tableList[i].orderQuantity) *
+          Number(this.tableList[i].gs);
+        slCgGs +=
+          Number(this.tableList[i].orderQuantity) *
+          Number(this.tableList[i].gs) *
+          Number(this.tableList[i].cgdj);
+        let orderQuantityNum =
+          this.tableList[i].orderQuantity == ""
+            ? 0
+            : this.tableList[i].orderQuantity;
+        let wbhsdjNum =
+          this.tableList[i].wbhsdj == undefined ? 0 : this.tableList[i].wbhsdj;
+        cgzcbW += Number(orderQuantityNum) * Number(wbhsdjNum);
+        6;
+      }
+      pjGs = (gsNum / num).toFixed(2);
+      for (var k in this.tableList) {
+        zzs = this.zzs;
+        if (this.from.bjlx == 1) {
+          zwbX =
+            slCgGs +
+            Number(this.from.gwyzf) * pjGs +
+            Number(this.from.gjyf) * pjGs +
+            Number(this.from.qtwbfyhj) * pjGs;
+          zrmbR =
+            zwbX * zzs * this.from.hl * 1.03 + Number(this.from.qtbbfyhj) * zzs;
+          rmbhjNum =
+            (
+              (zrmbR / slCgGs) *
+              Number(this.tableList[k].cgdj) *
+              Number(this.tableList[k].gs)
+            ).toFixed(2) !== "NaN"
+              ? (
+                  (zrmbR / slCgGs) *
+                  Number(this.tableList[k].cgdj) *
+                  Number(this.tableList[k].gs)
+                ).toFixed(2)
+              : "";
+        } else if (this.from.bjlx == 2) {
+          zwbX =
+            slCgGs +
+            Number(this.from.gwyzf) * pjGs +
+            Number(this.from.qtwbfyhj) * pjGs;
+          zbbY =
+            Number(this.from.gjyf) * pjGs * zzs +
+            Number(this.from.qtbbfyhj) * zzs +
+            Number(this.from.yhzzf);
+          zrmbR = zwbX * zzs * this.from.hl * 1.03 + zbbY;
+          rmbhjNum =
+            (
+              (zrmbR / slCgGs) *
+              Number(this.tableList[k].cgdj) *
+              Number(this.tableList[k].gs)
+            ).toFixed(2) !== "NaN"
+              ? (
+                  (zrmbR / slCgGs) *
+                  Number(this.tableList[k].cgdj) *
+                  Number(this.tableList[k].gs)
+                ).toFixed(2)
+              : "";
+        } else {
+          zrmbR =
+            cgzcbW + Number(this.from.gwyzf) + Number(this.from.qtbbfyhj) * zzs;
+          this.from.cbzje = zrmbR.toFixed(2);
+        }
+        this.tableList[k].rmbdj = rmbhjNum;
+      }
+    },
+    slInput(scope) {
+      if (this.wsdjChecked) {
+        this.wsdjInput(scope);
+      } else {
+        this.hsdjInput(scope);
+      }
+      this.rmbdjCount(scope);
+    },
+    wsdjInput(scope) {
+      scope.row.wbhsdj = (
+        Number(scope.row.wbdj) +
+        Number(scope.row.wbdj) * (Number(scope.row.sl) / 100)
+      ).toFixed(2);
+      scope.row.wbsj = (
+        Number(scope.row.wbdj) *
+        (Number(scope.row.sl) / 100) *
+        Number(scope.row.orderQuantity)
+      ).toFixed(2);
+      scope.row.wbhk = (
+        Number(scope.row.wbdj) * Number(scope.row.orderQuantity)
+      ).toFixed(2);
+      scope.row.wbhj = (
+        Number(scope.row.wbhsdj) * Number(scope.row.orderQuantity)
+      ).toFixed(2);
+      this.rmbdjCount(scope);
+    },
+    hsdjInput(scope) {
+      scope.row.wbdj = (
+        Number(scope.row.wbhsdj) /
+        (Number(scope.row.sl) / 100 + 1)
+      ).toFixed(2);
+      scope.row.wbsj = (
+        Number(scope.row.wbdj) *
+        (Number(scope.row.sl) / 100) *
+        Number(scope.row.orderQuantity)
+      ).toFixed(2);
+      scope.row.wbhk = (
+        Number(scope.row.wbdj) * Number(scope.row.orderQuantity)
+      ).toFixed(2);
+      scope.row.wbhj = (
+        Number(scope.row.wbhsdj) * Number(scope.row.orderQuantity)
+      ).toFixed(2);
+      this.rmbdjCount(scope);
+    },
+    zzsInput() {
+      this.zzs = 0;
+      // for (var i in this.tableDataFy) {
+      //   this.zzs += Number(this.tableDataFy[i].zzs || 0);
+      // }
+      this.zzs += Number(this.tableDataFy[0].zzs);
+      this.ftRmbdjCount();
+    },
+    zzsHjInput() {
+      this.tableDataFy.forEach((item, index) => {
+        // item.zzs = (this.zzs / this.tableDataFy.length).toFixed(2);
+        item.zzs = this.zzs;
+      });
+      this.ftRmbdjCount();
+    },
+    bjlxChange() {
+      this.wbHeader = [];
+      this.bbHeader = [];
+      for (var i in this.tableDataFy) {
+        this.tableDataFy[i].wbList = [];
+        this.tableDataFy[i].bbList = [];
+      }
+      this.wbConte = [];
+      this.bbConte = [];
+      this.from.qtwbfyhj = 0;
+      this.from.qtbbfyhj = 0;
+      this.ftRmbdjCount();
+    },
+    tableWbhj() {
+      this.from.qtwbfyhj = 0;
+      for (var i in this.tableDataFy) {
+        for (var k in this.tableDataFy[i].wbList) {
+          this.from.qtwbfyhj += Number(this.tableDataFy[i].wbList[k] || 0);
+        }
+      }
+      for (var b in this.wbConte) {
+        this.wbConte[b].conte = 0;
+        for (var i in this.tableDataFy) {
+          this.wbConte[b].conte += Number(this.tableDataFy[i].wbList[b] || 0);
+        }
+      }
+      this.ftRmbdjCount();
+    },
+    yhzzfInput() {
+      this.from.yhzzf = 0;
+      this.yhzzf = 0;
+      for (var i in this.tableDataFy) {
+        this.from.yhzzf += Number(this.tableDataFy[i].yhzzf || 0);
+        this.yhzzf += Number(this.tableDataFy[i].yhzzf || 0);
+      }
+      this.ftRmbdjCount();
+    },
+    yhzzfHjInput() {
+      this.tableDataFy.forEach((item, index) => {
+        item.yhzzf = (this.yhzzf / this.tableDataFy.length).toFixed(2);
+        this.from.yhzzf = this.yhzzf;
+      });
+      this.ftRmbdjCount();
+    },
+    zyhzzfHjInput() {
+      this.tableDataFy.forEach((item, index) => {
+        item.yhzzf = (this.from.yhzzf / this.tableDataFy.length).toFixed(2);
+        this.yhzzf = this.from.yhzzf;
+      });
+      this.ftRmbdjCount();
+    },
+    tableBbhj() {
+      this.from.qtbbfyhj = 0;
+      for (var i in this.tableDataFy) {
+        for (var k in this.tableDataFy[i].bbList) {
+          this.from.qtbbfyhj += Number(this.tableDataFy[i].bbList[k] || 0);
+        }
+      }
+      for (var b in this.bbConte) {
+        this.bbConte[b].conte = 0;
+        for (var i in this.tableDataFy) {
+          this.bbConte[b].conte += Number(this.tableDataFy[i].bbList[b] || 0);
+        }
+      }
+      this.ftRmbdjCount();
+    },
+    zgwyzfInput() {
+      this.tableDataFy.forEach((item, index) => {
+        item.gwyzf = (this.from.gwyzf / this.tableDataFy.length).toFixed(2);
+        this.gwyzfHj = this.from.gwyzf;
+      });
+      this.ftRmbdjCount();
+    },
+    zgjyfInput() {
+      this.tableDataFy.forEach((item, index) => {
+        item.gjyf = (this.from.gjyf / this.tableDataFy.length).toFixed(2);
+        this.gjyfHj = this.from.gjyf;
+      });
+      this.ftRmbdjCount();
+    },
+    gwyzfHjInput() {
+      this.tableDataFy.forEach((item, index) => {
+        item.gwyzf = (this.gwyzfHj / this.tableDataFy.length).toFixed(2);
+        this.from.gwyzf = this.gwyzfHj;
+      });
+      this.ftRmbdjCount();
+    },
+    gjyfHjInput() {
+      this.tableDataFy.forEach((item, index) => {
+        item.gjyf = (this.gjyfHj / this.tableDataFy.length).toFixed(2);
+        this.from.gjyf = this.gjyfHj;
+      });
+      this.ftRmbdjCount();
+    },
+    gwyzfInput() {
+      this.gwyzfHj = 0;
+      this.from.gwyzf = 0;
+      this.tableDataFy.forEach((item, index) => {
+        this.gwyzfHj += Number(item.gwyzf) || 0;
+        this.from.gwyzf += Number(item.gwyzf) || 0;
+      });
+      this.ftRmbdjCount();
+    },
+    gjyfInput() {
+      this.gjyfHj = 0;
+      this.from.gjyf = 0;
+      this.tableDataFy.forEach((item, index) => {
+        this.gjyfHj += Number(item.gjyf) || 0;
+        this.from.gjyf += Number(item.gjyf) || 0;
+      });
+      this.ftRmbdjCount();
+    },
+    bbClick(index) {
+      this.$set(
+        this.from,
+        "qtbbfyhj",
+        this.from.qtbbfyhj - this.bbConte[index].conte
+      );
+      this.bbHeader.splice(index, 1);
+      this.bbConte.splice(index, 1);
+      for (var i in this.tableDataFy) {
+        this.tableDataFy[i].bbList.splice(index, 1);
+      }
+      this.tableKey += 1;
+      this.ftRmbdjCount();
+    },
+    wbClick(index) {
+      this.$set(
+        this.from,
+        "qtwbfyhj",
+        this.from.qtwbfyhj - this.wbConte[index].conte
+      );
+      this.wbHeader.splice(index, 1);
+      this.wbConte.splice(index, 1);
+      for (var i in this.tableDataFy) {
+        this.tableDataFy[i].wbList.splice(index, 1);
+      }
+      this.tableKey += 1;
+      this.ftRmbdjCount();
+    },
+    ftDelete(index) {
+      this.tableHeader.splice(index, 1);
+    },
+    bbfyClick() {
+      this.bbHeader.push({
+        value: "",
+      });
+      this.bbConte.push({
+        conte: 0,
+      });
+    },
+    wbfyClick() {
+      this.wbHeader.push({
+        value: "",
+      });
+      this.wbConte.push({
+        conte: 0,
+      });
+    },
+    ftClick() {
+      if (this.ftStatus) {
+        this.btnStr = "查看订单分摊费用";
+        this.ftStatus = !this.ftStatus;
+      } else {
+        this.btnStr = "隐藏订单分摊费用";
+        this.ftStatus = !this.ftStatus;
+      }
+    },
+    wbbzChange(val) {
+      for (var i in this.wbbzList) {
+        if (this.wbbzList[i].bzid == val) {
+          this.from.hl = this.wbbzList[i].zxhl;
+        }
+      }
+      this.ftRmbdjCount();
+    },
+    gxrDialogTreeData(id, name) {
+      this.from.gxr = id;
+      this.gxrName = name;
+    },
+    gxrDialog() {
+      this.gxrDialogStatus = true;
+    },
+    dialogTreeData(id, name) {
+      this.from.ywy = id;
+      this.ywyName = name;
+    },
+    ywyDialog() {
+      this.dialogStatus = true;
+    },
+    deleteUpload(index, row) {
+      this.fileList.splice(index, 1);
+      cgddFileRemoveById({
+        id: row.fileId,
+      })
+        .then((res) => {})
+        .catch((res) => {});
+      for (var i in this.fileIds) {
+        if (this.fileIds[i].fileId == row.fileId) {
+          this.fileIds.splice(i, 1);
+        }
+      }
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      if (this.fileList.length >= 5) {
+        this.msgInfo("最多支持上传5个文件");
+        1;
+      } else {
+        var files = event.target.files;
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      cgddFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+          this.fileIds.push({
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    successClick(val) {
+      if (this.wsdjCheckbox) {
+        this.from.pricelx = 1;
+      } else if (this.hsdjCheckbox) {
+        this.from.pricelx = 2;
+      }
+      for (var i in this.jxcXsddHttkList) {
+        this.jxcXsddHttkList[i].px = Number(i) + 1;
+      }
+      this.from.status = val;
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      for (var i in this.tableList) {
+        for (var k in this.tableDataFy) {
+          if (this.tableList[i].xsddId == this.tableDataFy[k].xsddId) {
+            this.tableList[i].gjyf = this.tableDataFy[k].gjyf;
+            this.tableList[i].gwyzf = this.tableDataFy[k].gwyzf;
+          }
+        }
+        this.tableList[i].wbsum = 0;
+        this.tableList[i].wbinfo = [];
+        this.tableList[i].bbsum = 0;
+        this.tableList[i].bbinfo = [];
+      }
+      for (var i in this.tableDataFy) {
+        for (var k in this.tableDataFy[i].wbList) {
+          if (this.tableDataFy[i].wbList[k] === "") {
+            this.msgInfo("请输入外币费用");
+            return;
+          }
+          this.tableList[i].wbcount = this.tableDataFy[i].wbList.length;
+          this.tableList[i].wbsum += Number(this.tableDataFy[i].wbList[k]);
+        }
+      }
+      for (var i in this.tableDataFy) {
+        for (var k in this.tableDataFy[i].bbList) {
+          if (this.tableDataFy[i].bbList[k] === "") {
+            this.msgInfo("请输入本币费用");
+            return;
+          }
+          this.tableList[i].bbcount = this.tableDataFy[i].bbList.length;
+          this.tableList[i].bbsum += Number(this.tableDataFy[i].bbList[k]);
+        }
+      }
+      for (var i in this.tableList) {
+        for (var k in this.tableDataFy) {
+          if (this.tableList[i].xsddId == this.tableDataFy[k].xsddId) {
+            for (var y in this.tableDataFy[k].bbList) {
+              this.tableList[i].bbinfo.push({
+                name: this.bbHeader[y].value,
+                code: this.tableDataFy[k].bbList[y],
+              });
+            }
+            for (var y in this.tableDataFy[k].wbList) {
+              this.tableList[i].wbinfo.push({
+                name: this.wbHeader[y].value,
+                code: this.tableDataFy[k].wbList[y],
+              });
+            }
+          }
+        }
+      }
+      for (var k in this.tableList) {
+        this.tableList[k].yhzzf = this.tableDataFy[0].yhzzf;
+      }
+      if (this.from.bjlx == 3) {
+        this.$set(this.from, "kdf", this.from.gwyzf);
+      } else {
+        this.$set(this.from, "kdf", 0);
+      }
+      this.from.zzs = this.zzs;
+      cgddAddOrUpdate({
+        cgdd: this.from,
+        cgddmx: this.tableList,
+        httk: this.jxcXsddHttkList,
+        cgddFile: arr.join(","),
+      })
+        .then((res) => {
+          if (this.widowData.type == "sgxt") {
+            this.loading = true;
+            this.$message({
+              message: "下推成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage({ type: "sgxt" }, window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          } else if (this.widowData.type == "edit") {
+            this.loading = true;
+            this.$message({
+              message: "编辑成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage("child", window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          }
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+    typeofcontactClick() {
+      this.jxcXsddHttkList.push({
+        htzt: "",
+        htnr: "",
+        typeofcontract: "",
+        id: "",
+      });
+    },
+    deletClick(val) {
+      if (this.tableList.length == 1) {
+        this.msgInfo("无法删除最后一条");
+      } else {
+        this.tableList.splice(val, 1);
+      }
+    },
+    appendClick() {
+      this.tableList.push({
+        cgddmxId: "",
+        cgddId: "",
+        sgdmxId: "",
+        productId: "",
+        productName: "",
+        productModelnum: "",
+        brandId: "",
+        brandName: "",
+        commnameId: "",
+        commnameName: "",
+        measureName: "",
+        measureUnitid: "",
+        orderQuantity: "",
+        wbdj: "",
+        sl: "",
+        wbbz: "",
+        cgdj: "",
+        hl: "",
+        zzs: "",
+        wbhsdj: "",
+        wbsj: "",
+        wbhk: "",
+        gs: "",
+        zk: "",
+        gwyzf: "",
+        wbhj: "",
+        rmbdj: "",
+        rmbhj: "",
+        bbsum: "",
+        gjyf: "",
+        zy: "",
+      });
+    },
+    typeofcontactChange(val) {
+      this.jxcXsddHttkList = this.termsetting[val];
+    },
+    handleCloseft() {
+      this.handleCloseft = false;
+    },
+    customerClick(data) {
+      this.customerVisible = false;
+      this.tableList[this.customerIndex].brandName = data.brandName;
+      this.tableList[this.customerIndex].brandId = data.brandId;
+      this.tableList[this.customerIndex].commnameId = data.comnameId;
+      this.tableList[this.customerIndex].commnameName = data.commnameName;
+      this.tableList[this.customerIndex].measureName = data.measureName;
+      this.tableList[this.customerIndex].measureUnitid = data.measureUnitid;
+      this.tableList[this.customerIndex].productName = data.productName;
+      this.tableList[this.customerIndex].productId = data.productId;
+      this.tableList[this.customerIndex].productModelnum = data.productModelnum;
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    customerSearch() {
+      let arr = [];
+      if (this.cascaderIds.length) {
+        for (var i in this.cascaderIds) {
+          arr.push(this.cascaderIds[i][this.cascaderIds[i].length - 1]);
+        }
+        this.customerFrom.brandName = arr.join("|");
+      }
+      this.customerData();
+    },
+    customerReset() {
+      this.customerFrom.page = 1;
+      this.customerFrom.limit = 15;
+      this.cascaderIds = [];
+      this.customerFrom.brandName = "";
+      this.customerFrom.productModelnum = "";
+      this.customerFrom.productModelnum = "";
+      this.customerData();
+    },
+    handleCloseVisible() {
+      this.customerVisible = false;
+    },
+    customerCliuck(val) {
+      this.customerIndex = val;
+      this.customerVisible = true;
+      this.customerData();
+      xbjQueryBrandTree()
+        .then((res) => {
+          this.options = res.data;
+        })
+        .catch((res) => {});
+    },
+    dwttChange() {
+      this.querySl();
+    },
+    gysDialog(id, name) {
+      this.from.gysName = name;
+      crmGysQueryById({
+        gysId: id,
+      })
+        .then((res) => {
+          this.contactList = res.data.CrmGysContactList;
+          this.from.gysId = res.data.gysId;
+          this.from.contactId = res.data.CrmGysContactList[0].contactId;
+          this.from.contactName = res.data.CrmGysContactList[0].contactName;
+          this.from.contactPhone = res.data.CrmGysContactList[0].contactPhone;
+          this.dialogVisible = false;
+        })
+        .catch((res) => {});
+    },
+    queryName(val) {
+      crmGysQueryById({
+        gysId: val.gysId,
+      })
+        .then((res) => {
+          this.contactList = res.data.CrmGysContactList;
+          this.from.gysId = res.data.gysId;
+          this.from.contactId = res.data.CrmGysContactList[0].contactId;
+          this.from.contactPhone = res.data.CrmGysContactList[0].contactPhone;
+          this.from.gysName = val.name;
+          this.dialogVisible = false;
+        })
+        .catch((res) => {});
+    },
+    querySl() {
+      cgddFindSl({
+        slType: this.from.fplx,
+        dwtt: this.from.dwtt,
+      })
+        .then((res) => {
+          for (var i in this.tableList) {
+            this.tableList[i].sl = Number(res.sl.sl);
+          }
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      let self = this;
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          this.ylzdList = res.data;
+          for (var i in this.tableList) {
+            for (var k in res.data) {
+              this.$set(this.tableList[i], res.data[k].ylzdName, "");
+            }
+          }
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+      httkQueryTypeOfContact({ lx: 1 })
+        .then((res) => {
+          this.typeofcontactList = res.data;
+          this.from.typeofcontract = res.data[0].id;
+          sgdHttk()
+            .then((httk) => {
+              this.jxcXsddHttkList = httk.data[res.data[0].id];
+              this.termsetting = httk.data;
+            })
+            .catch((res) => {});
+        })
+        .catch((res) => {});
+
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      usersList({ pageType: 0 })
+        .then((res) => {
+          this.ywyList = res.data;
+        })
+        .catch(() => {});
+      xbjQueryBzhl()
+        .then((res) => {
+          this.wbbzList = res.data;
+        })
+        .catch((res) => {});
+      cgddFindDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.from.dwtt = res.data[0].id;
+          this.querySl();
+        })
+        .catch((res) => {});
+      if (this.widowData.type == "sgxt") {
+        sgdSgdToCgdd({
+          gysId: JSON.parse(this.widowData.list)[0].gysId,
+          sgdIds: this.widowData.sgdId,
+          sgdmxId: JSON.parse(this.widowData.list)
+            .map((item) => {
+              return item.sgdmx;
+            })
+            .join(","),
+        })
+          .then((res) => {
+            this.from.cgddDh = res.cgdd.cgddDh;
+            this.from.gysId = res.cgdd.gys.gysId;
+            this.from.gysName = res.cgdd.gys.gysName;
+            this.from.contactPhone = res.cgdd.contact.contactPhone;
+            this.from.contactId = res.cgdd.contact.contactId;
+            this.from.contactName = res.cgdd.contact.contactName;
+            this.contactList.push(res.cgdd.contact);
+            this.from.czyName = res.cgdd.czy.realname;
+            this.from.czy = res.cgdd.czy.userId;
+            this.from.ywy = res.cgdd.ywy.userId;
+            this.ywyName = res.cgdd.ywy.realname;
+            this.from.dwtt = res.cgdd.dwtt.dwtt;
+            this.from.sgdId = res.cgdd.sgdId;
+            this.zzs = res.ddft[0].zzs;
+            this.from.bjlx = Number(res.ddft[0].bjlx);
+            this.querySl();
+            this.from.wbbz = res.ddft[0].wbbz;
+            for (var i in res.ddft) {
+              if (res.ddft[i].wbList.length != res.ddft[0].wbSize) {
+                this.lengthClick(res.ddft[i].wbList, res.ddft[0].wbSize);
+              }
+              if (res.ddft[i].bbList.length != res.ddft[0].bbSize) {
+                this.lengthClick(res.ddft[i].bbList, res.ddft[0].bbSize);
+              }
+            }
+            this.tableDataFy = res.ddft;
+            this.from.qtbbfyhj = 0;
+            this.from.qtwbfyhj = 0;
+            for (var i in this.tableDataFy) {
+              for (var k in this.tableDataFy[i].wbList) {
+                this.from.qtwbfyhj += Number(this.tableDataFy[i].wbList[k]);
+              }
+              for (var k in this.tableDataFy[i].bbList) {
+                this.from.qtbbfyhj += Number(this.tableDataFy[i].bbList[k]);
+              }
+            }
+            if (this.from.qtwbfyhj == "") {
+              this.from.qtwbfyhj = 0;
+            }
+            if (this.from.qtbbfyhj == "") {
+              this.from.qtbbfyhj = 0;
+            }
+            if (res.ddft.length > 0) {
+              this.ftStatus = true;
+              if (res.ddft[0].wbMaxSize.length > 0) {
+                for (var i in res.ddft[0].wbMaxSize) {
+                  this.wbHeader.push({
+                    value: res.ddft[0].wbMaxSize[i].name,
+                  });
+                }
+              }
+              if (res.ddft[0].bbMaxSize.length > 0) {
+                for (var i in res.ddft[0].bbMaxSize) {
+                  this.bbHeader.push({
+                    value: res.ddft[0].bbMaxSize[i].name,
+                  });
+                }
+              }
+            }
+            this.tableDataFy.forEach((item, index) => {
+              this.gwyzfHj += Number(item.gwyzf) || 0;
+              this.from.gwyzf += Number(item.gwyzf) || 0;
+              this.gjyfHj += Number(item.gjyf) || 0;
+              this.from.gjyf += Number(item.gjyf) || 0;
+            });
+            crmGysQueryById({
+              gysId: res.cgdd.gys.gysId,
+            })
+              .then((res) => {
+                this.contactList = res.data.CrmGysContactList;
+              })
+              .catch((res) => {});
+            this.tableList = res.cgddmx;
+            for (var i in this.tableList) {
+              this.wsdjInput({
+                row: this.tableList[i],
+              });
+            }
+            this.from.hl = res.ddft[0].hl;
+            if (res.ddft[0].bbSize !== 0 && res.ddft.wbSize !== 0) {
+              if (this.from.bjlx == 3) {
+                this.bbfyDg(res.ddft, 0, 0, 0);
+              } else {
+                this.bbfyDg(res.ddft, 0, 0, 0);
+                this.wbfyDg(res.ddft, 0, 0, 0);
+              }
+            }
+            this.ftRmbdjCount();
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "edit") {
+        cgddFindCgddInfoByCgddId({
+          cgddId: this.decode(this.$route.query.id),
+        })
+          .then((res) => {
+            this.from = res.cgdd;
+            this.from.contactName = res.cgdd.gysContactName;
+            this.from.contactPhone = res.cgdd.contactPhone;
+            this.fileList = res.cgddFile;
+            this.ywyName = res.cgdd.ywyName;
+            this.gxrName = res.cgdd.gxrName;
+            this.zzs = res.ddft[0].zzs;
+            for (var i in res.ddft) {
+              if (res.ddft[i].wbList.length != res.ddft[0].wbSize) {
+                this.lengthClick(res.ddft[i].wbList, res.ddft[0].wbSize);
+              }
+              if (res.ddft[i].bbList.length != res.ddft[0].bbSize) {
+                this.lengthClick(res.ddft[i].bbList, res.ddft[0].bbSize);
+              }
+            }
+            this.tableDataFy = res.ddft;
+            if (this.from.qtwbfyhj == "") {
+              this.from.qtwbfyhj = 0;
+            }
+            if (this.from.qtbbfyhj == "") {
+              this.from.qtbbfyhj = 0;
+            }
+
+            if (res.ddft.length > 0) {
+              this.ftStatus = true;
+              if (res.ddft[0].wbMaxSize.length > 0) {
+                for (var i in res.ddft[0].wbMaxSize) {
+                  this.wbHeader.push({
+                    value: res.ddft[0].wbMaxSize[i].name,
+                  });
+                }
+              }
+              if (res.ddft[0].bbMaxSize.length > 0) {
+                for (var i in res.ddft[0].bbMaxSize) {
+                  this.bbHeader.push({
+                    value: res.ddft[0].bbMaxSize[i].name,
+                  });
+                }
+              }
+            }
+            this.from.gwyzf = 0;
+            this.from.gjyf = 0;
+            this.tableDataFy.forEach((item, index) => {
+              this.gwyzfHj += Number(item.gwyzf) || 0;
+              this.from.gwyzf += Number(item.gwyzf) || 0;
+              this.gjyfHj += Number(item.gjyf) || 0;
+              this.from.gjyf += Number(item.gjyf) || 0;
+            });
+            this.tableList = res.cgddmx;
+            this.from.typeofcontract = Number(res.httk[0].typeofcontact);
+            if (res.ddft[0].bbSize !== 0 && res.ddft.wbSize !== 0) {
+              if (this.from.bjlx == 3) {
+                this.bbfyDg(res.ddft, 0, 0, 0);
+              } else {
+                this.bbfyDg(res.ddft, 0, 0, 0);
+                this.wbfyDg(res.ddft, 0, 0, 0);
+              }
+            }
+            this.ftRmbdjCount();
+            crmGysQueryById({
+              gysId: res.cgdd.gysId,
+            })
+              .then((res) => {
+                this.contactList = res.data.CrmGysContactList;
+              })
+              .catch((res) => {});
+          })
+          .catch(() => {});
+      }
+    },
+    lengthClick(data, length) {
+      if (data.length != length) {
+        data.push("0");
+        this.lengthClick(data, length);
+      } else {
+        return data;
+      }
+    },
+    wbfyDg(data, key, fyKey, wbNum) {
+      if (key < data.length) {
+        wbNum += Number(data[key].wbList[fyKey]);
+        key++;
+        this.wbfyDg(data, key, fyKey, wbNum);
+      } else {
+        this.wbConte.push({
+          conte: wbNum,
+        });
+        key = 0;
+        wbNum = 0;
+        fyKey++;
+        if (fyKey == data[key].wbList.length) {
+          return;
+        }
+        this.wbfyDg(data, key, fyKey, wbNum);
+      }
+    },
+    bbfyDg(data, key, fyKey, bbNum) {
+      if (key < data.length) {
+        bbNum += Number(data[key].bbList[fyKey]);
+        key++;
+        this.bbfyDg(data, key, fyKey, bbNum);
+      } else {
+        this.bbConte.push({
+          conte: bbNum,
+        });
+        key = 0;
+        bbNum = 0;
+        fyKey++;
+        if (fyKey == data[key].bbList.length) {
+          return;
+        }
+        this.bbfyDg(data, key, fyKey, bbNum);
+      }
+    },
+    hidenView() {
+      if (this.fileIds.length != 0) {
+        for (var i in this.fileIds) {
+          cgddFileRemoveById({
+            id: this.fileIds[i].fileId,
+          })
+            .then((res) => {})
+            .catch((res) => {});
+        }
+      }
+      window.top.close();
+    },
+    dialog() {
+      this.dialogVisibleGys = true;
+      crmGysQueryPageList(this.dialogFrom)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChangeA(val) {
+      this.customerFrom.limit = val;
+      this.customerData();
+    },
+    handleCurrentChangeA(val) {
+      this.customerFrom.page = val;
+      this.customerData();
+    },
+    handleSelectionChange(val) {
+      this.selectionList = val;
+    },
+    customerAdd() {
+      this.customerVisible = false;
+      for (var i in this.selectionList) {
+        this.tableList[Number(i) + this.customerIndex] = Object.assign(
+          {},
+          this.selectionList[i]
+        );
+        this.$set(this.tableList, i, this.tableList[i]);
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    setTimeout(() => {
+      this.width = 100 / $(".el-table__row")[2].cells.length + "%";
+      this.widthList = $(".el-table__row")[2].cells.length;
+    }, 300);
+    this.widowData = this.$route.query;
+    this.from.czyName = Lockr.get("loginUserInfo").realname;
+    this.from.createDate = this.getTime();
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss'>
+.tableStyle .el-input__inner {
+  height: 20px;
+  text-align: center;
+}
+.tableStyle .el-input {
+  width: 85%;
+  float: left;
+}
+.create-container .el-input--suffix .el-input__inner {
+  padding-right: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  height: 40px;
+  li {
+    float: left;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+  }
+}
+.ftUlStatus {
+  min-width: 500px;
+  height: 40px;
+
+  li {
+    width: 129px;
+    float: left;
+    text-align: center;
+    line-height: 40px;
+  }
+}
+.ftStyle {
+  margin-top: 20px;
+  width: 100%;
+  min-height: 60px;
+  float: left;
+}
+.dialog-box {
+  .input-label {
+    width: 75px;
+  }
+}
+.input-boxA {
+  width: 10%;
+  float: left;
+  .input-label {
+    float: left;
+    line-height: 25px;
+    width: 100px;
+  }
+  .el-input {
+    width: 45%;
+  }
+  .el-select {
+    width: 45%;
+  }
+}
+.input-boxB {
+  width: 16%;
+  float: left;
+  .input-label {
+    width: 140px;
+  }
+  .el-input {
+    width: 55%;
+  }
+  .el-select {
+    width: 67%;
+  }
+}
+.input-box {
+  width: 25%;
+  .input-label {
+    width: 100px;
+  }
+  .el-input {
+    width: 67%;
+  }
+  .el-select {
+    width: 67%;
+  }
+}
+.drag {
+  min-width: 1300px;
+  min-height: 400px;
+  display: flex;
+  border: 1px solid #e6e6e6;
+  z-index: 99999;
+  background: #fff;
+  position: absolute;
+  top: 0;
+  left: 20%;
+  img {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+  }
+}
+
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+.comnameRight {
+  width: 70%;
+  float: right;
+  height: 400px;
+  padding: 0 20px;
+  li {
+    width: 50%;
+    float: left;
+    line-height: 50px;
+    span:nth-child(1) {
+      width: 32%;
+      float: left;
+    }
+    span:nth-child(2) {
+      width: 68%;
+      float: right;
+    }
+  }
+}
+</style>

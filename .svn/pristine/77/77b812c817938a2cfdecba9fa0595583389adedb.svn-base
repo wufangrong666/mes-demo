@@ -1,0 +1,393 @@
+import request from '@/utils/request'
+//询报价统计报表(按客户)
+export function queryStatisticsQueryStatisticsByCus(data) {
+    return request({
+        url: 'queryStatistics/queryStatisticsByCus',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+//选择品牌(按品牌)
+export function queryBrandTreeXbj(data) {
+    return request({
+        url: 'xbj/queryBrandTree',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//查询供应商
+export function xbjQueryGys(data) {
+    return request({
+        url: 'xbj/queryGys',
+        method: 'post',
+        data: data,
+    })
+}
+export function xbjCheckSendStatus(data) {
+    return request({
+        url: 'xbj/checkSendStatus',
+        method: 'post',
+        data: data,
+    })
+}
+//询报价统计报表(按品牌)
+export function queryStatisticsQueryStatisticsByBrand(data) {
+    return request({
+        url: 'queryStatistics/queryStatisticsByBrand',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//询报价统计报表(按业务员)
+export function queryStatisticsQueryStatisticsByYwy(data) {
+    return request({
+        url: 'queryStatistics/queryStatisticsByYwy',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+//询报价页面数据查询
+export function xbjQueryPageList(data) {
+    return request({
+        url: 'xbj/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//询报价新增查询单号
+export function xbjQueryForAdd(data) {
+    return request({
+        url: 'xbj/queryForAdd',
+        method: 'post',
+        data: data
+    })
+}
+//询报价新增选择客户信息
+export function xbjQueryCustomer(data) {
+    return request({
+        url: 'xbj/queryCustomer',
+        method: 'post',
+        data: data
+    })
+}
+//询报价新增选择产品
+export function xbjQueryProduct(data) {
+    return request({
+        url: 'xbj/queryProduct',
+        method: 'post',
+        data: data
+    })
+}
+//询报价---重单信息
+export function xbjQueryCdxx(data) {
+    return request({
+        url: 'xbj/queryCdxx',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//询报价新增选择品牌
+export function xbjQueryBrandTree(data) {
+    return request({
+        url: 'xbj/queryBrandTree',
+        method: 'post',
+        data: data
+    })
+}
+//修改归档类型
+export function xbjUpdateGdlx(data) {
+    return request({
+        url: 'xbj/updateGdlx',
+        method: 'post',
+        data: data
+    })
+}
+//询报价新增和编辑
+export function xbjAddOrUpdate(data) {
+    return request({
+        url: 'xbj/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//询报价保存反馈价格
+export function xbjAddfeedbackUnitprice(data) {
+    return request({
+        url: 'xbj/addfeedbackUnitprice',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+//询报价根据询价单id查询明细信息
+export function xbjQuerydjmxByxjdId(data) {
+    return request({
+        url: 'xbj/querydjmxByxjdId',
+        method: 'post',
+        data: data
+    })
+}
+//询报价查询币种和汇率
+export function xbjQueryBzhl(data) {
+    return request({
+        url: 'xbj/queryBzhl',
+        method: 'post',
+        data: data
+    })
+}
+//询报价保存反馈价格
+export function xbjAddCostInfo(data) {
+    return request({
+        url: 'xbj/addCostInfo',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//根据id查询明细信息
+export function xbjQueryByXjdId(data) {
+    return request({
+        url: 'xbj/queryByXjdId',
+        method: 'post',
+        data: data
+    })
+}
+
+//询报价生成价格
+export function xbjGetPriceRule(data) {
+    return request({
+        url: 'xbj/getPriceRule',
+        method: 'post',
+        data: data
+    })
+}
+
+//询报价生成价格
+export function xbjQueryComname(data) {
+    return request({
+        url: 'xbj/queryComname',
+        method: 'post',
+        data: data
+    })
+}
+//询报价删除
+export function xbjDeleteById(data) {
+    return request({
+        url: 'xbj/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//询报价转报价单
+export function xbjXjdToBjd(data) {
+    return request({
+        url: 'xbj/xjdToBjd',
+        method: 'post',
+        data: data
+    })
+}
+
+//询报价根据客户id查了联系人
+export function xbjQueryCustomerContact(data) {
+    return request({
+        url: 'xbj/queryCustomerContact',
+        method: 'post',
+        data: data
+    })
+}
+
+//询价单转销售订单
+export function xbjXjdToXsdd(data) {
+    return request({
+        url: 'xbj/xjdToXsdd',
+        method: 'post',
+        data: data
+    })
+}
+//询价单转销售订单
+export function toXjToXj(data) {
+    return request({
+        url: 'toXj/toXj',
+        method: 'post',
+        data: data
+    })
+}
+//评价供应商
+export function toXjPjGys(data) {
+    return request({
+        url: 'toXj/pjGys',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//删除供应商匹配的品牌
+export function toXjDelGysWithBrand(data) {
+    return request({
+        url: 'toXj/delGysWithBrand',
+        method: 'post',
+        data: data
+    })
+}
+//删除评价
+export function toXjDelPj(data) {
+    return request({
+        url: 'toXj/delPj',
+        method: 'post',
+        data: data
+    })
+}
+// 添加评价
+export function toXjFindGysPj(data) {
+    return request({
+        url: 'toXj/findGysPj',
+        method: 'post',
+        data: data
+    })
+}
+//询报价查询附件
+export function xjdFileQueryByXjdId(data) {
+    return request({
+        url: 'xjdFile/queryByXjdId',
+        method: 'post',
+        data: data
+    })
+}
+//报价单删除附件
+export function xjdFileRemoveById(data) {
+    return request({
+        url: 'xjdFile/removeById',
+        method: 'post',
+        data: data
+    })
+}
+//报价单查询附件
+export function bjdFileQueryByBjdId(data) {
+    return request({
+        url: 'bjdFile/queryByBjdId',
+        method: 'post',
+        data: data
+    })
+}
+//报价单查询附件
+export function jxcXsddFileQueryByXsddId(data) {
+    return request({
+        url: 'jxcXsddFile/queryByXsddId',
+        method: 'post',
+        data: data
+    })
+}
+//操作记录
+export function xbjCzjl(data) {
+    return request({
+        url: 'xbjCzjl/queryCrmOperHistoryList',
+        method: 'post',
+        data: data
+    })
+}
+export function bjdCzjl(data) {
+    return request({
+        url: 'bjdCzjl/queryCrmOperHistoryList',
+        method: 'post',
+        data: data
+    })
+}
+export function jxcXsddCzjl(data) {
+    return request({
+        url: 'jxcXsddCzjl/queryCrmOperHistoryList',
+        method: 'post',
+        data: data
+    })
+}
+//成本提示信息
+export function costInfoTipsQueryPageList(data) {
+    return request({
+        url: 'costInfoTips/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+//成本提示信息
+export function costInfoTipsDeleteById(data) {
+    return request({
+        url: 'costInfoTips/deleteById',
+        method: 'post',
+        data: data,
+    })
+}
+//新增修改
+export function costInfoTipsAddOrUpdate(data) {
+    return request({
+        url: 'costInfoTips/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//查询当前模块下预留字段设置
+export function adminYszdGetYlzdSetByType(data) {
+    return request({
+        url: 'adminYszd/getYlzdSetByType',
+        method: 'post',
+        data: data,
+    })
+}
+
+//供应商新增客户
+export function crmCustomerAddorUpdateContact(data) {
+    return request({
+        url: 'crmCustomer/addorUpdateContact',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//供应商新增客户
+export function crmGysAddorUpdateContact(data) {
+    return request({
+        url: 'crmGys/addorUpdateContact',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}

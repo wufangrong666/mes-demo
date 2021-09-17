@@ -1,0 +1,25 @@
+import request from '@/utils/request'
+// 查询所有角色信息
+export function dbBackup(data) {
+    return request({
+        url: 'dbBackup/backupDb',
+        method: 'post',
+        data: data,
+    })
+}
+// 查询数据库备份信息
+export function queryBackupDbInfo(data) {
+    return request({
+        url: 'dbBackup/queryBackupDbInfo',
+        method: 'post',
+        data: data,
+    })
+}
+// 设置数据库备份时间
+export function updateBackupDbTime(data) {
+    return request({
+        url: 'dbBackup/updateBackupDbTime',
+        method: 'post',
+        data: data,
+    })
+}

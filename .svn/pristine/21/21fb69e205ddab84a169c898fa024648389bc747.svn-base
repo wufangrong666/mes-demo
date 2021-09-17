@@ -1,0 +1,469 @@
+<template>
+  <div>
+    <div class="input-box">
+      <label class="input-label">条款主题</label>
+      <el-input placeholder="条款主题" v-model="from.tkzt"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">条款内容</label>
+      <el-input placeholder="条款内容" v-model="from.tknr"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">启用状态</label>
+      <el-select v-model="from.qyzt" placeholder="请选择">
+        <el-option v-for="item in qyztList" :key="item.code" :label="item.name" :value="item.code"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">条款类型</label>
+      <el-select v-model="from.tklxid" placeholder="请选择">
+        <el-option
+          v-for="item in seleteData"
+          :key="item.typeofcontact"
+          :label="item.name"
+          :value="item.typeofcontact"
+        ></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <el-button @click="quer" type="primary">查询</el-button>
+      <el-button @click="reset" type="info" plain>重置</el-button>
+      <el-button @click="addClick" type="success">新增</el-button>
+    </div>
+    <el-table id="table" :data="tableData" :height="tableHeight" border style="width: 100%">
+      <el-table-column prop="px" label="序号"></el-table-column>
+      <el-table-column prop="tkzt" label="条款主题"></el-table-column>
+      <el-table-column prop="tknr" label="条款内容"></el-table-column>
+      <el-table-column prop="realname" label="创建人"></el-table-column>
+      <el-table-column prop="cjrq" label="创建日期"></el-table-column>
+      <el-table-column prop="htlx" label="合同类型"></el-table-column>
+      <el-table-column prop="qyzt" label="状态">
+        <template slot-scope="scope">
+          <span style="color:green" v-if="scope.row.qyzt == 1">已启用</span>
+          <span style="color:red" v-else>未启用</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button
+            type="text"
+            v-if="scope.row.qyzt == 1"
+            @click="CheckStatus(scope.row , '禁用')"
+          >禁用</el-button>
+          <el-button type="text" v-else @click="CheckStatus(scope.row,'启用')">启用</el-button>
+          <el-button type="text" @click="toView(scope)">查看</el-button>
+          <el-button type="text" @click="editClick(scope.row)">编辑</el-button>
+          <el-button style="color:red" @click="deleteClick(scope.row)" type="text">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15, 30, 50, 100]"
+        :page-size="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <!-- 查看 -->
+    <el-dialog title="查看" :visible.sync="dialogVisible" width="30%" :before-close="handleClose">
+      <div style="float:left">
+        <div class="input-box">
+          <label class="input-label">序号</label>
+          <el-input placeholder="序号" :readonly="true" v-model="detailsIndex"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">合同类型</label>
+          <el-input placeholder="合同类型" :readonly="true" v-model="details.htlx"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">条款主题</label>
+          <el-input placeholder="条款主题" :readonly="true" v-model="details.tkzt"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">条款内容</label>
+          <el-input
+            type="textarea"
+            :autosize="{ minRows: 2, maxRows: 6}"
+            placeholder="请输入内容"
+            v-model="details.tknr"
+            :readonly="true"
+          ></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 新增 -->
+    <el-dialog
+      title="添加/编辑条款预设"
+      :visible.sync="dialogAdd"
+      width="30%"
+      :before-close="handleCloseAdd"
+    >
+      <div style="float:left">
+        <div class="input-box">
+          <label class="input-label">序号</label>
+          <el-input placeholder="序号" v-model="addList.px"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">合同类型</label>
+          <el-select v-model="addList.typeofcontact" placeholder="请选择">
+            <el-option
+              v-for="item in seleteData"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+          <el-button @click="tkEdit" type="text">编辑</el-button>
+        </div>
+        <div class="input-box">
+          <label class="input-label">条款主题</label>
+          <el-input placeholder="条款主题" v-model="addList.tkzt"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">条款内容</label>
+          <el-input
+            type="textarea"
+            :autosize="{ minRows: 2, maxRows: 6}"
+            placeholder="请输入内容"
+            v-model="addList.tknr"
+          ></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogAdd = false">取 消</el-button>
+        <el-button type="primary" @click="addContractClick">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 合同类型添加修改 -->
+    <el-dialog title="合同类型" :visible.sync="dialogType" width="50%" :before-close="handleCloseType">
+      <div style="float:left">
+        <div class="input-box">
+          <label class="input-label">排序</label>
+          <el-input placeholder="条款排序" v-model="addContract.sort"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">名称</label>
+          <el-input placeholder="条款名称" v-model="addContract.name"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">备注</label>
+          <el-input
+            type="textarea"
+            :autosize="{ minRows: 2, maxRows: 6}"
+            placeholder="请输入内容"
+            v-model="addContract.remark"
+          ></el-input>
+        </div>
+        <div class="input-box">
+          <el-button @click="resetClick" type="text">清空</el-button>
+        </div>
+        <el-table :data="seleteData" border style="width: 100%">
+          <el-table-column prop="sort" label="序号"></el-table-column>
+          <el-table-column prop="name" label="类型"></el-table-column>
+          <el-table-column label="操作">
+            <template slot-scope="scope">
+              <el-button @click="contractEditClick(scope.row)" type="text">编辑</el-button>
+              <el-button type="text">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogType = false">取 消</el-button>
+        <el-button type="primary" @click="contractAddClick">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import {
+  httkQueryTypeOfContact,
+  httkQueryPageList,
+  httkDeleteById,
+  httkCheckStatusById,
+  httkAddAndUpdateType,
+  httkAddAndUpdate
+} from "@/api/manage/jxcsz";
+
+import Lockr from "lockr";
+
+export default {
+  name: "",
+  watch: {
+    lx: {
+      handler(newName, oldName) {
+        console.log(1);
+        this.loginData();
+      }
+    }
+  },
+  props: {
+    lx: {
+      type: String
+    }
+  },
+  data() {
+    return {
+      seleteData: [],
+      addContract: {
+        id: "",
+        lx: "",
+        name: "",
+        sort: "",
+        remark: ""
+      },
+      addList: {
+        id: "",
+        px: "",
+        tkzt: "",
+        tknr: "",
+        typeofcontact: ""
+      },
+      dialogAdd: false,
+      dialogType: false,
+      addItem: "",
+      username: "",
+      dialogTitle: "",
+      qyztList: [
+        { name: "已启用", code: 1 },
+        { name: "未启用", code: 0 }
+      ],
+      tklxList: [],
+      from: {
+        page: 1, //	是	int	当前页
+        limit: 15, //	是	int	每页显示条数
+        tkzt: "", //	否	string	条款主题
+        qyzt: "", //	否	string	启用状态
+        tknr: "", //	否	string	条款内容
+        tklxid: "", //	否	string	条款类型id
+        lx: ""
+      },
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 320, // 表的高度
+      total: 0,
+      dialogVisible: false,
+      details: {},
+      detailsIndex: ""
+    };
+  },
+
+  methods: {
+    resetClick() {
+      this.addContract.id = "";
+      this.addContract.name = "";
+      this.addContract.sort = "";
+      this.addContract.remark = "";
+    },
+    contractAddClick() {
+      this.addContract.lx = this.lx;
+      httkAddAndUpdateType(this.addContract)
+        .then(res => {
+          if (this.addContract.id == "") {
+            this.msgSuccess("新增成功");
+            this.seleteList();
+            this.resetClick();
+          } else {
+            this.msgSuccess("修改成功");
+            this.seleteList();
+            this.resetClick();
+          }
+        })
+        .catch(res => {});
+    },
+    contractEditClick(val) {
+      this.addContract.id = val.id;
+      this.addContract.lx = this.lx;
+      this.addContract.name = val.name;
+      this.addContract.sort = val.sort;
+      this.addContract.remark = val.remark;
+    },
+    addContractClick() {
+      if (this.addList.px == "") {
+        this.msgInfo("请输入排序");
+        return;
+      }
+      if (this.addList.typeofcontact == "") {
+        this.msgInfo("请选择合同类型");
+        return;
+      }
+      if (this.addList.tkzt == "") {
+        this.msgInfo("请输入合同主题");
+        return;
+      }
+      if (this.addList.tknr == "") {
+        this.msgInfo("请输入合同内容");
+        return;
+      }
+      httkAddAndUpdate(this.addList)
+        .then(res => {
+          if (this.addList.id == "") {
+            this.msgSuccess("新增成功");
+            this.dialogAdd = false;
+            this.loginData();
+          } else {
+            this.msgSuccess("修改成功");
+            this.dialogAdd = false;
+            this.loginData();
+          }
+        })
+        .catch(res => {});
+    },
+    tkEdit() {
+      this.dialogType = true;
+    },
+    handleCloseType() {
+      this.dialogType = false;
+    },
+    handleCloseAdd() {
+      this.dialogAdd = false;
+    },
+    addClick() {
+      let yy = new Date().getFullYear();
+      let mm = new Date().getMonth() + 1;
+      let dd = new Date().getDate();
+      this.addItem = yy + "-" + mm + "-" + dd;
+      this.dialogAdd = true;
+      this.username = Lockr.get("loginUserInfo").parentName;
+      this.addList.id = "";
+      this.addList.px = "";
+      this.addList.tkzt = "";
+      this.addList.tknr = "";
+      this.addList.typeofcontact = "";
+    },
+    editClick(val) {
+      let yy = new Date().getFullYear();
+      let mm = new Date().getMonth() + 1;
+      let dd = new Date().getDate();
+      this.dialogAdd = true;
+      this.addItem = yy + "-" + mm + "-" + dd;
+      this.username = Lockr.get("loginUserInfo").parentName;
+      this.addList.id = val.tkid;
+      this.addList.px = val.px;
+      this.addList.tkzt = val.tkzt;
+      this.addList.tknr = val.tknr;
+      this.addList.typeofcontact = val.tklxid;
+    },
+    toView(val) {
+      this.dialogVisible = true;
+      this.dialogTitle = "查看详情";
+      this.details = val.row;
+      this.detailsIndex = val.$index + 1;
+    },
+    handleClose(val) {
+      this.dialogVisible = false;
+    },
+    CheckStatus(val, str) {
+      let status = 0;
+      if (str == "启用") {
+        status = 1;
+      } else {
+        status = 0;
+      }
+      httkCheckStatusById({
+        id: val.tkid,
+        qyzt: status
+      })
+        .then(res => {
+          this.msgSuccess(str + "成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    deleteClick(val) {
+      this.$confirm("此操作将删除该条款, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          httkDeleteById({
+            id: val.tkid
+          })
+            .then(res => {
+              this.msgSuccess("删除成功");
+              this.loginData();
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消成功");
+        });
+    },
+    quer() {
+      this.loginData();
+    },
+    reset() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.tkzt = "";
+      this.from.qyzt = "";
+      this.from.tknr = "";
+      this.from.tklxid = "";
+      this.loginData();
+    },
+    loginData() {
+      this.from.lx = this.lx;
+      httkQueryPageList(this.from)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = Number(res.data.totalRow);
+        })
+        .catch(res => {});
+    },
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginData();
+    },
+    seleteList() {
+      httkQueryTypeOfContact({
+        lx: this.lx
+      })
+        .then(res => {
+          this.seleteData = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  activated() {},
+  mounted() {
+    this.loginData();
+    this.seleteList();
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+}
+.el-textarea {
+  width: 70%;
+}
+.el-select {
+  width: 58%;
+}
+.dialog-footer {
+  display: inline-block;
+  text-align: center;
+  margin-top: 20px;
+  width: 100%;
+}
+</style>

@@ -1,0 +1,1341 @@
+<template>
+  <div class="header">
+    <flexbox class="th-container">
+      <img @click="showFilterClick" class="c-filtrate" src="@/assets/img/c_filtrate.png" />
+      <div v-if="selectionList.length == 0" class="condition_title" @click="showFilterClick">高级筛选</div>
+      <ul class="ulStyle" v-show="ulFlag">
+        <li v-for="(item,index) in from" :key="index">
+          <span>{{item.titleName}}</span>
+          <span>等于</span>
+          <span v-if="item.name == 'itemData'">{{item.value[0]+ '至' +item.value[1]}}</span>
+          <span v-if="item.name == 'ywy'">{{item.userName}}</span>
+          <span v-if="item.name == 'ppmc'">{{item.ppName}}</span>
+          <span v-if="item.name == 'szbm'">{{item.bmName}}</span>
+          <span v-if="item.name == 'tjfs'">{{item.value == 1?"客户":item.value == 2?"产品":'业务员'}}</span>
+          <span v-if="item.name == 'skfs'">{{item.value == 1?"委托收款":''}}</span>
+          <span
+            v-if="item.name != 'ywy' && item.name != 'itemData' && item.name != 'ppmc' && item.name != 'szbm' && item.name != 'tjfs' &&  item.name != 'skfs'"
+          >{{item.value}}</span>
+
+          <i class="el-icon-close icon" @click="headerDelete(item, index)"></i>
+        </li>
+      </ul>
+      <el-dialog
+        title="高级筛选"
+        :visible.sync="dialogVisible" 
+        width="900px"
+        :before-close="handleClose"
+        :modal-append-to-body="false"
+      >
+        <div style="margin-bottom: 10px;">筛选条件</div>
+        <el-form class="filter-container" id="filter-container">
+          <el-form-item>
+            <template v-for="(formItem, index) in from">
+              <el-row :key="index">
+                <el-col :span="8">
+                  <el-select
+                    v-model="formItem.name"
+                    placeholder="请选择"
+                    @change="fieldListChange(formItem,index)"
+                  >
+                    <el-option
+                      v-for="item in fieldList"
+                      :key="item.code"
+                      :label="item.name"
+                      :value="item.code"
+                    ></el-option>
+                  </el-select>
+                </el-col>
+                <el-col :span="1">&nbsp;</el-col>
+                <el-col :span="4" v-if="formItem.formType !== 'datePicker'">
+                  <el-select v-model="formItem.condition" placeholder="请选择">
+                    <el-option
+                      v-for="item in formType"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    ></el-option>
+                  </el-select>
+                </el-col>
+                <el-col :span="1" v-if="formItem.formType !== 'datePicker'">&nbsp;</el-col>
+                <el-col :span="8" v-if="formItem.formType !== 'datePicker'">
+                  <el-input
+                    v-if="formItem.formType == 'text'"
+                    v-model="formItem.value"
+                    placeholder="请输入内容"
+                  ></el-input>
+                  <el-select
+                    v-if="formItem.formType == 'select'"
+                    v-model="formItem.value"
+                    placeholder="请选择范围"
+                  >
+                    <el-option
+                      v-for="item in lxList"
+                      :key="item.name"
+                      :label="item.name"
+                      :value="item.name"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectOr'"
+                    v-model="formItem.value"
+                    multiple
+                    collapse-tags
+                    filterable
+                    placeholder="可模糊搜索"
+                  >
+                    <el-option
+                      v-for="item in selectOrList"
+                      :key="item.brandId"
+                      :label="item.name"
+                      :value="item.brandId"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectOrA'"
+                    v-model="formItem.value"
+                    multiple
+                    collapse-tags
+                    filterable
+                    placeholder="可模糊搜索"
+                  >
+                    <el-option
+                      v-for="item in selectOrListA"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    ></el-option>
+                  </el-select>
+                  <el-select
+                    v-if="formItem.formType == 'selectTjfs'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in selectTjfsList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    ></el-option>
+                  </el-select>
+
+                  <!--   预收款单  下拉  selectSkfs  selectSkzh selectSfbd selectZt -->
+                  <el-select
+                    v-if="formItem.formType == 'selectSkfs'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in skfsList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectSkzh'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in skzhList"
+                      :key="item.accountId"
+                      :label="item.accountName"
+                      :value="item.accountId"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectSfbd'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in sfbdList"
+                      :key="item.name"
+                      :label="item.name"
+                      :value="item.name"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectZt'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in ztList"
+                      :key="item.code"
+                      :label="item.name"
+                      :value="item.code"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectDwtt'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in dwttList"
+                      :key="item.id"
+                      :label="item.nameCn"
+                      :value="item.id"
+                    ></el-option>
+                  </el-select>
+
+                  <el-select
+                    v-if="formItem.formType == 'selectHx'"
+                    v-model="formItem.value"
+                    filterable
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in hxList"
+                      :key="item.name"
+                      :label="item.name"
+                      :value="item.name"
+                    ></el-option>
+                  </el-select>
+                  <!-------------------------------------------------------------->
+
+                  <el-popover
+                    v-if="formItem.formType == 'user'"
+                    placement="bottom"
+                    width="300"
+                    trigger="click"
+                  >
+                    <zdyTableUser
+                      :infoType="infoType"
+                      :infoParams="infoParams"
+                      :radio="radio"
+                      :selectedData="dataValue"
+                      @changeCheckout="checkUsers"
+                      ref="xhuser"
+                    ></zdyTableUser>
+                    <div slot="reference">
+                      <flexbox @click.native="focusClick" wrap="wrap" class="user-container">
+                        <div
+                          v-for="(item, index) in dataValue"
+                          :key="index"
+                          @click.stop="deleteuser(index)"
+                          class="user-item"
+                        >
+                          {{item.realname}}
+                          <i class="delete-icon el-icon-close"></i>
+                        </div>
+                        <div class="add-item">+添加成员</div>
+                      </flexbox>
+                    </div>
+                  </el-popover>
+                </el-col>
+                <el-col :span="13" v-if="formItem.formType == 'datePicker'">
+                  <el-date-picker
+                    v-model="formItem.value"
+                    value-format="yyyy-MM-dd"
+                    type="daterange"
+                    range-separator="至"
+                    start-placeholder="开始日期"
+                    end-placeholder="结束日期"
+                  ></el-date-picker>
+                </el-col>
+                <el-col :span="1" class="delete">
+                  <i class="el-icon-error delete-btn" @click="handleDelete(index)"></i>
+                </el-col>
+              </el-row>
+            </template>
+          </el-form-item>
+        </el-form>
+        <p class="el-icon-warning warning-info" v-show="showErrors">
+          <span class="desc">筛选条件中有重复项！</span>
+        </p>
+        <el-button type="text" @click="handleAdd">+ 添加筛选条件</el-button>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handleConfirm">确 定</el-button>
+        </span>
+      </el-dialog>
+    </flexbox>
+  </div>
+</template>
+
+<script>
+import zdyTableUser from "./zdyTableUser";
+import { usersList } from "@/api/common";
+import {
+  crmProductBrandFindBrandList,
+  deptQueryDeptTree,
+} from "@/api/crm/ppgl";
+import { yskdQuerySkfs, yskdQueryAccount } from "@/api/finance/finance";
+import { bjdQueryDwtt } from "@/api/crm/xsbjd";
+
+export default {
+  name: "",
+  components: {
+    zdyTableUser,
+  },
+  props: {
+    listType: {
+      type: String,
+      default: "",
+    },
+    item: {
+      type: Object,
+      default: () => {
+        return {};
+      },
+    },
+    placeholder: {
+      type: String,
+      default: "添加员工",
+    },
+    /** 获取不同的员工展示列表 */
+    infoType: {
+      type: String,
+      default: "default", //返回全部  crm_contract crm_receivables oa_examine 合同审核人自选列表
+    },
+    /** 请求辅助参数 */
+    infoParams: {
+      type: Object,
+      default: () => {
+        return {};
+      },
+    },
+  },
+  mounted() {
+    if (this.listType == "crm_khcqyj") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "客户编码", code: "khbm" },
+        { name: "客户类型", code: "khlx" },
+        { name: "销售负责人", code: "ywy" },
+      ];
+      this.lxList = [
+        { name: "一般客户" },
+        { name: "VIP客户" },
+        { name: "潜在客户" },
+        { name: "长期跟踪客户" },
+        { name: "重要客户" },
+        { name: "一般合作客户" },
+        { name: "已流失客户" },
+      ];
+    } else if (this.listType == "crm_xbjtjbkh") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "创建日期", code: "itemData" },
+      ];
+    } else if (this.listType == "crm_xbjtjbpp") {
+      this.fieldList = [
+        { name: "品牌名称", code: "ppmc" },
+        { name: "创建日期", code: "itemData" },
+      ];
+    } else if (this.listType == "crm_xbjtjbYwy") {
+      this.fieldList = [
+        { name: "业务员", code: "ywy" },
+        { name: "创建日期", code: "itemData" },
+      ];
+    } else if (this.listType == "crm_cpqbjg") {
+      this.fieldList = [
+        { name: "品牌", code: "ppmc" },
+        { name: "品名", code: "pm" },
+        { name: "型号", code: "xh" },
+        { name: "供应商", code: "gysmc" },
+        { name: "客户名称", code: "khmc" },
+      ];
+    } else if (this.listType == "jxc_grxsbb_yscx") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "销售负责人", code: "ywy" },
+        { name: "创建日期", code: "itemData" },
+      ];
+    } else if (this.listType == "jxc_grxsbb_yings") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "客户编码", code: "khbm" },
+        { name: "收款单号", code: "skdh" },
+        { name: "开单单号", code: "kddh" },
+      ];
+    } else if (this.listType == "jxc_grxsbb_xstj") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "客户类型", code: "khlx" },
+        { name: "日期范围", code: "itemData" },
+      ];
+      this.lxList = [
+        { name: "一般客户" },
+        { name: "VIP客户" },
+        { name: "潜在客户" },
+        { name: "长期跟踪客户" },
+        { name: "重要客户" },
+        { name: "一般合作客户" },
+        { name: "已流失客户" },
+      ];
+    } else if (this.listType == "jxc_grxsbb_khdzb") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "客户编码", code: "khbm" },
+        { name: "日期范围", code: "itemData" },
+      ];
+    } else if (this.listType == "jxc_gsxsbb_xsddtj") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "订单单号", code: "dddh" },
+        { name: "业务员", code: "ywy" },
+        { name: "订单类型", code: "ddlx" },
+      ];
+      this.lxList = [
+        { name: "外销类" },
+        { name: "样品" },
+        { name: "施工单" },
+        { name: "设备销售" },
+        { name: "刷卡" },
+        { name: "服务销售" },
+        { name: "直接销售" },
+        { name: "样品销售" },
+        { name: "代理商销售" },
+        { name: "淘宝订单" },
+        { name: "官方订单" },
+      ];
+    } else if (this.listType == "jxc_gsxsbb_xskdylb") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "订单单号", code: "dddh" },
+        { name: "业务员", code: "ywy" },
+        { name: "所在部门", code: "szbm" },
+      ];
+    } else if (this.listType == "jxc_gsxsbb_xstjcp") {
+      this.fieldList = [
+        { name: "品牌", code: "pp" },
+        { name: "品名", code: "pm" },
+        { name: "型号", code: "xh" },
+      ];
+    } else if (this.listType == "jxc_gsxsbb_xstjywy") {
+      this.fieldList = [
+        { name: "业务员", code: "ywy" },
+        { name: "日期类别", code: "rqlb" },
+        { name: "日期范围", code: "itemData" },
+      ];
+      this.lxList = [{ name: "创建日期" }, { name: "发货日期" }];
+    } else if (this.listType == "jxc_xslrtj_xsadlrb") {
+      this.fieldList = [
+        { name: "单号", code: "dh" },
+        { name: "客户名称", code: "khmc" },
+        { name: "客户编码", code: "khbm" },
+        { name: "业务员", code: "ywy" },
+        { name: "日期范围  ", code: "itemData" },
+      ];
+    } else if (this.listType == "jxc_xslrtj_xslrhzb") {
+      this.fieldList = [
+        { name: "统计方式", code: "tjfs" },
+        { name: "日期范围  ", code: "itemData" },
+        { name: "客户名称", code: "khmc" },
+        { name: "单据类型", code: "djlx" },
+      ];
+      this.lxList = [{ name: "除换货生成的开单" }, { name: "所有开单" }];
+      this.selectTjfsList = [
+        { name: "客户", id: "1" },
+        { name: "产品", id: "2" },
+        { name: "业务员", id: "3" },
+      ];
+    } else if (this.listType == "jxc_grcgbb_yingF") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "采购员", code: "cgy" },
+        { name: "创建日期", code: "itemData" },
+      ];
+    } else if (this.listType == "jxc_grcgbb_yiF") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "付款单号", code: "fkdh" },
+        { name: "收货单号", code: "shdh" },
+      ];
+    } else if (this.listType == "jxc_grcgbb_gysdzb") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "日期类别", code: "rqlb" },
+        { name: "日期范围", code: "itemData" },
+      ];
+      this.lxList = [{ name: "创建日期" }, { name: "收货日期" }];
+    } else if (this.listType == "jxc_grcgbb_cgtjGys") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "日期类别", code: "rqlb" },
+        { name: "日期范围", code: "itemData" },
+      ];
+    } else if (this.listType == "jxc_gscgbb_cgddtj") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "订单单号", code: "dddh" },
+        { name: "业务员", code: "ywy" },
+        { name: "订单类型", code: "ddlx" },
+      ];
+      this.lxList = [
+        { name: "原料采购" },
+        { name: "申购采购" },
+        { name: "日常采购" },
+        { name: "计划采购" },
+        { name: "其他采购" },
+        { name: "获赠类" },
+      ];
+    } else if (this.listType == "jxc_gscgbb_cgddwjmx") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "业务员", code: "ywy" },
+        { name: "订单类型", code: "ddlx" },
+      ];
+      this.lxList = [
+        { name: "原料采购" },
+        { name: "申购采购" },
+        { name: "日常采购" },
+        { name: "计划采购" },
+        { name: "其他采购" },
+        { name: "获赠类" },
+      ];
+    } else if (this.listType == "jxc_gscgbb_cgshylb") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "订单单号", code: "dddh" },
+        { name: "业务员", code: "ywy" },
+        { name: "收货类型", code: "ddlx" },
+      ];
+      this.lxList = [
+        { name: "原料采购" },
+        { name: "申购采购" },
+        { name: "日常采购" },
+        { name: "计划采购" },
+        { name: "其他采购" },
+        { name: "获赠类" },
+      ];
+    } else if (this.listType == "jxc_gscgbb_cgtjcp") {
+      this.fieldList = [
+        { name: "品牌", code: "ppmc" },
+        { name: "品名", code: "pm" },
+        { name: "规格型号", code: "ggxh" },
+      ];
+    } else if (this.listType == "jxc_ckgl_cgshrk") {
+      this.fieldList = [
+        { name: "供应商名称", code: "gysmc" },
+        { name: "供应商编码", code: "gysbm" },
+        { name: "收货单号", code: "shdh" },
+        { name: "收货日期", code: "itemData" },
+      ];
+    } else if (this.listType == "jxc_ckgl_xskdck") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "客户编码", code: "khbm" },
+        { name: "开单单号", code: "kddh" },
+        { name: "收货日期", code: "itemData" },
+      ];
+    } else if (this.listType == "finance_xswl_yskd") {
+      this.fieldList = [
+        { name: "客户名称", code: "khmc" },
+        { name: "预收款单号", code: "yskdh" },
+        { name: "收款方式", code: "skfs" },
+        { name: "收款日期", code: "skrq" },
+        { name: "创建日期", code: "cjrq" },
+        { name: "收款账户", code: "skzh" },
+        { name: "是否补单", code: "sfbd" },
+        { name: "状态", code: "zt" },
+        { name: "单位抬头", code: "dwtt" },
+        { name: "是否核销完毕", code: "sfhxwb" },
+      ];
+    } else if (this.listType == "bggl_rw") {
+      this.fieldList = [
+        { name: "紧急程度", code: "jjcd" },
+        { name: " 任务名称", code: "gjz" },
+        { name: "创建人", code: "cjr" },
+      ];
+      this.lxList = [{ name: "一般" }, { name: "紧急" }];
+    }
+    this.dataList();
+  },
+  activated() {
+    this.from = [];
+    this.ulFlag = false;
+  },
+  data() {
+    return {
+      dataValue: [],
+      selectionList: [],
+      dialogVisible: false,
+      fieldList: [],
+      lxList: [],
+      formType: [
+        {
+          label: "等于",
+          value: "dy",
+        },
+      ],
+      from: [],
+      inputFlag: true,
+      selectFlag: false,
+      popoverFlag: false,
+      radio: false,
+      showErrors: false,
+      ulFlag: false,
+      selectOrList: [],
+      selectOrListA: [],
+      selectTjfsListL: [],
+      skfsList: [],
+      skzhList: [],
+      sfbdList: [{ name: "是" }, { name: "否" }],
+      ztList: [
+        { name: "未审核", code: "0" },
+        { name: "已审核", code: "1" },
+        { name: "审核不通过", code: "2" },
+      ],
+      dwttList:[],
+      hxList: [{ name: "是" }, { name: "否" }],
+    };
+  },
+  methods: {
+    headerDelete(item, index) {
+      this.from.splice(index, 1);
+      this.$emit("gjcxData", this.from);
+    },
+    handleAdd() {
+      this.from.push({
+        name: "",
+        condition: "dy",
+        value: "",
+        formType: "text",
+      });
+    },
+    handleDelete(index) {
+      this.from.splice(index, 1);
+    },
+    //确认
+    handleConfirm() {
+      for (var i in this.from) {
+        if (this.from[i].name == "") {
+          this.msgError("要筛选的字段名称不能为空！");
+          return;
+        }
+        if (this.from[i].value == "") {
+          this.msgError("请输入筛选条件的值！");
+          return;
+        }
+        if (this.from[i].formType == "selectOr") {
+          let arr = [];
+          for (var k in this.from[i].value) {
+            for (var j in this.selectOrList) {
+              if (this.selectOrList[j].brandId == this.from[i].value[k]) {
+                arr.push(this.selectOrList[j].name);
+              }
+            }
+          }
+          this.$set(this.from[i], "ppName", arr.join(","));
+        }
+        if (this.from[i].formType == "selectOrA") {
+          let arr = [];
+          for (var k in this.from[i].value) {
+            for (var j in this.selectOrListA) {
+              if (this.selectOrListA[j].id == this.from[i].value[k]) {
+                arr.push(this.selectOrListA[j].name);
+              }
+            }
+          }
+          this.$set(this.from[i], "bmName", arr.join(","));
+        }
+      }
+      this.$emit("gjcxData", this.from);
+      this.ulFlag = true;
+      this.dialogVisible = false;
+    },
+    dataList() {
+      usersList({
+        pageType: 0,
+      }).then((res) => {
+        let num = [];
+        for (var item in res.data) {
+          for (var id in this.item.value) {
+            if (res.data[item].userId == this.item.value[id]) {
+              num.push(res.data[item]);
+            }
+          }
+        }
+        this.dataValue = num;
+      });
+      if (
+        this.listType == "crm_xbjtjbpp" ||
+        this.listType == "crm_cpqbjg" ||
+        this.listType == "jxc_gscgbb_cgtjcp"
+      ) {
+        crmProductBrandFindBrandList({
+          name: "",
+        })
+          .then((res) => {
+            this.selectOrList = res.list;
+          })
+          .catch((res) => {});
+      }
+      if (this.listType == "jxc_gsxsbb_xskdylb") {
+        deptQueryDeptTree()
+          .then((res) => {
+            this.selectOrListA = res.data;
+          })
+          .catch((res) => {});
+      }
+      if (this.listType == "finance_xswl_yskd") {
+        yskdQuerySkfs()
+          .then((res) => {
+            this.skfsList = res.data;
+          })
+          .catch((res) => {});
+        yskdQueryAccount()
+          .then((res) => {
+            this.skzhList = res.data;
+          })
+          .catch((res) => {});
+        bjdQueryDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+        })
+        .catch((res) => {});
+      }
+    },
+    /** 选中 */
+    checkUsers(data) {
+      this.dataValue = data.data;
+      for (var i in this.from) {
+        if (this.from[i].formType == "user") {
+          this.from[i].value = this.dataValue
+            .map((res) => {
+              return res.userId;
+            })
+            .join(",");
+          this.$set(
+            this.from[i],
+            "userName",
+            this.dataValue
+              .map((res) => {
+                return res.realname;
+              })
+              .join(",")
+          );
+        }
+      }
+    },
+    focusClick() {
+      this.showSelectView = true;
+      this.$emit("focus");
+    },
+    deleteuser(index) {
+      this.dataValue.splice(index, 1);
+    },
+    fieldListChange(data, index) {
+      let arr = this.from.filter((item) => {
+        return item.name === data.name;
+      });
+      if (arr.length > 1) this.showErrors = true;
+      else this.showErrors = false;
+      this.$set(this.from[index], "value", "");
+      if (this.listType == "crm_khcqyj") {
+        this.radio = true;
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "khbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户编码");
+        } else if (data.name == "khlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "客户类型");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "销售负责人");
+        }
+      }
+      if (this.listType == "crm_xbjtjbkh") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建日期");
+        }
+      }
+      if (this.listType == "crm_xbjtjbpp") {
+        if (data.name == "ppmc") {
+          this.$set(this.from[index], "formType", "selectOr");
+          this.$set(this.from[index], "titleName", "品牌名称");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建日期");
+        }
+      }
+      if (this.listType == "crm_xbjtjbYwy") {
+        if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建日期");
+        }
+      }
+      if (this.listType == "crm_cpqbjg") {
+        if (data.name == "pm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "品名");
+        } else if (data.name == "ppmc") {
+          this.$set(this.from[index], "formType", "selectOr");
+          this.$set(this.from[index], "titleName", "品牌");
+        } else if (data.name == "xh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "型号");
+        } else if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商");
+        } else if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        }
+      }
+      if (this.listType == "jxc_grxsbb_yxcx") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "销售负责人");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建日期");
+        }
+      }
+      if (this.listType == "jxc_grxsbb_yscx") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "销售负责人");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建日期");
+        }
+      }
+      if (this.listType == "jxc_grxsbb_yings") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "khbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户编码");
+        } else if (data.name == "skdh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "收款单号");
+        } else if (data.name == "kddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "开单单号");
+        }
+      }
+      if (this.listType == "jxc_grxsbb_xstj") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "khlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "客户类型");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "日期范围");
+        }
+      }
+      if (this.listType == "jxc_grxsbb_khdzb") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "khbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户编码");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "日期范围");
+        }
+      }
+      if (this.listType == "jxc_gsxsbb_xsddtj") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "dddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "订单单号");
+        } else if (data.name == "ddlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "订单单号");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        }
+      }
+      if (this.listType == "jxc_gsxsbb_xskdylb") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "dddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "订单单号");
+        } else if (data.name == "szbm") {
+          this.$set(this.from[index], "formType", "selectOrA");
+          this.$set(this.from[index], "titleName", "所在部门");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        }
+      }
+      if (this.listType == "jxc_gsxsbb_xstjcp") {
+        if (data.name == "pp") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "品牌");
+        } else if (data.name == "pm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "品名");
+        } else if (data.name == "xh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "型号");
+        }
+      }
+      if (this.listType == "jxc_gsxsbb_xstjywy") {
+        if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        } else if (data.name == "rqlb") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "日期类别");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "日期范围");
+        }
+      }
+      if (this.listType == "jxc_xslrtj_xsadlrb") {
+        if (data.name == "dh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "单号");
+        } else if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "khbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户编码");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "日期范围");
+        }
+      }
+      if (this.listType == "jxc_xslrtj_xslrhzb") {
+        if (data.name == "tjfs") {
+          this.$set(this.from[index], "formType", "selectTjfs");
+          this.$set(this.from[index], "titleName", "统计方式");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "日期范围");
+        } else if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "djlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "单据类型");
+        }
+      }
+      if (this.listType == "jxc_grcgbb_yingF") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "gysbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商编码");
+        } else if (data.name == "cgy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "采购员");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建范围");
+        }
+      }
+      if (this.listType == "jxc_grcgbb_yiF") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "gysbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商编码");
+        } else if (data.name == "fkdh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "付款单号");
+        } else if (data.name == "shdh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "收货单号");
+        }
+      }
+      if (this.listType == "jxc_grcgbb_gysdzb") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "gysbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商编码");
+        } else if (data.name == "rqlb") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "日期类别");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "日期范围");
+        }
+      }
+      if (this.listType == "jxc_gscgbb_cgddtj") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "gysbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商编码");
+        } else if (data.name == "dddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "订单单号");
+        } else if (data.name == "ddlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "订单类型");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        }
+      }
+      if (this.listType == "jxc_gscgbb_cgddwjmx") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "dddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "订单单号");
+        } else if (data.name == "ddlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "订单类型");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        }
+      }
+      if (this.listType == "jxc_gscgbb_cgshylb") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "dddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "订单单号");
+        } else if (data.name == "ddlx") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "收货类型");
+        } else if (data.name == "ywy") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "业务员");
+        }
+      }
+      if (this.listType == "jxc_gscgbb_cgtjcp") {
+        if (data.name == "ppmc") {
+          this.$set(this.from[index], "formType", "selectOr");
+          this.$set(this.from[index], "titleName", "品牌");
+        } else if (data.name == "pm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "品名");
+        } else if (data.name == "ggxh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "规格型号");
+        }
+      }
+      if (this.listType == "jxc_ckgl_cgshrk") {
+        if (data.name == "gysmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商名称");
+        } else if (data.name == "gysbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "供应商编码");
+        } else if (data.name == "shdh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "收货单号");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "收货日期");
+        }
+      }
+      if (this.listType == "jxc_ckgl_xskdck") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "khbm") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户编码");
+        } else if (data.name == "kddh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "开单单号");
+        } else if (data.name == "itemData") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "收货日期");
+        }
+      }
+      if (this.listType == "finance_xswl_yskd") {
+        if (data.name == "khmc") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "客户名称");
+        } else if (data.name == "yskdh") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "预收款单号");
+        } else if (data.name == "skfs") {
+          this.$set(this.from[index], "formType", "selectSkfs");
+          this.$set(this.from[index], "titleName", "收款方式");
+        } else if (data.name == "skrq") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "收款日期");
+        } else if (data.name == "cjrq") {
+          this.$set(this.from[index], "formType", "datePicker");
+          this.$set(this.from[index], "titleName", "创建日期");
+        } else if (data.name == "skzh") {
+          this.$set(this.from[index], "formType", "selectSkzh");
+          this.$set(this.from[index], "titleName", "收款账户");
+        } else if (data.name == "sfbd") {
+          this.$set(this.from[index], "formType", "selectSfbd");
+          this.$set(this.from[index], "titleName", "是否补单");
+        } else if (data.name == "zt") {
+          this.$set(this.from[index], "formType", "selectZt");
+          this.$set(this.from[index], "titleName", "状态");
+        } else if (data.name == "dwtt") {
+          this.$set(this.from[index], "formType", "selectDwtt");
+          this.$set(this.from[index], "titleName", "单位抬头");
+        } else if (data.name == "sfhxwb") {
+          this.$set(this.from[index], "formType", "selectHx");
+          this.$set(this.from[index], "titleName", "是否核销完毕");
+        }
+      }
+      if (this.listType == "bggl_rw") {
+        if (data.name == "jjcd") {
+          this.$set(this.from[index], "formType", "select");
+          this.$set(this.from[index], "titleName", "紧急程度");
+        } else if (data.name == "gjz") {
+          this.$set(this.from[index], "formType", "text");
+          this.$set(this.from[index], "titleName", "任务名称");
+        } else if (data.name == "cjr") {
+          this.$set(this.from[index], "formType", "user");
+          this.$set(this.from[index], "titleName", "创建人");
+        }
+      }
+    },
+    showFilterClick() {
+      this.ulFlag = false;
+      this.dialogVisible = true;
+      this.dataValue = [];
+      if (this.listType == "crm_xbjtjbpp") {
+        this.from = [
+          {
+            name: "",
+            condition: "dy",
+            value: "",
+            formType: "selectOr",
+          },
+        ];
+      } else {
+        this.from = [
+          {
+            name: "",
+            condition: "dy",
+            value: "",
+            formType: "text",
+          },
+        ];
+      }
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+  },
+
+  created() {},
+};
+</script>
+<style lang='scss' scoped>
+.ulStyle {
+  width: 95%;
+  margin-left: 5px;
+  height:50px;
+  overflow: auto;
+  li {
+    float: left;
+    line-height: 30px;
+    padding: 0 10px;
+    border: 1px solid #e1e1e1;
+    border-radius: 3px;
+    margin: 5px 0 0 5px;
+    .icon {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+  }
+}
+.warning-info {
+  width: 100%;
+  font-size: 14px;
+  color: #f56c6c;
+  margin-top: 10px;
+  .desc {
+    padding-left: 8px;
+  }
+}
+.filter-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.el-row {
+  margin-bottom: 20px;
+  .delete-btn {
+    margin-left: 15px;
+    color: #bbb;
+    cursor: pointer;
+    line-height: 40px;
+  }
+  .el-select,
+  .el-select,
+  .el-input,
+  .el-date-editor {
+    width: 100%;
+  }
+}
+.header {
+  background-color: white;
+  border: 1px solid #e6e6e6;
+  border-bottom: 0;
+}
+.th-container {
+  font-size: 13px;
+  height: 50px;
+  padding: 0 20px;
+}
+/** 场景和筛选 */
+.condition_title {
+  width: 55px;
+  cursor: pointer;
+}
+.condition_title:hover {
+  color: $xr-color-primary;
+}
+
+.m-arrow {
+  margin: 0 8px;
+}
+.c-filtrate {
+  margin: 0 10px 0 10px;
+  width: 12px;
+}
+
+/** 勾选操作 */
+.th-container {
+  font-size: 12px;
+  height: 50px;
+  padding: 0 20px;
+  color: #777;
+
+  .selected—title {
+    flex-shrink: 0;
+    padding-right: 20px;
+    border-right: 1px solid $--table-border-color;
+    .selected—count {
+      color: $xr-color-primary;
+    }
+  }
+}
+
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+
+.user-container {
+  min-height: 34px;
+  margin: 3px 0;
+  position: relative;
+  border-radius: 3px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  color: #333333;
+  padding: 0.5px;
+  line-height: 15px;
+  max-height: 105px;
+  overflow-y: auto;
+  .user-item {
+    padding: 5px;
+    background-color: #e2ebf9;
+    border-radius: 3px;
+    margin: 3px;
+    cursor: pointer;
+  }
+  .add-item {
+    padding: 5px;
+    color: #3e84e9;
+    cursor: pointer;
+  }
+  .delete-icon {
+    color: #999;
+    cursor: pointer;
+  }
+  &:hover {
+    border-color: #c0c4cc;
+  }
+}
+
+.user-container.is_disabled {
+  background-color: #f5f7fa;
+  border-color: #e4e7ed;
+  cursor: not-allowed;
+  .user-item {
+    background-color: #f0f4f8ea;
+    color: #c0c4cc;
+    cursor: not-allowed;
+  }
+  .delete-icon {
+    color: #c0c4cc;
+    cursor: not-allowed;
+  }
+  .add-item {
+    color: #c0c4cc;
+    cursor: not-allowed;
+  }
+}
+
+.user-container.is_valid:hover {
+  border-color: #c0c4cc;
+}
+</style>

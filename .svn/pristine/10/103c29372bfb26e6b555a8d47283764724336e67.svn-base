@@ -1,0 +1,48 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="白名单" name="first">
+              <whiteList></whiteList>
+          </el-tab-pane>
+          <el-tab-pane label="黑名单" name="second">
+              <blackList></blackList>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<script>
+import whiteList from "./whiteList"
+import blackList from "./blackList"
+export default {
+  name: "",
+  components:{
+      whiteList,
+      blackList
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "first"
+    };
+  },
+
+  methods: {},
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+
+</style>

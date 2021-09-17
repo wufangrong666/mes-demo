@@ -1,0 +1,309 @@
+/** 项目管理路由 */
+
+// 组织结构
+const orzStructureAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'manage',
+    twotype: 'com'
+}
+const orzStructureRouter = {
+    path: 'orzStructure',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'seas',
+        title: '组织结构',
+        index: 1,
+        type: 'manage',
+        subType: 'com'
+    },
+    children: [
+        {
+            name: 'combination',
+            path: 'combination',
+            component: () => import('@/views/manage/compman/compmanIndex'),
+            meta: {
+                title: '单位管理',
+                subType: 'compman',
+                ...orzStructureAuth
+            }
+        },
+        {
+            name: 'employee-dep',
+            path: 'employee-dep', // 员工与部门管理
+            component: () => import('@/views/manage/useranddept/useranddeptIndex'),
+            meta: {
+                requiresAuth: false,
+                title: '员工与部门管理',
+                icon: 'department',
+                subType: 'useranddept',
+                ...orzStructureAuth
+            }
+        }
+    ]
+}
+
+// 权限管理
+const authDepartAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'manage',
+    twotype: 'authmanager'
+}
+const authDepartRouter = {
+    path: 'authDepart',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'seas',
+        title: '权限管理',
+        requiresAuth: true,
+        index: 1,
+        type: 'manage',
+        subType: 'authmanager'
+    },
+    hidden: false,
+    children: [
+        {
+            path: 'roleAuthIndex',
+            component: () => import('@/views/manage/authmanager/userrole'),
+            meta: {
+                title: '人员与角色管理',
+                subType: 'userrole',
+                ...authDepartAuth
+            }
+        }]
+}
+
+
+// 系统配置
+const systemconfigAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'manage',
+    twotype: 'syspz'
+}
+const systemconfigAuth2 = {
+    requiresAuth: true,
+    index: 3,
+    onetype: 'manage',
+    twotype: 'syspz',
+    threetype: 'jxcsz'
+}
+const systemconfigAuth3 = {
+    requiresAuth: true,
+    index: 3,
+    onetype: 'manage',
+    twotype: 'syspz',
+    threetype: 'crmsz'
+}
+const systemconfigurationRouter = {
+    path: 'systemconfiguration',
+    name: 'systemconfiguration',
+    component: () => import('@/views/common/appview'),
+
+    meta: {
+        icon: 'BI_Employee_performance',
+        title: '系统配置',
+        requiresAuth: true
+    },
+    hidden: false,
+    children: [
+        {
+            name: 'bus-docu-settings',
+            path: 'bus-docu-settings',
+            component: () => import('@/views/manage/ywdjsz/ywdjszIndex'),
+            meta: {
+                title: '业务单据设置',
+                subType: 'ywdjsz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'bus-docu-alert',
+            path: 'bus-docu-alert',
+            component: () => import('@/views/manage/ywdjtxsz/ywdjtxszIndex'),
+            meta: {
+                title: '业务单据提醒设置',
+                subType: 'ywdjtxsz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'termsPreset',
+            path: 'termsPreset',
+            component: () => import('@/views/manage/httkys/httkys'),
+            meta: {
+                title: '合同条款预设',
+                subType: 'httkys',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'storeSetting',
+            path: 'storeSetting',
+            component: () => import('@/views/manage/email/emailMb'),
+            meta: {
+                title: '邮件模板预设',
+                subType: 'yjmbys',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'cus-settings',
+            path: 'cus-settings',
+            component: () => import('@/views/manage/htmb/htmb'),
+            meta: {
+                title: '合同模板预设',
+                subType: 'htmbys',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'customer-settings',
+            path: 'customer-settings',
+            component: () => import('@/views/manage/khsz/khsz'),
+            meta: {
+                title: '客户设置',
+                subType: 'khsz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'spuler-settings',
+            path: 'spuler-settings',
+            component: () => import('@/views/manage/gyssz/gyssz'),
+            meta: {
+                title: '供应商设置',
+                subType: 'gyssz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'pro-settings',
+            path: 'pro-settings',
+            component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+            meta: {
+                title: '产品设置',
+                subType: 'cpsz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'ck-settings',
+            path: 'ck-settings',
+            component: () => import('@/views/manage/cksz/cksz'),
+            meta: {
+                title: '仓库设置',
+                subType: 'cksz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'currency-settings',
+            path: 'currency-settings',
+            component: () => import('@/views/manage/crmsetting/bzhlsz/bzhlsz'),
+            meta: {
+                title: '币种设置',
+                subType: 'bzhlsz',
+                ...systemconfigAuth
+            }
+        },
+        {
+            name: 'zzsd-settings',
+            path: 'zzsd-settings',
+            component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+            meta: {
+                title: '追踪锁定设置',
+                subType: 'zzsdsz',
+                ...systemconfigAuth
+            }
+        }
+    ]
+}
+
+//系统设置
+const systemsetupAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'manage',
+    twotype: 'sysset'
+}
+const systemsetupRouter = {
+    path: 'systemsetup',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'set',
+        title: '系统设置',
+        index: 1,
+        requiresAuth: true,
+        subType: 'sysset',
+        type: 'manage'
+    },
+    hidden: false,
+    children: [
+        {
+            name: 'systemconfig',
+            path: 'systemconfig', // 企业首页
+            component: () => import('@/views/manage/logo/logoIndex'),
+            meta: {
+                title: '系统logo设置',
+                icon: 'systemconfig',
+                subType: 'log',
+                ...systemsetupAuth
+            }
+        },
+        {
+            name: 'systemlog',
+            path: 'systemlog',
+            component: () => import('@/views/manage/xtrzgl/xtrzglIndex'),
+            meta: {
+                title: '系统日志管理',
+                subType: 'logman',
+                ...systemsetupAuth
+            }
+        },
+        {
+            name: 'systemvisit',
+            path: 'systemvisit',
+            component: () => import('@/views/manage/xtIp/xtIpIndex'),
+            meta: {
+                title: '系统访问控制',
+                subType: 'accesscon',
+                ...systemsetupAuth
+            }
+        },
+        {
+            name: 'dbmsqlmanagean',
+            path: 'sqlmanage',
+            component: () => import('@/views/manage/sysset/dbman/dbman'),
+            meta: {
+                title: '数据库管理',
+                subType: 'dbman',
+                ...systemsetupAuth
+            }
+        },
+        {
+            name: 'recycle',
+            path: 'recycle',
+            component: () => import('@/views/manage/hsz/hszIndex'),
+            meta: {
+                title: '回收站',
+                subType: 'recyclebin',
+                ...systemsetupAuth
+            }
+        },
+        {
+            name: 'dataclear',
+            path: 'dataclear',
+            component: () => import('@/views/manage/xtaqsz/xtaqsz'),
+            meta: {
+                title: '系统安全设置',
+                subType: 'dbclear',
+                ...systemsetupAuth
+            }
+        },
+    ]
+}
+
+
+export const childrenMenu = [orzStructureRouter, authDepartRouter, systemconfigurationRouter, systemsetupRouter]

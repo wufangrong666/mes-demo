@@ -1,0 +1,168 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">客户名称</label>
+            <el-input placeholder="客户名称" v-model="from.customerName"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">报价单号</label>
+            <el-input placeholder="客户名称" v-model="from.bjdDh"></el-input>
+          </div>
+          <div class="input-box" style="width:30%">
+            <label class="input-label">销售订单单号</label>
+            <el-date-picker
+              style="width:70%"
+              v-model="itemDate"
+              value-format="yyyy-MM-dd"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box" style="width:20%">
+            <el-button @click="success" type="primary">查询</el-button>
+            <el-button @click="reste" type="info" plain>重置</el-button>
+          </div>
+          <el-table
+            :data="tableData"
+            :height="tableHeight"
+            style="width: 100%"
+          >
+            <el-table-column type="" width="55">
+                <template slot-scope="scope">
+                    <el-radio v-model="radio" :label="scope.row"><span></span></el-radio>
+                </template>
+            </el-table-column>
+            <el-table-column prop="bjdDh" label="单号"></el-table-column>
+            <el-table-column prop="bjyxq" label="有效期"></el-table-column>
+            <el-table-column prop="customerName" label="客户名称"></el-table-column>
+            <el-table-column prop="zje" label="总金额"></el-table-column>
+          </el-table>
+          <div class="p-contianer" style="text-align: center;line-height: 40px">
+            <el-button type="primary" @click="submit" style="margin-left:220px">确定</el-button>
+            <el-button type="info" @click.native="hidenView">关闭</el-button>
+            <el-pagination
+              class="p-bar"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="from.page"
+              :page-sizes="[15,30,50,100]"
+              :page-size.sync="from.limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+            ></el-pagination>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { bjdQueryBjd } from "@/api/crm/xsbjd";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      widowData: {},
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        bjdDh: "",
+        beginDate: "",
+        endDate: "",
+      },
+      itemDate: "",
+      tableData: [],
+      total: 0,
+      radio:{},
+      tableHeight: document.documentElement.clientHeight - 145, // 表的高度
+    };
+  },
+
+  methods: {
+    submit() {
+      window.opener.postMessage(
+        { type: "table", id: this.radio.bjdId },
+        window.location
+      );
+      this.hidenView();
+    },
+    success() {
+      this.from.beginDate = this.itemDate ? this.itemDate[0] : "";
+      this.from.endDate = this.itemDate ? this.itemDate[1] : "";
+      this.queryData();
+    },
+    reste() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.customerName = "";
+      this.from.bjdDh = "";
+      this.from.beginDate = "";
+      this.from.endDate = "";
+      this.itemDate = "";
+      this.queryData();
+    },
+    queryData() {
+      bjdQueryBjd(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.queryData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.queryData();
+    },
+    hidenView() {
+      window.top.close();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.from.customerName = this.widowData.name;
+    this.queryData();
+  },
+};
+</script>
+<style >
+.create-container .el-range-separator {
+  line-height: 15px;
+}
+.create-container .create-flex .el-input__icon {
+  line-height: 18px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 20%;
+  .el-input {
+    width: 70%;
+  }
+  .input-label {
+    width: 85px;
+  }
+}
+</style>

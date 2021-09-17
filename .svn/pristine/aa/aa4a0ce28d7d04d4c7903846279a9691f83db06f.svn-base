@@ -1,0 +1,229 @@
+// 个人设置
+
+const biAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'oa',
+    twotype: 'personset'
+}
+
+const biRouter = {
+    path: 'purchasemanagement',
+    redirect: 'purchasemanagement/personalInfo',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'set',
+        title: '个人设置',  
+        // ...biAuth
+        requiresAuth: true,
+        index: 1,
+        type: 'oa',
+        subType: 'personset'
+    },
+    hidden: false,
+    children: [
+        {
+            path: 'changePassword', // 修改密码
+            component: () => import('@/views/oa/grsz/xgmmIndex'),
+            meta: {
+                title: '修改密码',
+                subType: 'xgmm',
+                ...biAuth
+            }
+        },
+        {
+            path: 'personalInfo', // 个人资料
+            component: () => import('@/views/oa/grsz/grzlIndex'),
+            meta: {
+                title: '个人资料',
+                subType: 'grzl',
+                ...biAuth
+            }
+        }
+    ]
+}
+
+// 通讯录管理
+
+const mailAdminAuth = {
+    requiresAuth: true,
+    index: 1,
+    type: 'oa',
+    subType: 'txlgl'
+}
+
+const mailAdminRouter = {
+    path: 'mailAdmin',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'contacts',
+        title: '通讯录管理',
+        ...mailAdminAuth
+    },
+    hidden: false,
+    children: [
+        {
+            path: 'organizeMail', // 组织通讯录
+            component: () => import('@/views/oa/txl/txlIndex'),
+            meta: {
+                title: '组织通讯录',
+                subType: 'zztxl',
+                ...mailAdminAuth
+            }
+        },
+    ]
+}
+
+// 工作汇报
+const workReportAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'oa',
+    twotype: 'workhb',
+}
+const workReportAuth2 = {
+    requiresAuth: true,
+    index: 3,
+    onetype: 'oa',
+    twotype: 'workhb',
+    threetype: 'myhb'
+}
+const workReportAuth3 = {
+    requiresAuth: true,
+    index: 3,
+    onetype: 'oa',
+    twotype: 'workhb',
+    threetype: 'newhb'
+}
+const workReportRouter = {
+    path: 'workReport',
+    redirect: 'workReport/myReport',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'file',
+        title: '工作汇报',
+        requiresAuth: true
+    },
+    children: [
+        {
+            path: 'myReport',
+            component: () => import('@/views/oa/hb/myhb'),
+            // redirect: 'myReport/myweekReport',
+            meta: {
+                title: '我的汇报',
+                subType: 'myhb',
+                ...workReportAuth
+            }
+        },
+        {
+            path: 'branchReport',
+            name: 'branchReport',
+            component: () => import('@/views/oa/hb/newhb'),
+            // redirect: 'branchReport/weekReport',
+            meta: {
+                title: '新建汇报',
+                subType: 'newhb',
+                ...workReportAuth
+            },
+        }
+    ]
+}
+
+// 工作计划
+// const workPlanAuth = {
+//     requiresAuth: true,
+//     index: 1,
+//     type: 'oa',
+//     subType: 'business'
+// }
+// 任务管理
+const taskControlAuth = {
+    requiresAuth: true,
+    index: 2,
+    onetype: 'oa',
+    twotype: 'taskmanager'
+}
+
+const taskControlRouter = {
+    path: 'taskControl',
+    redirect: 'taskControl/mytask',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'black-label',
+        title: '任务管理',
+        requiresAuth: true,
+        index: 1,
+        type: 'oa',
+        subType: 'taskmanager'
+    },
+    hidden: false,
+    children: [
+        {
+            path: 'mytask', // 计划查询
+            component: () => import('@/views/oa/rwgl/mytask'),
+            meta: {
+                title: '我的任务',
+                subType: 'mytask',
+                ...taskControlAuth
+            }
+        },
+        {
+            path: 'taskLayout', // 新建任务
+            component: () => import('@/views/oa/rwgl/newtask'),
+            meta: {
+                title: '新建任务',
+                subType: 'newtask',
+                ...taskControlAuth
+            }
+        }
+    ]
+}
+
+// 常用下载
+const netHardDiskAuth = {
+    requiresAuth: true,
+    index: 1,
+    type: 'oa',
+    subType: 'filemanager'
+}
+const netHardDiskRouter = {
+    path: 'netHardDisk',
+    redirect: 'netHardDisk/publicdocu',
+    component: () => import('@/views/common/appview'),
+    meta: {
+        icon: 'oa_analysis',
+        title: '常用下载',
+        ...netHardDiskAuth
+    },
+    children: [
+        {
+            path: 'publicdocu', // 文件下载列表
+            component: () => import('@/views/oa/download/filelist'),
+            meta: {
+                title: '文件下载列表',
+                subType: 'filelist',
+                ...netHardDiskAuth
+            },
+            hidden: false,
+        },
+        {
+            path: 'uploadfile', // 新建文件
+            component: () => import('@/views/oa/download/uploadfile'),
+            meta: {
+                title: '新建文件',
+                subType: 'uploadfile',
+                ...netHardDiskAuth
+            },
+        },
+    ]
+}
+
+export const children = [
+    ...biRouter.children, ...mailAdminRouter.children,
+    ...taskControlRouter.children, ...workReportRouter.children,
+    ...netHardDiskRouter.children
+]
+export const childrenMenu = [
+    biRouter, mailAdminRouter, taskControlRouter,
+    workReportRouter, netHardDiskRouter
+]

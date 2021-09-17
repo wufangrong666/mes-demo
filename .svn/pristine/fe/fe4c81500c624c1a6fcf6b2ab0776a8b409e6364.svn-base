@@ -1,0 +1,177 @@
+<template>
+  <div class="c-container">
+    <div class="input-box">
+      <label class="input-label">供应商类型</label>
+      <el-select v-model="gysId" placeholder="请选择" @change="gysIdChange">
+        <el-option v-for="item in gysList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">模板类型</label>
+      <el-select v-model="mblx" placeholder="请选择" @change="mblxChange">
+        <el-option v-for="item in mblxList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">供应商子类型</label>
+      <el-select v-model="gyszlx" placeholder="请选择">
+        <el-option v-for="item in gyszlxList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+      </el-select>
+    </div>
+    <el-checkbox v-model="sfdfj" :value="1">是否带询价单的附件到邮件中</el-checkbox>
+    <el-checkbox v-model="sfjjyj">是否默认发送紧急邮件</el-checkbox>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <vue-ueditor-wrap v-model="content" :config="myConfig"></vue-ueditor-wrap>
+      </div>
+    </div>
+    <div class="btnStyle">
+      <el-button @click="submit" type="primary">保存</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  mailYjmbGyszlxFindAll,
+  mailYjmbGetYjmb,
+  mailYjmbUpdateYjmb
+} from "@/api/manage/xtsz";
+import VueUeditorWrap from "vue-ueditor-wrap";
+
+export default {
+  name: "",
+  components: {
+    VueUeditorWrap
+  },
+  data() {
+    return {
+      sfdfj: "",
+      sfjjyj: "",
+      content: "",
+      name: "",
+      gysId: "1",
+      id: "",
+      gysList: [
+        { name: "德语类", id: "1" },
+        { name: "英语类", id: "2" },
+        { name: "中文类", id: "3" },
+        { name: "中英类", id: "4" }
+      ],
+      mblx: "1",
+      mblxList: [
+        { name: "询价邮件", id: "1" },
+        { name: "下订单", id: "2" },
+        { name: "催报价", id: "3" },
+        { name: "催订单", id: "4" }
+      ],
+      gyszlxList: [],
+      gyszlx: "",
+      myConfig: {
+        // 编辑器不自动被内容撑高
+        autoHeightEnabled: false,
+        // 初始容器高度
+        initialFrameHeight: 650,
+        // 初始容器宽度
+        initialFrameWidth: "100%",
+        // 上传文件接口（这个地址是我为了方便各位体验文件上传功能搭建的临时接口，请勿在生产环境使用！！！）
+        serverUrl: ""
+        // UEditor 资源文件的存放路径，如果你使用的是 vue-cli 生成的项目，通常不需要设置该选项，vue-ueditor-wrap 会自动处理常见的情况，如果需要特殊配置，参考下方的常见问题2
+      }
+    };
+  },
+
+  methods: {
+    gysIdChange() {
+      this.loginData();
+    },
+    mblxChange() {
+      this.loginData();
+    },
+    submit() {
+      mailYjmbUpdateYjmb({
+        sfdfj: this.sfdfj ? 1 : 0,
+        gyszlx: this.gyszlx,
+        sfjjyj: this.sfjjyj ? 1 : 0,
+        id: this.id,
+        text: this.content
+      })
+        .then(res => {
+          this.msgSuccess("修改成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    loginData() {
+      mailYjmbGyszlxFindAll()
+        .then(res => {
+          this.gyszlxList = res.data;
+          this.gyszlx = res.data[0].id;
+        })
+        .catch(res => {});
+      mailYjmbGetYjmb({
+        gysId: "",
+        gyslx: this.gysId,
+        mblx: this.mblx
+      })
+        .then(res => {
+          this.content = res.data.text;
+          this.id = res.data.id;
+          this.sfdfj = res.data.sfdfj == 0 ? false : true;
+          this.sfjjyj = res.data.sfjjyj == 0 ? false : true;
+          this.gyszlx = res.data.gyszlx;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.el-main {
+  padding-top: 10px;
+}
+.c-container {
+  height: 40px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    width: 300px;
+    margin-left: 15px;
+    height:35px;
+    .el-select {
+      width: 200px;
+    }
+    .input-label {
+      width: 100px;
+    }
+  }
+}
+.customer-content {
+  float: left;
+  width: 100%;
+}
+.el-checkbox {
+  margin: 10px 0 0 15px;
+}
+.btnStyle {
+  width: 100%;
+  text-align: center;
+  line-height: 40px;
+  margin-top: 10px;
+  background: #fff;
+  float: left;
+}
+</style>

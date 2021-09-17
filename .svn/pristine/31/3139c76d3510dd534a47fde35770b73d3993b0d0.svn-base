@@ -1,0 +1,99 @@
+<template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <div class="input-box">
+      <label class="input-label">汇报日期</label>
+      <el-date-picker
+        v-model="item"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        value-format="yyyy-MM-dd"
+      ></el-date-picker>
+    </div>
+    <div class="input-box">
+      <el-button @click="search" type="primary">查询</el-button>
+      <el-button @click="reset">重置</el-button>
+    </div>
+    <el-table id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="reportName" label="汇报名称"></el-table-column>
+      <el-table-column prop="reportDate" label="汇报时间段"></el-table-column>
+      <el-table-column prop="userTo" label="提交至"></el-table-column>
+      <el-table-column label="操作"></el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+import { oaReportQueryReportList } from "@/api/oa/personCenter";
+export default {
+  name: "",
+  data() {
+    return {
+      title: "",
+      tableData: [],
+      item: [],
+      tableHeight: document.documentElement.clientHeight - 194, // 表的高度
+      pageNum: 1,
+      pageSize: 15,
+    };
+  },
+
+  methods: {
+    reset() {
+      this.item = [];
+    },
+    search() {
+      this.loginData();
+    },
+    loginData() {
+      oaReportQueryReportList({
+        startDate: this.item.length ? this.item[0] : "",
+        endDate: this.item.length ? this.item[1] : "",
+        type: 1,
+        dept: "",
+        userFrom: "",
+        pageNum: this.pageNum,
+        pageSize: this.pageSize,
+      })
+        .then((res) => {
+          this.tableData = res.list;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.loginData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 50px;
+    width: 500px;
+    .input-label {
+      width: 100px;
+    }
+    .el-date-editor {
+      width: 400px;
+    }
+  }
+}
+</style>

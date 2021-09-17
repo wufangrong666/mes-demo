@@ -1,0 +1,218 @@
+<template>
+  <div class="c-container">
+    <div class="title">{{title}}</div>
+    <div class="input-box">
+      <label class="input-label">客户名称</label>
+      <el-input placeholder="客户名称" clearable v-model="from.customerName"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">收款单号</label>
+      <el-input placeholder="收款单号" clearable v-model="from.skddh"></el-input>
+    </div>
+    <div class="input-box">
+      <el-button @click="search" type="primary">查询</el-button>
+      <el-button @click="reset">重置</el-button>
+    </div>
+
+    <el-table :data="tableData" id="table" :height="tableHeight" stripe style="width: 100%">
+      <el-table-column width="140" label="销售收款单号">
+        <template slot-scope="scope">
+          <span
+            @click="lookClick(scope.row)"
+            style="color: #3E84E9;cursor:pointer"
+            v-text="scope.row.skddh"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="customerName" label="客户名称"></el-table-column>
+      <el-table-column prop="dwttName" label="收款抬头"></el-table-column>
+      <el-table-column prop="skfsName" label="收款方式"></el-table-column>
+      <el-table-column prop="accountName" label="收款账户"></el-table-column>
+      <el-table-column prop="skrq" :show-overflow-tooltip="true" label="收款日期"></el-table-column>
+      <el-table-column prop="realname" label="操作员"></el-table-column>
+      <el-table-column prop="createDate" :show-overflow-tooltip="true" label="创建日期"></el-table-column>
+      <el-table-column prop="je" label="本单收款"></el-table-column>
+      <el-table-column prop="djStatus" label="单据状态"></el-table-column>
+      <el-table-column prop="status" label="状态"></el-table-column>
+      <el-table-column prop="address" width="250" label="操作">
+        <template slot-scope="scope">
+          <el-button @click="lookClick(scope.row)" type="text">查看明细</el-button>
+          <el-button :disabled='scope.row.status == "已审核"' @click="audit(scope.row)" type="text">审核</el-button>
+          <el-button @click="deleteClick(scope.row)" style="color:red" type="text">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table> 
+
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange" 
+        :current-page="from.page"
+        :page-sizes="[10,30,50,100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <yskdDetails
+      :yskdDetailsTitle="yskdDetailsTitle"
+      :data="data"
+      @on-handle="onHanle"
+      @close="yskdDetails = false"
+      v-if="yskdDetails"
+    ></yskdDetails>
+    <skdMx :data="data" @on-handle="onHanle" @close="yskdMx = false" v-if="yskdMx"></skdMx>
+  </div>
+</template>
+
+<script>
+import { skdQueryPageList, skdDeleteById } from "@/api/finance/finance";
+import skdMx from "./skdMx";
+export default {
+  name: "",
+  components: {
+    skdMx,
+  },
+  data() {
+    return {
+      yskdDetails: false,
+      yskdMx: false,
+      yskdDetailsId: "",
+      title: "",
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        skddh: "",
+      },
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 200, // 表的高度
+      total: 0,
+      data: {},
+      yskdDetailsTitle: "新增",
+    };
+  },
+
+  methods: {
+    audit(row) {
+      this.windowOpen("/skdMx", {
+        id: this.encode(row.skdId),
+        data: JSON.stringify(row),
+        type: "audit",
+      });
+    },
+    lookClick(row) {
+      this.windowOpen("/skdMx", {
+        id: this.encode(row.skdId),
+        data: JSON.stringify(row),
+        type: "lookClick",
+      });
+    },
+    auditClick() {},
+    deleteClick(val) {
+      console.log(val);
+      this.$confirm("请确认删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          skdDeleteById({
+            skdId: val.skdId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("已取消删除");
+        });
+    },
+    editClick(row) {
+      this.data = row;
+      this.yskdDetails = true;
+      this.yskdDetailsTitle = "编辑";
+    },
+    onHanle() {
+      this.loginData();
+    },
+    yskdAdd() {
+      this.yskdDetails = true;
+      this.yskdDetailsTitle = "新增";
+    },
+    reset() {
+      this.from.customerName = "";
+      this.from.skddh = "";
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.loginData();
+    },
+    search() {
+      this.loginData();
+    },
+    loginData() {
+      skdQueryPageList(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+    receiveMessage(event) {
+      this.loginData();
+    },
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+    this.title = this.$route.meta.title;
+    this.updateTableHeight();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+.c-container {
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 50px;
+    .el-date-editor {
+      width: 400px;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

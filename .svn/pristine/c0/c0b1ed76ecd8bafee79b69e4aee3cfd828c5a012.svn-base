@@ -1,0 +1,138 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="请输入名称"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title="新建单位"
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        class="n-table--border"
+        id="table"
+        v-loading="loading"
+        :data="list"
+        :height="tableHeight"
+        stripe
+        border
+        highlight-current-row
+        style="width: 100%"
+        :cell-style="cellStyle"
+        @row-click="handleRowClick"
+        @sort-change="sortChange"
+        @header-dragend="handleHeaderDragend"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column show-overflow-tooltip type="selection" align="center" width="55"></el-table-column>
+        <el-table-column
+          v-for="(item, index) in fieldList"
+          :key="index"
+          sortable="custom"
+          show-overflow-tooltip
+          :fixed="index==0"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width"
+          :formatter="fieldFormatter"
+        >
+        </el-table-column>
+        <el-table-column></el-table-column>
+        <el-table-column fixed="right" width="36">
+          <template slot="header" slot-scope="slot">
+            <el-popover
+              :ref="`popover-${slot.$index}`"
+              placement="bottom-end"
+              width="220"
+              trigger="click"
+            >
+              <div>
+                <ul class="ul-popover">
+                  <draggable v-model="checkList">
+                    <li v-for="item in checkList" :key="item.id">
+                      <el-switch v-model="item.show" active-color="#2362fb"></el-switch>
+                      <span v-text="item.name"></span>
+                    </li>
+                  </draggable>
+                </ul>
+                <div class="btn">
+                  <el-button type="primary" @click="reset">重置</el-button>
+                  <el-button type="primary" @click="addPopover(slot)">提交</el-button>
+                </div>
+              </div>
+              <img
+                slot="reference"
+                src="@/assets/img/t_set.png"
+                @click="handleTableSet"
+                class="table-set"
+              />
+            </el-popover>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="pageSizes"
+          :page-size.sync="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import table from "../mixins/table";
+
+import draggable from "vuedraggable";
+export default {
+  /** 客户管理 的 客户列表 */
+  name: "customerIndex",
+  components: {
+    draggable
+  },
+  mixins: [table],
+  data() {
+    return {
+      listType: "admin_company",
+      title: ""
+    };
+  },
+  computed: {
+    ...mapGetters(["companyConfig"])
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+  methods: {
+    /** 通过回调控制style */
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      if (column.property === "nameCn" || column.property === "businessCheck") {
+        return { color: "#3E84E9", cursor: "pointer" };
+      } else {
+        return "";
+      }
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+@import "../styles/table.scss";
+</style>

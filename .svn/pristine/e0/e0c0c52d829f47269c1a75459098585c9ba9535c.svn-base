@@ -1,0 +1,1118 @@
+<template>
+  <slide-view
+    v-empty="!canShowDetail"
+    xs-empty-icon="nopermission"
+    xs-empty-text="暂无权限"
+    @side-close="hideView"
+    v-clickoutside="hideView"
+    :body-style="{padding: 0, height: '100%'}"
+  >
+    <flexbox
+      v-if="canShowDetail"
+      v-loading="loading"
+      direction="column"
+      align="stretch"
+      class="d-container"
+    >
+      <flexbox class="selection-items-box">
+        <img @click="hideView" class="t-close" src="@/assets/img/task_close.png" />
+        <div class="header">添加报价</div>
+      </flexbox>
+      <template>
+        <div class="abc">
+          <el-tabs v-model="activeName" @tab-click="handleClick">
+            <el-tab-pane
+              v-for="(item,index) in tabsData"
+              :key="index"
+              :label="item.activeName"
+              :name="item.activeName"
+            >
+              <div class="offer">
+                <el-select
+                  style="width:100px"
+                  v-model="item.bjlx"
+                  placeholder="请选择"
+                  @change="seletChange"
+                >
+                  <el-option
+                    v-for="i in item.bjlxList"
+                    :key="i.code"
+                    :label="i.name"
+                    :value="i.code"
+                  ></el-option>
+                </el-select>
+                <el-button @click="czjlClick" style="margin-left:40px" type="text">历史记录</el-button>
+                <span
+                  style="display: inline-block;color: red;font-weight: 900;margin-left: 425px;font-size: 20px;"
+                >温馨提示</span>
+                <br />
+                <div class="offer-left">
+                  <div class="dialog-box">
+                    <label v-if="bjlxType ==2 || bjlxType ==1" class="input-label">外币总成本</label>
+                    <label v-if="bjlxType ==3" class="input-label">采购总成本</label>
+                    <span
+                      style="display: inline-block;width:45%;line-height:34px"
+                      v-text="item.zwbcb"
+                    >{{zwbcb(item,tabsData[tableIndex].tableList)}}</span>
+                  </div>
+                  <div class="dialog-box">
+                    <label v-if="bjlxType ==2 || bjlxType ==1" class="input-label">总人民币成本</label>
+                    <label v-if="bjlxType ==3" class="input-label">总成本</label>
+                    <span
+                      style="display: inline-block;width:45%;line-height:34px"
+                      v-text="item.zrmbcb"
+                    >{{zrmbcb(item,tabsData[tableIndex].tableList)}}</span>
+                  </div>
+                  <div class="dialog-box">
+                    <label v-if="bjlxType ==2 || bjlxType ==1" class="input-label">国外运杂费</label>
+                    <label v-if="bjlxType ==3" class="input-label">快递费</label>
+                    <el-input style="height:20px" v-model="item.gwyzf" placeholder="运杂费"></el-input>
+                  </div>
+                  <div v-if="bjlxType !==3" class="dialog-box">
+                    <label v-if="bjlxType ==1" class="input-label">国际运费</label>
+                    <label v-if="bjlxType ==2" class="input-label">国际快递(海运)</label>
+                    <el-input v-model="item.gjyf" placeholder="运费"></el-input>
+                  </div>
+                  <div v-if="bjlxType ==2 || bjlxType ==1" class="dialog-box">
+                    <label class="input-label">外币币种</label>
+                    <el-select v-model="item.wbbz" placeholder="请选择" @change="wbbzChange">
+                      <el-option
+                        v-for="i in item.wbbzList"
+                        :key="i.bzid"
+                        :label="i.bzmc"
+                        :value="i.bzid"
+                      ></el-option>
+                    </el-select>
+                  </div>
+                  <div v-if="bjlxType ==2 || bjlxType ==1" class="dialog-box">
+                    <label class="input-label">汇率</label>
+                    <el-input v-model="item.hl" placeholder="汇率"></el-input>
+                  </div>
+                  <div class="dialog-box">
+                    <label class="input-label">增值税</label>
+                    <el-input v-model="item.zzs" placeholder="增值税"></el-input>
+                  </div>
+                  <div class="dialog-box">
+                    <label class="input-label">货期</label>
+                    <el-input v-model="item.hq" placeholder="货期"></el-input>
+                  </div>
+                  <div class="dialog-box" v-if="bjlxType == 2">
+                    <label class="input-label">银行转账费</label>
+                    <el-input v-model="item.yhzzf" placeholder="货期"></el-input>
+                  </div>
+                  <div class="dialog-box" v-if="bjlxType == 2">
+                    <label class="input-label"></label>
+                  </div>
+                  <div class="dialog-box" v-if="bjlxType == 2">
+                    <label class="input-label"></label>
+                  </div>
+                  <div class="dialog-box" v-if="bjlxType == 3">
+                    <label class="input-label"></label>
+                  </div>
+                  <div class="dialog-box" v-if="bjlxType == 3">
+                    <label class="input-label"></label>
+                  </div>
+                  <div
+                    v-show="bjlxType ==2 || bjlxType ==1"
+                    style="margin-top:10px;width:49%;display: inline-block;"
+                  >
+                    <el-button @click="addWbinfo(item.wbinfoList)">增加外币费用</el-button>
+                  </div>
+                  <div style="margin:10px 0 0 5px;width:49%;display: inline-block;">
+                    <el-button @click="addBbinfo(item.bbinfoList)">增加本币费用</el-button>
+                  </div>
+                  <div
+                    v-show="bjlxType ==2 || bjlxType ==1"
+                    style="width:49%;float:left;margin-left:5px"
+                  >
+                    <div class="fy-box">
+                      <div v-for="(list,index) in item.wbinfoList" :key="index">
+                        <el-input v-model="list.name" placeholder="外币费用名称"></el-input>
+                        <el-input v-model="list.code" placeholder="费用"></el-input>
+                        <el-button @click="deletWbinfo(item.wbinfoList,index)" type="text">删除</el-button>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="width:49%;float:left;margin-left:5px">
+                    <div class="fy-box">
+                      <div v-for="(list,index) in item.bbinfoList" :key="index">
+                        <el-input v-model="list.name" placeholder="本币费用名称"></el-input>
+                        <el-input v-model="list.code" placeholder="费用"></el-input>
+                        <el-button @click="deletBbinfo(item.bbinfoList,index)" type="text">删除</el-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="offer-right">
+                  <div class="dialog-ts">
+                    <span v-for="(item,index) in costInfo" :key="index" v-text="item.content"></span>
+                  </div>
+                </div>
+              </div>
+              <el-table :data="item.tableList" style="width: 100%" max-height="350">
+                <el-table-column prop="brandName" label="品牌"></el-table-column>
+                <el-table-column prop="name" label="品名">
+                  <template slot-scope="scope">
+                    <el-input
+                      placeholder="请选择"
+                      :readonly="true"
+                      v-model="scope.row.productName"
+                      clearable
+                    >
+                      <el-button @click="comnameIdClick(scope)" slot="append" icon="el-icon-plus"></el-button>
+                    </el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+                <el-table-column label="重量(KG)">
+                  <template slot-scope="scope">
+                    <el-input
+                      @keyup.native="scope.row.weight = scope.row.weight.replace(/[^\d.]/g,'')"
+                      v-model="scope.row.weight"
+                      placeholder="请输入重量"
+                    ></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column label="数量">
+                  <template slot-scope="scope">
+                    <el-input :readonly="true" v-model="scope.row.quantity" placeholder="请输入数量"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column label="外币单价">
+                  <template slot-scope="scope">
+                    <el-input
+                      @keyup.native="scope.row.wbdjZkq = scope.row.wbdjZkq.replace(/[^\d.]/g,'')"
+                      v-model="scope.row.wbdjZkq"
+                      placeholder="请输入外币单价"
+                    ></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column label="折扣">
+                  <template slot-scope="scope">
+                    <el-input
+                      @keyup.native="scope.row.zk = scope.row.zk.replace(/[^\d.]/g,'')"
+                      v-model="scope.row.zk"
+                      placeholder="请输入折扣"
+                    ></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="wbdjZkh" label="采购单价">
+                  <template slot-scope="scope">{{computedZk(scope.row)}}</template>
+                </el-table-column>
+                <el-table-column label="关税">
+                  <template slot-scope="scope">
+                    <el-input
+                      @keyup.native="scope.row.gs = scope.row.gs.replace(/[^\d.]/g,'')"
+                      v-model="scope.row.gs"
+                      placeholder="请输入关税"
+                    ></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="rmbdj" label="人民币单价">
+                  <template>{{rmbdj(item,tabsData[tableIndex].tableList,index)}}</template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+          </el-tabs>
+          <span class="table-footer">
+            <el-button @click="hideView">关闭</el-button>
+            <el-button type="primary" @click="addBj">保存</el-button>
+          </span>
+        </div>
+      </template>
+
+      <el-dialog
+        title="操作记录"
+        :visible.sync="dialogCzjl"
+        width="50%"
+        :before-close="handleCloseCzjl"
+        style="margin-top:-14vh;"
+        :modal-append-to-body="false"
+      >
+        <div style="height: 700px;overflow: auto;">
+          <flexbox
+            v-for="(item, index) in cajlList"
+            :key="index"
+            class="ha-cont"
+            align="stretch"
+            justify="flex-start"
+          >
+            <div class="ha-week">{{item.operateTime}}</div>
+            <div class="ha-circle"></div>
+            <div
+              v-photo="item"
+              v-lazy:background-image="$options.filters.filterUserLazyImg(item.img)"
+              class="div-photo ha-img"
+            ></div>
+            <div class="ha-name">{{item.realname}}</div>
+            <div class="ha-content">
+              <p v-for="(info, infoIndex) in item.content" :key="infoIndex">{{info}}</p>
+            </div>
+            <div class="ha-line"></div>
+          </flexbox>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogCzjl = false">取 消</el-button>
+        </span>
+      </el-dialog>
+
+      <el-dialog
+        :modal-append-to-body="false"
+        title="选择品名"
+        :visible.sync="dialogComname"
+        width="50%"
+        :before-close="handleComname"
+      >
+        <div style="float:left;height:400px;width:100%">
+          <div style="width:30%;float:left;height:400px;">
+            <el-input style="width:50%;" placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
+            <el-button @click="searchComname" type="primary">搜索</el-button>
+            <el-button @click="restComname" type="info" plain>重置</el-button>
+            <div style="width:100%;height:356px;overflow: auto;margin-top:10px">
+              <ul class="tree">
+                <li
+                  :class="{'comnameStyle' : item.flag}"
+                  @click="comnameClick(item)"
+                  v-for="(item,index) in comnameData"
+                  :key="index"
+                >{{item.name}}</li>
+              </ul>
+            </div>
+          </div>
+          <ul class="comnameRight">
+            <li>
+              <span>品名:</span>
+              <span v-text="comnameList.nameCn"></span>
+            </li>
+            <li>
+              <span>英文品名:</span>
+              <span v-text="comnameList.nameEn"></span>
+            </li>
+            <li>
+              <span>创建人:</span>
+              <span v-text="comnameList.creator"></span>
+            </li>
+            <li>
+              <span>创建日期:</span>
+              <span v-text="comnameList.createDate"></span>
+            </li>
+            <li>
+              <span>关税(%):</span>
+              <span v-text="comnameList.tariff"></span>
+            </li>
+            <li>
+              <span>海关编码:</span>
+              <span v-text="comnameList.hgbm"></span>
+            </li>
+            <li>
+              <span>最后修改日期:</span>
+              <span v-text="comnameList.lastEdittime"></span>
+            </li>
+            <li>
+              <span>功能:</span>
+              <span v-text="comnameList.function"></span>
+            </li>
+            <li>
+              <span>原理:</span>
+              <span v-text="comnameList.theory"></span>
+            </li>
+            <li>
+              <span>用途:</span>
+              <span v-text="comnameList.usage"></span>
+            </li>
+            <li>
+              <span>德国HS CODE:</span>
+              <span v-text="comnameList.hsCode"></span>
+            </li>
+          </ul>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="handleComname">关闭</el-button>
+          <el-button type="primary" @click="submit">确 定</el-button>
+        </span>
+      </el-dialog>
+    </flexbox>
+  </slide-view>
+</template>
+
+<script>
+import SlideView from "./SlideView";
+import detail from "../../manage/mixins/detail";
+import table from "../../manage/mixins/table";
+import {
+  xbjAddCostInfo,
+  xbjQueryComname,
+  xbjCzjl,
+  bjdCzjl,
+  jxcXsddCzjl,
+  costInfoTipsQueryPageList,
+  xbjQueryBzhl
+} from "@/api/crm/xbjTable";
+import { bjdAddCostInfo } from "@/api/crm/xsbjd";
+import { jxcXsddAddAndUpdateCostInfo } from "@/api/jxc/jxc";
+import { findAllComnameNameAndId } from "@/api/crm/cpxx";
+import { crmProductComnameQueryById } from "@/api/crm/pmgl";
+
+export default {
+  name: "",
+  components: {
+    SlideView
+  },
+  mixins: [detail, table],
+  props: {
+    dialogVisible: {
+      type: Boolean
+    },
+    tabsData: {
+      type: Array
+    },
+    activeName: {
+      type: String
+    },
+    activeData: {
+      type: Object
+    },
+    listType: {
+      type: String
+    }
+  },
+  watch: {
+    filterText(val) {
+      this.$refs.tree.filter(val);
+    }
+  },
+  computed: {
+    xbjFlag() {
+      return this.$store.state.xbjFlag;
+    },
+    zrmbcb() {
+      return (item, data) => {
+        // 平均关税
+        let pjgs = 0;
+        let and = 0;
+        let pjgsAnd = 0;
+        // 总外币
+        let x = 0;
+        let r = 0;
+        let y = 0;
+        // 采购单价总和
+        let cgdj = 0;
+        // 国外运杂费
+        let gwyzf = 0;
+        // 国际运杂费
+        let gjyf = 0;
+        // 外币和本币
+        let wb = 0;
+        let bb = 0;
+        for (var i in data) {
+          if (data[i].quantity !== "" && data[i].gs !== "") {
+            pjgs += data[i].quantity * data[i].gs;
+            and += Number(data[i].quantity);
+          }
+          if (
+            data[i].quantity !== "" &&
+            data[i].wbdjZkq !== "" &&
+            data[i].zk !== "" &&
+            data[i].gs !== ""
+          ) {
+            cgdj +=
+              data[i].quantity *
+              (data[i].wbdjZkq * (1 - data[i].zk * 0.01)).toFixed(2) *
+              data[i].gs;
+          }
+        }
+        for (var key in item.wbinfoList) {
+          wb += Number(item.wbinfoList[key].code);
+        }
+        for (var key in item.bbinfoList) {
+          bb += Number(item.bbinfoList[key].code);
+        }
+        if (pjgs == 0) {
+          pjgsAnd = 0;
+        } else {
+          pjgsAnd = (pjgs / and).toFixed(2);
+        }
+        //根据切换计算
+        if (this.bjlxType == 1) {
+          x =
+            cgdj +
+            Number(item.gwyzf) * pjgsAnd +
+            Number(item.gjyf) * pjgsAnd +
+            wb * pjgsAnd;
+          r = x * item.zzs * item.hl * 1.03 + bb * item.zzs;
+          item.zrmbcb = r.toFixed(2);
+        } else if (this.bjlxType == 2) {
+          y =
+            Number(item.gjyf) * pjgsAnd * item.zzs +
+            bb * item.zzs +
+            Number(item.yhzzf);
+          x = cgdj + Number(item.gwyzf) * pjgsAnd + wb * pjgsAnd;
+          r = x * item.zzs * item.hl * 1.03 + Number(y);
+          item.zrmbcb = r.toFixed(2);
+        } else if (this.bjlxType == 3) {
+          item.zrmbcb =
+            Number(item.zwbcb) + Number(item.gwyzf) + Number(bb * item.zzs);
+        }
+      };
+    },
+    rmbdj() {
+      return (item, data, index) => {
+        if (this.bjlxType == 2 || this.bjlxType == 1) {
+          let cgdj = 0;
+          for (var i in data) {
+            cgdj +=
+              data[i].quantity *
+              (data[i].wbdjZkq * (1 - data[i].zk * 0.01)).toFixed(2) *
+              data[i].gs;
+            if (
+              data[i].gs !== "" &&
+              data[i].gs !== null &&
+              Number(data[i].gs) !== 0 &&
+              data[i].quantity !== 0 &&
+              data[i].wbdjZkq !== 0
+            ) {
+              if (
+                (Number(item.zrmbcb) / Number(cgdj)) *
+                  Number(data[i].wbdjZkh) *
+                  Number(data[i].gs) !==
+                0
+              ) {
+                data[i].rmbdj = (
+                  (Number(item.zrmbcb) / Number(cgdj)) *
+                  Number(data[i].wbdjZkh) *
+                  Number(data[i].gs)
+                ).toFixed(2);
+              }
+            }
+          }
+        } else {
+          for (var i in data) {
+            if (
+              data[i].gs !== "" &&
+              data[i].gs !== null &&
+              Number(data[i].gs) !== 0 &&
+              data[i].quantity !== 0 &&
+              data[i].wbdjZkq !== 0
+            ) {
+              data[i].rmbdj =
+                (item.zrmbcb / Number(item.zwbcb)) * data[i].wbdjZkh;
+            }
+          }
+        }
+      };
+    },
+    computedZk() {
+      return data => {
+        return (data.wbdjZkh = (data.wbdjZkq * (1 - data.zk * 0.01)).toFixed(
+          2
+        ));
+      };
+    },
+    zwbcb() {
+      return (item, data) => {
+        let num = 0;
+        for (var i in data) {
+          if (data[i].quantity !== "" && data[i].wbdjZkh !== "") {
+            num += data[i].quantity * data[i].wbdjZkh;
+          }
+        }
+        item.zwbcb = num.toFixed(2);
+      };
+    }
+  },
+  data() {
+    return {
+      loading: false,
+      tableIndex: 0,
+      productList: [],
+      bjlxType: 1,
+      dialogCzjl: false,
+      cajlList: [],
+      costInfo: [],
+      warmPrompt: false,
+      dialogComname: false,
+      filterText: "",
+      comnameData: [],
+      comnameList: {}
+    };
+  },
+
+  methods: {
+    comnameClick(data) {
+      this.submitList = data;
+      for (var i in this.comnameData) {
+        if (this.comnameData[i].id == data.id) {
+          this.comnameData[i].flag = true;
+        } else {
+          this.comnameData[i].flag = false;
+        }
+      }
+      this.crmProductData(data.id);
+    },
+    submit() {
+      this.dialogComname = false;
+      this.tabsData[this.tableIndex].tableList[
+        this.scope.$index
+      ].productName = this.submitList.name;
+      this.tabsData[this.tableIndex].tableList[
+        this.scope.$index
+      ].comnameId = this.submitList.id;
+      this.tabsData[this.tableIndex].tableList[this.scope.$index].gs =
+        Number(this.submitList.gs / 100) + 1;
+      this.scope.row.comnameId = this.submitList.id;
+    },
+    handleComname() {
+      this.dialogComname = false;
+    },
+    searchComname() {
+      this.comnameTree();
+    },
+    restComname() {
+      this.filterText = "";
+      this.comnameTree();
+    },
+    crmProductData(val) {
+      crmProductComnameQueryById({
+        id: val
+      })
+        .then(res => {
+          this.comnameList = res.data;
+        })
+        .catch(res => {});
+    },
+    comnameIdClick(scope) {
+      this.scope = scope;
+      this.dialogComname = true;
+      this.comnameText = "";
+      if (this.listType == "crm_xbj") {
+        this.comnameTree(scope.row.comnameId);
+        if (scope.row.comnameId != "") {
+          this.crmProductData(scope.row.comnameId);
+        }
+      } else if (this.listType == "crm_bjd" || this.listType == "jxc_xsdd") {
+        this.comnameTree(scope.row.commnameId);
+        if (scope.row.comnameId != "") {
+          this.crmProductData(scope.row.commnameId);
+        }
+      }
+    },
+    comnameTree() {
+      findAllComnameNameAndId({
+        name: this.filterText
+      })
+        .then(res => {
+          this.comnameData = res.data;
+          if (this.listType == "crm_xbj") {
+            for (var i in this.comnameData) {
+              if (this.scope.row.comnameId != "") {
+                if (this.comnameData[i].id == this.scope.row.comnameId) {
+                  this.comnameData[i].flag = true;
+                } else {
+                  this.comnameData[i].flag = false;
+                }
+              } else {
+                this.comnameData[i].flag = false;
+              }
+            }
+          } else if (
+            this.listType == "crm_bjd" ||
+            this.listType == "jxc_xsdd"
+          ) {
+            for (var i in this.comnameData) {
+              if (this.scope.row.commnameId != "") {
+                if (this.comnameData[i].id == this.scope.row.commnameId) {
+                  this.comnameData[i].flag = true;
+                } else {
+                  this.comnameData[i].flag = false;
+                }
+              } else {
+                this.comnameData[i].flag = false;
+              }
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    wbbzChange(data) {
+      xbjQueryBzhl()
+        .then(res => {
+          for (var i in res.data) {
+            if (res.data[i].bzid == data) {
+              this.tabsData[this.tableIndex].hl = res.data[i].zxhl;
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    editWxts() {
+      this.warmPrompt = true;
+    },
+    warmPromptClick() {
+      this.warmPrompt = false;
+    },
+    handleClick(tab, event) {
+      this.tableIndex = tab.index;
+    },
+    hideView() {
+      this.$emit("close");
+    },
+    getDetial() {
+      this.loading = false;
+    },
+    handleCloseCzjl() {
+      this.dialogCzjl = false;
+    },
+    czjlClick() {
+      this.dialogCzjl = true;
+      let arr = this.tabsData[this.tableIndex].tableList;
+      if (this.listType == "crm_xbj") {
+        xbjCzjl({
+          djmxIds: arr
+            .map(function(item) {
+              return item.mxid;
+            })
+            .join(",")
+        })
+          .then(res => {
+            this.cajlList = res.data;
+          })
+          .catch(res => {});
+      } else if (this.listType == "crm_bjd") {
+        bjdCzjl({
+          djmxIds: arr
+            .map(function(item) {
+              return item.mxid;
+            })
+            .join(",")
+        })
+          .then(res => {
+            this.cajlList = res.data;
+          })
+          .catch(res => {});
+      } else if (this.listType == "jxc_xsdd") {
+        jxcXsddCzjl({
+          djmxIds: arr
+            .map(function(item) {
+              return item.mxid;
+            })
+            .join(",")
+        })
+          .then(res => {
+            this.cajlList = res.data;
+          })
+          .catch(res => {});
+      }
+    },
+    handleClose() {
+      this.$emit("close");
+    },
+    handleClick(tab, event) {
+      this.tableIndex = tab.index;
+    },
+    addBj() {
+      this.tabsData[this.tableIndex].wbinfo = {};
+      this.tabsData[this.tableIndex].bbinfo = {};
+      var wbList = [];
+      if (this.tabsData[this.tableIndex].wbinfoList.length) {
+        wbList = this.tabsData[this.tableIndex].wbinfoList;
+      }
+      var bbList = [];
+      if (this.tabsData[this.tableIndex].bbinfoList.length) {
+        bbList = this.tabsData[this.tableIndex].bbinfoList;
+      }
+      this.tabsData[this.tableIndex].wbcount = wbList.length;
+      this.tabsData[this.tableIndex].bbcount = bbList.length;
+      for (var i in wbList) {
+        let name = wbList[i].name;
+        eval(
+          "this.tabsData[this.tableIndex].wbinfo." + name + "=" + wbList[i].code
+        );
+        this.tabsData[this.tableIndex].wbsum += Number(wbList[i].code);
+      }
+      for (var n in bbList) {
+        let str = bbList[n].name;
+        eval(
+          "this.tabsData[this.tableIndex].bbinfo." + str + "=" + bbList[n].code
+        );
+        this.tabsData[this.tableIndex].bbsum += Number(bbList[n].code);
+      }
+      let tableList = this.tabsData[this.tableIndex].tableList;
+      console.log(tableList)
+      this.costinfoList = [];
+      if (this.listType == "crm_xbj") {
+        for (var i in tableList) {
+          this.costinfoList.push({
+            id: tableList[i].id == 0 ? "" : tableList[i].id,
+            djmxid: tableList[i].mxid,
+            bjlx: this.tabsData[this.tableIndex].bjlx,
+            zwbcb: this.tabsData[this.tableIndex].zwbcb,
+            zrmbcb: this.tabsData[this.tableIndex].zrmbcb,
+            gwyzf: this.tabsData[this.tableIndex].gwyzf,
+            gjyf: this.tabsData[this.tableIndex].gjyf,
+            wbbz: Number(this.tabsData[this.tableIndex].wbbz),
+            hl: this.tabsData[this.tableIndex].hl,
+            zzs: this.tabsData[this.tableIndex].zzs,
+            hq: this.tabsData[this.tableIndex].hq,
+            yhzzf: this.tabsData[this.tableIndex].yhzzf,
+            wbinfo: this.tabsData[this.tableIndex].wbinfoList,
+            bbinfo: this.tabsData[this.tableIndex].bbinfoList,
+            wbcount: this.tabsData[this.tableIndex].wbcount, //个数
+            bbcount: this.tabsData[this.tableIndex].bbcount,
+            wbsum: this.tabsData[this.tableIndex].wbsum, //总和
+            bbsum: this.tabsData[this.tableIndex].bbsum,
+            brandId: tableList[i].brandId,
+            comnameId: tableList[i].comnameId,
+            quantity: tableList[i].quantity,
+            weight: tableList[i].weight,
+            wbdjZkq: tableList[i].wbdjZkq,
+            zk: tableList[i].zk,
+            wbdjZkh: tableList[i].wbdjZkh,
+            gs: tableList[i].gs,
+            rmbdj: tableList[i].rmbdj,
+            productId: tableList[i].productId
+          });
+        }
+      } else if (this.listType == "crm_bjd" || this.listType == "jxc_xsdd") {
+        for (var i in tableList) {
+          this.costinfoList.push({
+            id: tableList[i].id == 0 ? "" : tableList[i].id,
+            djmxid: tableList[i].mxid,
+            bjlx: this.tabsData[this.tableIndex].bjlx,
+            zwbcb: this.tabsData[this.tableIndex].zwbcb,
+            zrmbcb: this.tabsData[this.tableIndex].zrmbcb,
+            gwyzf: this.tabsData[this.tableIndex].gwyzf,
+            gjyf: this.tabsData[this.tableIndex].gjyf,
+            wbbz: Number(this.tabsData[this.tableIndex].wbbz),
+            hl: this.tabsData[this.tableIndex].hl,
+            zzs: this.tabsData[this.tableIndex].zzs,
+            hq: this.tabsData[this.tableIndex].hq,
+            yhzzf: this.tabsData[this.tableIndex].yhzzf,
+            wbinfo: this.tabsData[this.tableIndex].wbinfoList,
+            bbinfo: this.tabsData[this.tableIndex].bbinfoList,
+            wbcount: this.tabsData[this.tableIndex].wbcount, //个数
+            bbcount: this.tabsData[this.tableIndex].bbcount,
+            wbsum: this.tabsData[this.tableIndex].wbsum, //总和
+            bbsum: this.tabsData[this.tableIndex].bbsum,
+            brandId: tableList[i].brandId,
+            commnameId: tableList[i].commnameId,
+            quantity: tableList[i].quantity,
+            weight: tableList[i].weight,
+            wbdjZkq: tableList[i].wbdjZkq,
+            zk: tableList[i].zk,
+            wbdjZkh: tableList[i].wbdjZkh,
+            gs: tableList[i].gs,
+            rmbdj: tableList[i].rmbdj,
+            productId: tableList[i].productId
+          });
+        }
+      }
+      if (!this.loading) {
+        if (this.listType == "crm_xbj") {
+          this.loading = true;
+          xbjAddCostInfo({ costinfoList: this.costinfoList })
+            .then(res => {
+              this.msgSuccess("添加成功");
+              this.handleClose();
+              this.$emit("handle");
+              this.loading = false;
+            })
+            .catch(res => {});
+        } else if (this.listType == "crm_bjd") {
+          this.loading = true;
+          bjdAddCostInfo({
+            costinfoList: this.costinfoList
+          })
+            .then(res => {
+              this.msgSuccess("添加成功");
+              this.handleClose();
+              this.$emit("handle");
+              this.loading = false;
+            })
+            .catch(res => {});
+        } else if (this.listType == "jxc_xsdd") {
+          // this.loading = true;
+          // jxcXsddAddAndUpdateCostInfo({
+          //   costinfoList: this.costinfoList
+          // })
+          //   .then(res => {
+          //     this.msgSuccess("添加成功");
+          //     this.handleClose();
+          //     this.$emit("handle");
+          //     this.loading = false;
+          //   })
+          //   .catch(res => {});
+        }
+      }
+    },
+    addWbinfo(data) {
+      data.push({ name: "", code: 0 });
+    },
+    deletWbinfo(list, index) {
+      list.splice(index, 1);
+    },
+    addBbinfo(data) {
+      data.push({ name: "", code: 0 });
+    },
+    deletBbinfo(list, index) {
+      list.splice(index, 1);
+    },
+    productChange(val, id) {
+      for (var i in this.productList) {
+        if (this.productList[i].id == id) {
+          val.gs = Number(this.productList[i].tariff.replace("%", ""));
+        }
+      }
+    },
+    seletChange(val) {
+      this.bjlxType = val;
+      for (var i in this.tabsData) {
+        this.tabsData[i].zwbcb = 0;
+        this.tabsData[i].zrmbcb = 0;
+        this.tabsData[i].gwyzf = 0;
+        this.tabsData[i].gjyf = 0;
+        this.tabsData[i].zzs = 1.13;
+        this.tabsData[i].hq = 0;
+        this.tabsData[i].wbinfoList = [];
+        this.tabsData[i].wbinfo = {};
+        this.tabsData[i].wbinfoList = [];
+        this.tabsData[i].wbinfo = {};
+      }
+    },
+    loginData() {
+      xbjQueryComname()
+        .then(res => {
+          this.productList = res.data;
+        })
+        .catch(res => {});
+    },
+    costInfoTips() {
+      costInfoTipsQueryPageList({
+        page: 1,
+        limit: 100
+      })
+        .then(res => {
+          this.costInfo = res.data.list;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.loginData();
+    this.costInfoTips();
+  }
+};
+</script>
+<style lang="scss">
+.abc .el-input__inner {
+  height: 20px;
+}
+.abc .el-input__icon {
+  line-height: 20px;
+}
+.d-container {
+  position: relative;
+}
+.abc .el-input--suffix .el-input__inner {
+  padding-right: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/crmdetail.scss";
+
+.header {
+  width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 80px;
+  font-size: 20px;
+  text-indent: 20px;
+}
+.d-container {
+  position: relative;
+}
+.t-close {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-left: 20px;
+  padding: 10px;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+.offer {
+  width: 100%;
+  margin: 20px;
+  .offer-left {
+    width: 50%;
+    float: left;
+    .dialog-box {
+      width: 50%;
+      margin-top: 10px;
+      float: left;
+      .input-label {
+        width: 100px;
+        display: inline-block;
+        line-height: 34px;
+      }
+      .el-input {
+        width: 45%;
+        input {
+          height: 20px !important;
+        }
+        .el-input__inner {
+          height: 20px !important;
+        }
+      }
+      .el-select {
+        width: 45%;
+      }
+    }
+    .fy-box {
+      width: 100%;
+      max-height: 135px;
+      overflow: auto;
+      display: inline-block;
+      margin-top: 10px;
+      .el-input {
+        width: 42%;
+      }
+    }
+  }
+  .offer-right {
+    width: 50%;
+    float: right;
+  }
+}
+.dialog-ts {
+  width: 80%;
+  height: 170px;
+  border: 1px solid #ddd;
+  margin-left: 34px;
+  overflow: auto;
+  span {
+    display: inline-block;
+    font-size: 16px;
+  }
+}
+.table-footer {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  float: left;
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.ha-cont {
+  font-size: 12px;
+  position: relative;
+  line-height: 20px;
+  min-height: 40px;
+  padding-top: 3px;
+  .ha-week {
+    margin: 0 17px 0 10px;
+    flex-shrink: 0;
+    color: #777;
+    width: 120px;
+  }
+  .ha-time {
+    padding: 0 10px 0 24px;
+    flex-shrink: 0;
+    color: #aaa;
+  }
+  .ha-circle {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: white;
+    border: 5px solid #a5ecd7;
+    z-index: 2;
+  }
+  .ha-img {
+    flex-shrink: 0;
+    margin: -3px 10px 0 10px;
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+  }
+  .ha-name {
+    padding: 0 10px;
+    flex-shrink: 0;
+    color: #333;
+  }
+  .ha-content {
+    padding: 0px 10px 10px 10px;
+    flex: 1;
+    color: #333;
+  }
+  .ha-line {
+    position: absolute;
+    z-index: 1;
+    width: 1px;
+    top: 3px;
+    bottom: -3px;
+    left: 155px;
+    background-color: #999;
+  }
+}
+.tree {
+  width: 100%;
+  li {
+    line-height: 30px;
+  }
+}
+.comnameStyle {
+  background: #3e84e9;
+  color: #fff;
+}
+.comnameRight {
+  width: 70%;
+  float: right;
+  height: 400px;
+  padding: 0 20px;
+  li {
+    width: 50%;
+    float: left;
+    line-height: 50px;
+    span:nth-child(1) {
+      width: 32%;
+      float: left;
+    }
+    span:nth-child(2) {
+      width: 68%;
+      float: right;
+    }
+  }
+}
+</style>

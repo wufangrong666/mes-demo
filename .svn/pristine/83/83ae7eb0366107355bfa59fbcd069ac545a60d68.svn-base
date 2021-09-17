@@ -1,0 +1,250 @@
+<template>
+  <slide-view
+    v-empty="!canShowDetail"
+    xs-empty-icon="nopermission"
+    xs-empty-text="暂无权限"
+    @side-close="hideView"
+    v-clickoutside="hideView"
+    :body-style="{padding: 0, height: '100%'}"
+  >
+    <flexbox
+      v-if="canShowDetail"
+      v-loading="loading"
+      direction="column"
+      align="stretch"
+      class="d-container"
+    >
+      <flexbox class="selection-items-box">
+        <img @click="hideView" class="t-close" src="@/assets/img/task_close.png" />
+        <div class="header">{{detailData.brandName}}</div>
+        <flexbox
+          class="selection-item"
+          v-for="(item, index) in getSelectionHandleItemsInfo()"
+          :key="index"
+          @click.native="selectionBarClick(item.type)"
+        >
+          <img class="selection-item-icon" :src="item.icon" />
+          <div class="selection-item-name">{{item.name}}</div>
+        </flexbox>
+      </flexbox>
+      <template>
+        <div style="width:100%;background:#F5F6F9;line-height:40px;text-indent:20px">基本信息</div>
+        <ul class="details">
+          <li>
+            <span>品牌</span>
+            <span v-text="detailData.brandName"></span>
+          </li>
+          <li>
+            <span>品名</span>
+            <span v-text="detailData.nameCn"></span>
+          </li>
+          <li>
+            <span>规格信号</span>
+            <span v-text="detailData.productModelnum"></span>
+          </li>
+          <li>
+            <span>计量单位</span>
+            <span v-text="detailData.measureUnitName"></span>
+          </li>
+          <li>
+            <span>参考成本价</span>
+            <span v-text="detailData.costPrice"></span>
+          </li>
+          <li>
+            <span>参考出售价</span>
+            <span v-text="detailData.sellPrice"></span>
+          </li>
+          <li>
+            <span>产品描述</span>
+            <span v-text="detailData.description"></span>
+          </li>
+          <li>
+            <span>产品备注</span>
+            <span v-text="detailData.remark"></span>
+          </li>
+          <li>
+            <span>状态</span>
+            <span v-text="detailData.statusName"></span>
+          </li>
+        </ul>
+        <ul class="detailsA">
+          <li>
+            <span>文件名</span>
+            <span>上传时间</span>
+            <!-- <span>下载</span> -->
+          </li>
+          <li v-for="(item,index) in fileList" :key="index">
+            <span>{{item.name}}</span>
+            <span>{{item.createTime}}</span>
+            <span></span>
+          </li>
+        </ul>
+      </template>
+    </flexbox>
+    <createView
+      v-if="isCreate"
+      :dataList="createData"
+      :listType="listType"
+      :action="createActionInfo"
+      @hiden-view="hideView"
+    ></createView>
+  </slide-view>
+</template>
+
+<script>
+import SlideView from "@/components/SlideView";
+import detail from "../../manage/mixins/detail";
+import table from "../../manage/mixins/table";
+import { crmProductFindByProductId } from "@/api/crm/cpxx";
+import dataList from "../../components/Json";
+import createView from "../../components/createView"; // 新建页面
+
+export default {
+  name: "",
+  components: {
+    SlideView,
+    createView
+  },
+  mixins: [detail, table],
+
+  props: {
+    listType: {
+      type: String,
+      default: ""
+    },
+    // 详情信息id
+    id: [String, Number]
+  },
+  data() {
+    return {
+      detailData: {},
+      fileList:[],
+      name: "",
+      isCreate: false, // 编辑操作
+      createData: {},
+      createActionInfo: { type: "edit", source: "detail" }
+    };
+  },
+
+  methods: {
+    getSelectionHandleItemsInfo() {
+      let handleInfos = {
+        delete: {
+          name: "删除",
+          type: "delete",
+          icon: require("@/assets/img/selection_delete.png")
+        }
+      };
+      if (this.listType == "crm_customerpool") {
+        return this.forSelectionHandleItems(handleInfos, ["delete"]);
+      }
+    },
+    hideView() {
+      this.$emit("hide-view");
+      this.$store.commit("edit");
+    },
+
+    forSelectionHandleItems(handleInfos, array) {
+      var tempsHandles = [];
+      for (let index = 0; index < array.length; index++) {
+        tempsHandles.push(handleInfos[array[index]]);
+      }
+      return tempsHandles;
+    },
+    getDetial() {
+      this.loading = true;
+      crmProductFindByProductId({
+        productId: this.id
+      })
+        .then(res => {
+          this.loading = false;
+          this.detailData = res.data;
+          this.fileList = res.file
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/crmdetail.scss";
+.header {
+  width: 30%;
+  line-height: 80px;
+  font-size: 20px;
+  text-indent: 20px;
+}
+.d-container {
+  position: relative;
+}
+.t-close {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-left: 20px;
+  padding: 10px;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+.details {
+  width: 100%;
+  height: 200px;
+  overflow: auto;
+  li {
+    width: 50%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span:nth-child(1) {
+      display: inline-block;
+      width: 150px;
+    }
+  }
+}
+.detailsA {
+  width: 100%;
+  height: 300px;
+  overflow: auto;
+  li {
+    width: 100%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span {
+      height: 40px;
+      float: left;
+      width: 33%;
+    }
+  }
+}
+</style>

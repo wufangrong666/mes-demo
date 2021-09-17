@@ -1,0 +1,97 @@
+import request from '@/utils/request'
+//列表查询
+export function crmXsjhQueryPageList(data) {
+    return request({
+        url: 'crmXsjh/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 新增 销售机会crmXsjh/queryForAdd
+export function crmXsjhQueryForAdd(data) {
+    return request({
+        url: 'crmXsjh/queryForAdd',
+        method: 'post',
+        data: data
+    })
+}
+// 新增/编辑 销售机会 crmXsjh/addOrUpdate
+export function crmXsjhAddOrUpdate(data) {
+    return request({
+        url: 'crmXsjh/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 查看
+//根据id查询，查看、编辑、审核、删除jjfa
+export function crmXsjhQueryById(data) {
+    return request({
+        url: 'crmXsjh/queryById',
+        method: 'post', 
+        data: data,
+    })
+}
+//审核
+export function crmXsjhCheckStatus(data) {
+    return request({
+        url: 'crmXsjh/checkStatus',
+        method: 'post', 
+        data: data,
+    })
+}
+// 查询附件上传
+export function crmXsjhFileQueryByXsjhId(data) {
+    return request({
+        url: 'crmXsjhFile/queryByXsjhId',
+        method: 'post', 
+        data: data,
+    })
+}
+
+// crmXsjhFile/upload
+//// 附件上传
+export function crmXsjhFileUpload(data) {
+    var param = new FormData()
+    Object.keys(data).forEach(key => {
+        param.append(key, data[key])
+    })
+    return request({
+        url: 'crmXsjhFile/upload',
+        method: 'post',
+        data: param,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 附件删除crmXsjhFile/removeById
+export function crmXsjhFileRemoveById(data) {
+    return request({
+        url: 'crmXsjhFile/removeById',
+        method: 'post', 
+        data: data,
+    })
+}
+// 删除
+export function crmXsjhDeleteById(data) {
+    return request({
+        url: 'crmXsjh/deleteById',
+        method: 'post', 
+        data: data,
+    })
+}
+// 机会名重复查询
+export function crmXsjhValidateName(data) {
+    return request({
+        url: 'crmXsjh/validateName',
+        method: 'post', 
+        data: data,
+    })
+}

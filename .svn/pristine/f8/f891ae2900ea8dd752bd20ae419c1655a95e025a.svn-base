@@ -1,0 +1,88 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">库存平均单价取值：</div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus"></div>
+        <div class="rightStatus">
+          <el-radio v-model="from.kcpjdjqz" :label="1">仅取库存平均单价</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus"></div>
+        <div class="rightStatus">
+          <el-radio v-model="from.kcpjdjqz" :label="2">对应的产品找不到相应的入库单价时，取参考成本价</el-radio>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminCkszQueryCkszSet,
+  adminCkszUpdateCkszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    ckData() {
+      adminCkszQueryCkszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminCkszUpdateCkszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.ckData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.ckData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

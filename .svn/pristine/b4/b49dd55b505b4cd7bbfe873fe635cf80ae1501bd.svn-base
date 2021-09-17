@@ -1,0 +1,474 @@
+<template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <el-input
+      class="sc-container"
+      :placeholder="placeholder"
+      v-model="inputContent"
+      @input="inputChange"
+      @keyup.enter.native="searchInput"
+      clearable
+    >
+      <el-button slot="append" @click.native="searchInput" icon="el-icon-search"></el-button>
+    </el-input>
+    <!-- 新增更多 -->
+    <div class="right-container">
+      <el-button @click="createClick" v-if="canSave" type="primary">{{mainTitle}}</el-button>
+      <el-dropdown
+        trigger="click"
+        v-if="moreTypes.length > 0 && canSaveA"
+        @command="handleTypeDrop"
+      >
+        <flexbox class="right-more-item">
+          <div>更多</div>
+          <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+        </flexbox>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item
+            v-for="(item, index) in moreTypes"
+            :key="index"
+            :command="item.type"
+          >{{item.name}}</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+    <createView
+      v-if="isCreate"
+      :addTitle="addTitle"
+      :dataList="createData"
+      :list-type="listType"
+      :action="createActionInfo"
+      @save-success="createSaveSuccess"
+      @hiden-view="hideView"
+    ></createView>
+    <companyImport :show="showImport" @close="showImport=false" :listType="listType"></companyImport>
+    <jwDialog
+      :list-type="listType"
+      :jwList="jwList"
+      @save-success="createSaveSuccess"
+      @hiden-view="hideView"
+      v-if="jwDialog"
+      @close="jwDialog=false"
+    ></jwDialog>
+    <xbjDetail
+      @save-success="createSaveSuccess"
+      :xbjDetailData="xbjDetailData"
+      :xbjDetailDataFlag="xbjDetailDataFlag"
+      :titleName="titleName"
+      v-if="xbjDetail"
+      @close="xbjDetail=false"
+    ></xbjDetail>
+    <xsddDetail
+      :xxddType="xxddType"
+      :xsddId="xsddId"
+      @save-success="createSaveSuccess"
+      v-if="xsddDetail"
+      @close="xsddDetail=false"
+    ></xsddDetail>
+    <khxxglDetail
+      @save-success="createSaveSuccess"
+      :id="khxxglDetailId"
+      @close="khxxglDetail=false"
+      v-if="khxxglDetail"
+      :khxxglDetailTitle="khxxglDetailTitle"
+    ></khxxglDetail>
+    <gysDetail
+      :gyslistData="gyslistData"
+      @save-success="createSaveSuccess"
+      v-if="gysDetail"
+      @close="gysDetail=false"
+      :gysDetailTitle="gysDetailTitle"
+    ></gysDetail>
+    <cgddAdd
+      @save-success="createSaveSuccess"
+      :cgddId="cgddId"
+      v-if="cgddAdd"
+      @close="cgddAdd=false"
+    ></cgddAdd>
+    <xskdDetail
+      :xskdStatus="xskdStatus"
+      :xskdId="xskdId"
+      :xskdType="xskdType"
+      @save-success="createSaveSuccess"
+      v-if="xskdDetail"
+      @close="xskdDetail=false"
+    ></xskdDetail>
+    <cgshDetails @close="cgshDetails=false" :cgshDetailsData="cgshDetailsData" v-if="cgshDetails"></cgshDetails>
+    <cpxxDetail
+      :cpxxDetailId="cpxxDetailId"
+      @save-success="createSaveSuccess"
+      @close="cpxxDetail=false"
+      :cpxxDetailTitle="cpxxDetailTitle"
+      v-if="cpxxDetail"
+    ></cpxxDetail>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { mapGetters } from "vuex";
+import createView from "./createView";
+import companyImport from "./import";
+import dataList from "./Json";
+import jwDialog from "../crm/jwjl/jwDialog";
+import xbjDetail from "../crm/xbj/xbjDetail";
+import khxxglDetail from "../crm/khxxgl/khxxglDetail";
+import xsddDetail from "../jxc/xsgl/xsddDetail";
+import gysDetail from "../crm/gys/gysDetail";
+import cgddAdd from "../jxc/cggl/cgddAdd";
+import xskdDetail from "../jxc/xsgl/xskdDetail";
+import cgshDetails from "../jxc/cggl/cgshDetails";
+import cpxxDetail from "../crm/cpxxgl/cpxxDetail";
+import { EventBus } from "../../utils/eventBus";
+export default {
+  name: "list-head", //客户管理下 重要提醒 回款计划提醒
+  components: {
+    createView,
+    companyImport,
+    jwDialog,
+    xbjDetail,
+    khxxglDetail,
+    xsddDetail,
+    gysDetail,
+    cgddAdd,
+    xskdDetail,
+    cgshDetails,
+    cpxxDetail,
+  },
+  computed: {
+    ...mapGetters(["manage", "operAuth"]),
+    canSave() {
+      if (
+        this.listType == "crm_customer" &&
+        this.operAuth.crmqx !== undefined
+      ) {
+        if (this.operAuth.crmqx.khbjqx) {
+          return true;
+        } else {
+          return false;
+        }
+      } else if (
+        this.listType == "crm_product" &&
+        this.operAuth.crmqx !== undefined
+      ) {
+        if (this.operAuth.crmqx.tjcpqx) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      if (this.listType == "crm_comname" && this.operAuth.crmqx !== undefined) {
+        if (this.operAuth.crmqx.pmxjyczqx) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      if (this.listType == "crm_customerpool") {
+        return false;
+      } else if (this.title == "客户转移") {
+        return false;
+      } else if (
+        this.listType == "oa_txl" ||
+        this.listType == "jxc_sgd" ||
+        this.listType == "jxc_cgdd" ||
+        this.listType == "crm_cqyj" ||
+        this.listType == "jxc_xsthrk" ||
+        this.listType == "jxc_cgthck" ||
+        this.listType == "jxc_qtlrkd" ||
+        this.listType == "jxc_qtlckd" ||
+        this.listType == "jxc_rckmxhz" ||
+        this.listType == "jxc_rckslhz" ||
+        this.listType == "jxc_llylb" ||
+        this.listType == "jxc_dzpfxb"
+      ) {
+        return false;
+      }
+      return true;
+    },
+    canSaveA() {
+      if (this.listType == "crm_xbj") {
+        return false;
+      } else {
+        return true;
+      }
+    },
+  },
+  data() {
+    return {
+      cpxxDetail: false,
+      cpxxDetailTitle: "",
+      bjdTitle: "",
+      cgshDetails: false,
+      cgshDetailsData: {},
+      xskdDetail: false,
+      xskdId: {},
+      xskdType: "",
+      xskdStatus: false,
+      cgddId: 0,
+      cgddAdd: false,
+      bjdDetailId: 0,
+      gyslistData: {},
+      xbjDetailData: {},
+      createData: {},
+      addTitle: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 创建的相关信息
+      createActionInfo: { type: "add", source: "head" },
+      createType: "",
+      isCreate: false, //是创建
+      // 导入
+      showImport: false,
+      jwDialog: false,
+      xbjDetail: false,
+      xbjDetailDataFlag: false,
+      titleName: "",
+      xsddDetail: false,
+      xxddType: "",
+      bjdDetail: false,
+      khxxglDetail: false,
+      khxxglDetailId: "",
+      gysDetail: false,
+      khxxglDetailTitle: "",
+      cpxxDetailId: {},
+      gysDetailTitle: "",
+      jwList: {
+        id: 0,
+      },
+      xsddId: 0,
+    };
+  },
+  props: {
+    title: {
+      type: String,
+      default: "",
+    },
+    placeholder: {
+      type: String,
+      default: "请输入内容",
+    },
+    mainTitle: {
+      type: String,
+      default: "",
+    },
+    // company类型
+    listType: {
+      type: String,
+      default: "",
+    },
+    isSeas: {
+      type: Boolean,
+      default: false,
+    },
+    search: String,
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    if (
+      this.listType == "crm_comname" &&
+      this.operAuth.othersqx !== undefined &&
+      this.operAuth.othersqx.dcExcelqx
+    ) {
+      if (this.operAuth.crmqx !== undefined && this.operAuth.crmqx.pmxjyczqx) {
+        this.moreTypes.push(
+          { type: "out", name: "导出" },
+          { type: "download", name: "下载模板" },
+          { type: "Import", name: "批量导入" }
+        );
+      } else {
+        this.moreTypes.push({ type: "out", name: "导出" });
+      }
+    } else {
+      this.moreTypes.push({ type: "out", name: "导出" });
+    }
+    EventBus.$on("aMsg", (msg) => {
+      // A发送来的消息
+      let key = Object.keys(this.$route.query)[0];
+      if (JSON.stringify(this.$route.query) == "{}") {
+        this.inputContent = "";
+      } else {
+        this.inputContent = this.$route.query[key];
+        this.$emit("on-search", this.inputContent);
+      }
+    });
+  },
+  created() {
+    this.gysDetail = false;
+  },
+  activated() {},
+  methods: {
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    createClick() {
+      if (this.listType == "jxc_cgsh") {
+        this.windowOpen("/cgshDetails", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_customerCare") {
+        this.windowOpen("/khghAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_cgsh") {
+        this.cgshDetailsData = {};
+        this.cgshDetails = true;
+      } else if (this.listType == "jxc_xskd") {
+        this.windowOpen("/xskdDetail", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_cgdd") {
+        this.windowOpen("/cgddAdd", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_contactRecord") {
+        this.windowOpen("/jwjlAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_comname") {
+        this.windowOpen("/pmglAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_xbj") {
+        this.windowOpen("/xbjAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_bjd") {
+        this.windowOpen("/bjdEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_xsdd") {
+        this.windowOpen("/xsddDetail", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_gys") {
+        this.windowOpen("/gysAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_customer") {
+        this.windowOpen("/customerAdd", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_product") {
+        this.windowOpen("/cpxxAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_jjfa") {
+        this.windowOpen("/jjfaAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "crm_xsjh") {
+        this.windowOpen("/xsjhAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_ckgl") {
+        this.windowOpen("/ckAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_wlgsgl") {
+        this.windowOpen("/wlgsglAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_xsyd") {
+        this.windowOpen("/xsydAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (this.listType == "jxc_cgyd") {
+        this.windowOpen("/cgydAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if(this.listType == 'admin_company') {
+        if (this.listType == "admin_company") {
+          this.windowOpen("/compmanAdd", {
+            id: this.encode(""),
+            type: "add",
+          });
+        }
+      }
+    },
+    inputChange() {
+      this.$emit("update:search", this.inputContent);
+    },
+    // 进行搜索操作
+    searchInput() {
+      this.$emit("on-search", this.inputContent);
+    },
+    // 创建数据页面 保存成功
+    createSaveSuccess(data) {
+      // 回到保存成功
+      this.$emit("on-handle", { type: "save-success" });
+    },
+    hideView() {
+      this.isCreate = false;
+      this.jwDialog = false;
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+.c-container {
+  height: 40px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 40px;
+  }
+  .sc-container {
+    width: 300px;
+    margin: -18px 0 0 -150px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+  }
+
+  .right-container {
+    float: right;
+    margin: 5px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

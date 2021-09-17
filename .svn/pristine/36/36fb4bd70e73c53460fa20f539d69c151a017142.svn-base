@@ -1,0 +1,214 @@
+<template>
+  <div v-loading="loading" class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table" style="overflow:-Scroll;overflow-y:hidden">
+        <el-row>
+          <el-col class="elTitle" :span="24">
+            <div>手动备份：</div>
+          </el-col>
+          <el-col class="elTitle" :span="15">
+            <div>
+              <label>目标地址</label>
+              <el-input style="width:70%" v-model="path" placeholder="请输入目标地址" clearable></el-input>
+              <el-tooltip placement="right">
+                <div slot="content">
+                  Windows&nbsp;&nbsp;&nbsp;&nbsp;E:\a
+                  <br />Linux&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/a
+                </div>
+                <i style="color:red" class="el-icon-warning-outline"></i>
+              </el-tooltip>
+            </div>
+          </el-col>
+          <el-col class="centerCol" :span="2">
+            <div>
+              <el-button type="primary" @click="backup">开始备份</el-button>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
+
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-row>
+          <el-col class="elTitle" :span="22">
+            <div>自动备份：</div>
+          </el-col>
+          <el-col :span="15">
+            <div class="nav">
+              <label style="width:150px;display: inline-block;">每天自动备份时间</label>
+              <el-time-picker v-model="newTime" placeholder="任意时间点" value-format="HH:mm:ss"></el-time-picker>
+            </div>
+            <div class="nav">
+              <span style="width:150px;display: inline-block;">备份路径</span>
+              <el-input style="width:220px" v-model="backupPath" placeholder="备份至" clearable></el-input>
+              <el-tooltip placement="right">
+                <div slot="content">
+                  Windows&nbsp;&nbsp;&nbsp;&nbsp;E:\a
+                  <br />Linux&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/a
+                </div>
+                <i style="color:red" class="el-icon-warning-outline"></i>
+              </el-tooltip>
+            </div>
+            <div class="nav">
+              <span style="width:150px;float:left">最近一次备份时间</span>
+              <div style="float:left;height:30px;line-height:30px" v-text="backupTime"></div>
+            </div>
+          </el-col>
+          <el-col class="centerCol" :span="2">
+            <div>
+              <el-button type="primary" @click="backupTimeClick">保存</el-button>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  dbBackup,
+  queryBackupDbInfo,
+  updateBackupDbTime,
+} from "@/api/manage/sysset/dbman";
+export default {
+  name: "dbman",
+  data() {
+    return {
+      title: "",
+      path: "",
+      newTime: "",
+      backupTime: "",
+      backupPath: "",
+      loading: false,
+    };
+  },
+
+  methods: {
+    backupTimeClick() {
+      let self = this;
+      this.$confirm("此操作将开始备份, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.loading = true;
+          updateBackupDbTime({
+            newTime: self.newTime,
+            path: self.backupPath.replace(/\\/g,"/"),
+          })
+            .then((res) => {
+              this.$message({
+                type: "success",
+                message: "备份成功!",
+              });
+              this.loading = false;
+            })
+            .catch((res) => {
+              this.loading = false;
+            });
+        })
+        .catch(() => {
+          this.$message({ 
+            type: "info",
+            message: "已取消备份",
+          });
+        });
+    },
+    backup() {
+      this.$confirm("此操作将开始备份, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.loading = true;
+          dbBackup({
+            path: this.path,
+          })
+            .then((res) => {
+              this.$message({
+                type: "success",
+                message: "备份成功!",
+              });
+              this.getList();
+              this.loading = false;
+            })
+            .catch((res) => {
+              this.loading = false;
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消备份",
+          });
+        });
+    },
+    getList() {
+      queryBackupDbInfo()
+        .then((res) => {
+          this.backupTime = res.data.dbLastbackup;
+          this.backupPath = res.data.dbTourl;
+          this.newTime = res.data.dbBackuptimeMain;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+  activated() {
+    this.newTime = "";
+    this.path = "";
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.getList();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.nav {
+  margin: 0 0 10px 20px;
+  span {
+    display: inline-block;
+    width: 150px;
+    line-height: 30px;
+  }
+}
+.elTitle {
+  line-height: 50px;
+  text-indent: 20px;
+}
+.centerCol {
+  line-height: 50px;
+  .el-input {
+    width: 600px;
+  }
+}
+.title {
+  font-size: 18px;
+  height: 40px;
+  padding: 0 20px;
+  line-height: 40px;
+  color: #333;
+}
+.customer-content {
+  margin: 10px 0;
+  position: relative;
+  display: flex;
+  overflow: hidden;
+}
+
+.system-view-table {
+  flex: 1;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+}
+</style>

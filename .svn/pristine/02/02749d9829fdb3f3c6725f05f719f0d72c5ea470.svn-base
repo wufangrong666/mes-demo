@@ -1,0 +1,163 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box" style="width:100%">
+            <label class="input-label">收款日期</label>
+            <div style="float:left" v-text="form.skrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <div style="float:left" v-text="form.customerName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <div style="float:left">{{form.fylb == 1?"银行汇款":"现金"}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div style="float:left" v-text="form.creatorName"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="form.dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款方式</label>
+            <div style="float:left" v-text="form.skfsName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="form.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="form.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="form.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款账户</label>
+            <div style="float:left" v-text="form.fkzh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售收款单号</label>
+            <div style="float:left" v-text="form.dh"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">客户编码</label>
+            <div style="float:left" v-text="form.code"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">初始欠款</label>
+            <div style="float:left" v-text="tableData.csqk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">总金额</label>
+            <div style="float:left" v-text="tableData.zkhZje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已收金额</label>
+            <div style="float:left" v-text="tableData.ysk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已退总额(除换货)</label>
+            <div style="float:left" v-text="tableData.ytze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货冲抵总额</label>
+            <div style="float:left" v-text="tableData.thcdze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">未收金额</label>
+            <div style="float:left" v-text="tableData.wsje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label" style="width:145px">未收金额(扣除未审核)</label>
+            <div style="float:left" v-text="tableData.wsjekcwsh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本次收款</label>
+            <div style="float:left" v-text="form.bcsk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已核销金额</label>
+            <div style="float:left">0</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">剩余金额</label>
+            <div style="float:left">{{tableData.zkhZje - tableData.ysk}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本单可核销余额</label>
+            <div style="float:left">{{tableData.zkhZje - tableData.ysk}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="form.creatorName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left"  v-text="form.createDate"></div>
+          </div>
+          <div style="width:100%;line-height:50px;text-align:center;float:left;margin:10px 0">
+            <el-button type="info" @click="hidenView" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { yskdQueryJeByCustomerId } from "@/api/finance/finance";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      customerName: "",
+      loading: false,
+      tableData: [],
+      form: {}
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    loginMx() {
+      yskdQueryJeByCustomerId({
+        customerId: this.form.customerId
+      })
+        .then(res => {
+          this.tableData = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.form = JSON.parse(this.widowData.row);
+    console.log(this.form);
+    this.loginMx();
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../../manage/styles/table.scss";
+</style>

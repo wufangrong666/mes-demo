@@ -1,0 +1,68 @@
+import request from '@/utils/request'
+// 查询所有角色信息
+export function queryPageList(data) {
+    return request({
+        url: 'bzhl/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增币种或者修改币种信息
+export function addOrUpdate(data) {
+    return request({
+        url: 'bzhl/addOrUpdate',
+        method: 'post',
+        data: data
+    })
+}
+//获取汇率
+export function getExchangeRate(data) {
+    return request({
+        url: 'bzhl/getExchangeRate',
+        method: 'post',
+        data: data,
+    })
+}
+//删除
+export function delBzhlById(data) {
+    return request({
+        url: 'bzhl/delBzhlById',
+        method: 'post',
+        data: data
+    })
+}
+//根据id查询币种
+export function findBzhlById(data) {
+    return request({
+        url: 'bzhl/findBzhlById',
+        method: 'post',
+        data: data
+    })
+}
+//设置每天更新时间
+export function setUpdatetime(data) {
+    return request({
+        url: 'bzhl/setUpdatetime',
+        method: 'post',
+        data: data
+    })
+}
+//获取币种更新时间
+export function bzhlGetBzhlTime(data) {
+    return request({
+        url: 'bzhl/getBzhlTime',
+        method: 'post',
+        data: data
+    })
+}
+//获取币种更新时间
+export function bzhlFindDefaultBz(data) {
+    return request({
+        url: 'bzhl/findDefaultBz',
+        method: 'post',
+        data: data
+    })
+}

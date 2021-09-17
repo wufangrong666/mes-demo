@@ -1,0 +1,1018 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+Vue.use(Router)
+
+import crmRouter from './modules/crm/index'
+import jxcRouter from './modules/jxc/index'
+import financeRouter from './modules/finance/index'
+import oaRouter from './modules/oa/index'
+import emailRouter from './modules/email/index'
+import manageRouter from './modules/manage/index'
+
+export const constantRouterMap = [{
+  path: '/login',
+  component: () => import('@/views/login/index'),
+  hidden: true,
+  meta: {
+    title: '首页',
+  }
+},
+//公共客户池
+{
+  path: '/customerPoolAddEdit',
+  component: () => import('@/views/crm/ggkhc/customerPoolAddEdit'),
+  hidden: true,
+  meta: {
+    title: '公共客户池编辑/详情',
+  }
+},
+{
+  path: '/customerZjsm',
+  component: () => import('@/views/crm/ggkhc/customerZjsm'),
+  hidden: true,
+  meta: {
+    title: '公共客户池追加说明',
+  }
+},
+{
+  path: '/fpkh',
+  component: () => import('@/views/crm/ggkhc/fpkh'),
+  hidden: true,
+  meta: {
+    title: '公共客户池分配客户',
+  }
+},
+{
+  path: '/khqf',
+  component: () => import('@/views/crm/ggkhc/khqf'),
+  hidden: true,
+  meta: {
+    title: '公共客户池客户区分',
+  }
+},
+//客户信息编辑
+{
+  path: '/customerEdit',
+  component: () => import('@/views/crm/khxxgl/customerEdit'),
+  hidden: true,
+  meta: {
+    title: '客户信息编辑/审核',
+  }
+},
+//客户信息新增
+{
+  path: '/customerAdd',
+  component: () => import('@/views/crm/khxxgl/customerAdd'),
+  hidden: true,
+  meta: {
+    title: '客户信息新增',
+  }
+},
+{
+  path: '/khxxDeail',
+  component: () => import('@/views/crm/khxxgl/khxxglDetail'),
+  hidden: true,
+  meta: {
+    title: '客户信息详情',
+  }
+},
+//交往记录
+{
+  path: '/jwjlAddEdit',
+  component: () => import('@/views/crm/jwjl/jwjlAddEdit'),
+  hidden: true,
+  meta: {
+    title: '交往记录新增/编辑/查看',
+  }
+},
+//客户关怀
+{
+  path: '/khghAddEdit',
+  component: () => import('@/views/crm/khgh/khghAddEdit'),
+  hidden: true,
+  meta: {
+    title: '客户关怀新增/编辑/查看',
+  }
+},
+//产品信息
+{
+  path: '/cpxxAddEdit',
+  component: () => import('@/views/crm/cpxxgl/cpxxAddEdit'),
+  hidden: true,
+  meta: {
+    title: '产品信息新增/编辑/查看',
+  }
+},
+//品名管理
+{
+  path: '/pmglAddEdit',
+  component: () => import('@/views/crm/pmgl/pmglAddEdit'),
+  hidden: true,
+  meta: {
+    title: '品名管理新增/编辑/查看',
+  }
+},
+//品名管理
+{
+  path: '/cpjgDetails',
+  component: () => import('@/views/crm/cpjg/cpjgDetails'),
+  hidden: true,
+  meta: {
+    title: '产品信息列表',
+  }
+},
+//供应商
+{
+  path: '/gysAddEdit',
+  component: () => import('@/views/crm/gys/gysAddEdit'),
+  hidden: true,
+  meta: {
+    title: '供应商新增/编辑',
+  }
+},
+//供应商审核
+{
+  path: '/gysAudit',
+  component: () => import('@/views/crm/gys/gysAudit'),
+  hidden: true,
+  meta: {
+    title: '供应商审核',
+  }
+},
+//供应商查看卡片
+{
+  path: '/gysCard',
+  component: () => import('@/views/crm/gys/gysCard'),
+  hidden: true,
+  meta: {
+    title: '供应商查看卡片',
+  }
+},
+//询报价
+{
+  path: '/xbjAddEdit',
+  component: () => import('@/views/crm/xbj/xbjAddEdit'),
+  hidden: true,
+  meta: {
+    title: '询报价新增/编辑/查看',
+  }
+},
+//重单信息
+{
+  path: '/cdxx',
+  component: () => import('@/views/crm/xbj/cdxxIndex'),
+  hidden: true,
+  meta: {
+    title: '询报价新增/编辑/查看',
+  }
+},
+//发送邮件
+{
+  path: '/xbjSendEmail',
+  component: () => import('@/views/crm/xbj/xbjSendEmail'),
+  hidden: true,
+  meta: {
+    title: '发送邮件',
+  }
+},
+//添加报价
+{
+  path: '/addPrice',
+  component: () => import('@/views/components/addPrice'),
+  hidden: true,
+  meta: {
+    title: '添加报价',
+  }
+},
+//添加报价操作历史记录
+{
+  path: '/lsjl',
+  component: () => import('@/views/components/lsjl'),
+  hidden: true,
+  meta: {
+    title: '添加报价操作历史记录',
+  }
+},
+//添加报价历史记录
+{
+  path: '/lsjlMxList',
+  component: () => import('@/views/components/lsjlMxList'),
+  hidden: true,
+  meta: {
+    title: '添加报价历史记录',
+  }
+},
+//添加报价历史记录---查看
+{
+  path: '/lsjlMxCk',
+  component: () => import('@/views/components/lsjlMxCk'),
+  hidden: true,
+  meta: {
+    title: '添加报价历史记录明细',
+  }
+},
+//去询价
+{
+  path: '/toAsk',
+  component: () => import('@/views/crm/xbj/toAsk'),
+  hidden: true,
+  meta: {
+    title: '去询价',
+  }
+},
+//销售报价单(询价单转)
+{
+  path: '/xbjToxsbjd',
+  component: () => import('@/views/crm/xsbjd/xbjToxsbjd'),
+  hidden: true,
+  meta: {
+    title: '询价单转销售报价单',
+  }
+},
+//销售报价单---交往记录
+{
+  path: '/xsbjdJwjl',
+  component: () => import('@/views/crm/xsbjd/xsbjdJwjl'),
+  hidden: true,
+  meta: {
+    title: '销售报价单交往记录',
+  }
+},
+//销售报价单---交往记录新增
+{
+  path: '/xsbjdJwjlAdd',
+  component: () => import('@/views/crm/xsbjd/xsbjdJwjlAdd'),
+  hidden: true,
+  meta: {
+    title: '销售报价单交往记录新增',
+  }
+},
+//销售报价单(新增编辑)
+{
+  path: '/bjdEdit',
+  component: () => import('@/views/crm/xsbjd/bjdEdit'),
+  hidden: true,
+  meta: {
+    title: '销售报价单新增/编辑',
+  }
+},//销售报价单(查看审核)
+{
+  path: '/bjdDetails',
+  component: () => import('@/views/crm/xsbjd/bjdDetails'),
+  hidden: true,
+  meta: {
+    title: '销售报价单查看/审核',
+  }
+},
+//打印报价单
+{
+  path: '/xsbjdHtdy',
+  component: () => import('@/views/crm/xsbjd/xsbjdHtdy'),
+  hidden: true,
+  meta: {
+    title: '打印报价单',
+  }
+},
+//销售订单
+{
+  path: '/xsddDetail',
+  component: () => import('@/views/jxc/xsgl/xsddDetail'),
+  hidden: true,
+  meta: {
+    title: '销售订单新增/编辑',
+  }
+},
+//销售订单
+{
+  path: '/xsddJcgjzz',
+  component: () => import('@/views/jxc/xsgl/xsddJcgjzz'),
+  hidden: true,
+  meta: {
+    title: '进程追踪',
+  }
+},
+//合同打印
+{
+  path: '/xsddHtdy',
+  component: () => import('@/views/jxc/xsgl/xsddHtdy'),
+  hidden: true,
+  meta: {
+    title: '销售订单合同打印',
+  }
+},
+//合同打印
+{
+  path: '/xskdHtdy',
+  component: () => import('@/views/jxc/xsgl/xskdHtdy'),
+  hidden: true,
+  meta: {
+    title: '销售开单合同打印',
+  }
+},
+//合同打印
+{
+  path: '/cgddHtdy',
+  component: () => import('@/views/jxc/cggl/cgddHtdy'),
+  hidden: true,
+  meta: {
+    title: '采购订单合同打印',
+  }
+},
+//合同打印
+{
+  path: '/cgshHtdy',
+  component: () => import('@/views/jxc/cggl/cgshHtdy'),
+  hidden: true,
+  meta: {
+    title: '采购收货合同打印',
+  }
+},
+//销售订单明细
+{
+  path: '/xsddDhmx',
+  component: () => import('@/views/jxc/xsgl/xsddDhmx'),
+  hidden: true,
+  meta: {
+    title: '销售订单查看/审核',
+  }
+},
+//销售报价单---交往记录
+{
+  path: '/xsddJwjl',
+  component: () => import('@/views/jxc/xsgl/xsddJwjl'),
+  hidden: true,
+  meta: {
+    title: '销售报价单交往记录',
+  }
+},
+//销售报价单---交往记录新增
+{
+  path: '/xsddJwjlAdd',
+  component: () => import('@/views/jxc/xsgl/xsddJwjlAdd'),
+  hidden: true,
+  meta: {
+    title: '销售报价单交往记录新增',
+  }
+},
+//销售订单转申购
+{
+  path: '/xsZhuanSg',
+  component: () => import('@/views/jxc/cggl/xsZhuanSg'),
+  hidden: true,
+  meta: {
+    title: '销售订单转申购单',
+  }
+},
+//销售订单--选择报价单
+{
+  path: '/xsddDetailTable',
+  component: () => import('@/views/jxc/xsgl/xsddDetailTable'),
+  hidden: true,
+  meta: {
+    title: '选择报价单',
+  }
+},
+//销售订单转申购认领金额
+{
+  path: '/rlje',
+  component: () => import('@/views/jxc/cggl/rlje'),
+  hidden: true,
+  meta: {
+    title: '认领款',
+  }
+},
+//申购订单详情
+{
+  path: '/sgddDhmx',
+  component: () => import('@/views/jxc/cggl/sgddDhmx'),
+  hidden: true,
+  meta: {
+    title: '申购单查看/审核',
+  }
+},
+//销售开单
+{
+  path: '/xskdDetail',
+  component: () => import('@/views/jxc/xsgl/xskdDetail'),
+  hidden: true,
+  meta: {
+    title: '销售开单新增/编辑',
+  }
+},
+//销售开单详情
+{
+  path: '/xskdDhmx',
+  component: () => import('@/views/jxc/xsgl/xskdDhmx'),
+  hidden: true,
+  meta: {
+    title: '销售开单查看/审核',
+  }
+},
+//销售开单--选择销售订单单
+{
+  path: '/xskdDetailTable',
+  component: () => import('@/views/jxc/xsgl/xskdDetailTable'),
+  hidden: true,
+  meta: {
+    title: '选择销售订单单',
+  }
+},
+//销售开单--认领款
+{
+  path: '/xskdRlk',
+  component: () => import('@/views/jxc/xsgl/xskdRlk'),
+  hidden: true,
+  meta: {
+    title: '认领款',
+  }
+},
+//销售开单--关联费用
+{
+  path: '/xskdGlfy',
+  component: () => import('@/views/jxc/xsgl/xskdGlfy'),
+  hidden: true,
+  meta: {
+    title: '销售开单关联费用',
+  }
+},
+//销售开单--费用分配
+{
+  path: '/xskdFyfp',
+  component: () => import('@/views/jxc/xsgl/xskdFyfp'),
+  hidden: true,
+  meta: {
+    title: '销售开单费用分配',
+  }
+},
+//销售管理--个人销售报表--销售统计(按客户)
+{
+  path: '/xstjMx',
+  component: () => import('@/views/jxc/xsgl/bb/grxsbb/xstjMx'),
+  hidden: true,
+  meta: {
+    title: '销售统计明细',
+  }
+},
+//申购订单编辑
+{
+  path: '/sgdEdit',
+  component: () => import('@/views/jxc/cggl/sgdEdit'),
+  hidden: true,
+  meta: {
+    title: '申购订单编辑',
+  }
+},
+//生成采购订单
+{
+  path: '/sgdGenerate',
+  component: () => import('@/views/jxc/cggl/sgdGenerate'),
+  hidden: true,
+  meta: {
+    title: '生成采购订单',
+  }
+},
+//生成采购订单
+{
+  path: '/sgdPreview',
+  component: () => import('@/views/jxc/cggl/sgdPreview'),
+  hidden: true,
+  meta: {
+    title: '采购订单预览',
+  }
+},
+//采购订单编辑
+{
+  path: '/cgddAdd',
+  component: () => import('@/views/jxc/cggl/cgddAdd'),
+  hidden: true,
+  meta: {
+    title: '采购订单新增/编辑',
+  }
+},
+//采购订单明细
+{
+  path: '/cgddDhmx',
+  component: () => import('@/views/jxc/cggl/cgddDhmx'),
+  hidden: true,
+  meta: {
+    title: '采购订单查看/审核',
+  }
+},
+//采购订退审核提交
+{
+  path: '/cgddTstj',
+  component: () => import('@/views/jxc/cggl/cgddTstj'),
+  hidden: true,
+  meta: {
+    title: '采购订退审核提交',
+  }
+},
+//采购订退审核审核
+{
+  path: '/cgddTshsh',
+  component: () => import('@/views/jxc/cggl/cgddTshsh'),
+  hidden: true,
+  meta: {
+    title: '采购订退审核审核',
+  }
+},
+//采购订终止执行
+{
+  path: '/cgddZzzx',
+  component: () => import('@/views/jxc/cggl/cgddZzzx'),
+  hidden: true,
+  meta: {
+    title: '采购订终止执行',
+  }
+},
+//采购订填写交货日期
+{
+  path: '/cgddTxjhrq',
+  component: () => import('@/views/jxc/cggl/cgddTxjhrq'),
+  hidden: true,
+  meta: {
+    title: '交货日期',
+  }
+},
+//采购订填写订单单号
+{
+  path: '/cgddTxdh',
+  component: () => import('@/views/jxc/cggl/cgddTxdh'),
+  hidden: true,
+  meta: {
+    title: '订单单号',
+  }
+},
+//采购订填写交往记录
+{
+  path: '/cgddJwjl',
+  component: () => import('@/views/jxc/cggl/cgddJwjl'),
+  hidden: true,
+  meta: {
+    title: '交往记录',
+  }
+},
+//采购订供应商评价
+{
+  path: '/cgddGysPj',
+  component: () => import('@/views/jxc/cggl/cgddGysPj'),
+  hidden: true,
+  meta: {
+    title: '评价',
+  }
+},
+//采购订填写交往记录新增编辑
+{
+  path: '/cgddJwjlAdd',
+  component: () => import('@/views/jxc/cggl/cgddJwjlAdd'),
+  hidden: true,
+  meta: {
+    title: '交往记录',
+  }
+},
+//采购收货新增编辑
+{
+  path: '/cgshDetails',
+  component: () => import('@/views/jxc/cggl/cgshDetails'),
+  hidden: true,
+  meta: {
+    title: '采购收货新增/编辑',
+  }
+},
+//采购收货---关联费用
+{
+  path: '/cgshGlfy',
+  component: () => import('@/views/jxc/cggl/cgshGlfy'),
+  hidden: true,
+  meta: {
+    title: '采购收货关联费用',
+  }
+},
+//采购收货---关联费用--分配
+{
+  path: '/cgshFyfp',
+  component: () => import('@/views/jxc/cggl/cgshFyfp'),
+  hidden: true,
+  meta: {
+    title: '采购收货关联费用',
+  }
+},
+//采购收货新增编辑--选择订单
+{
+  path: '/cgshDetailsXzdd',
+  component: () => import('@/views/jxc/cggl/cgshDetailsXzdd'),
+  hidden: true,
+  meta: {
+    title: '选择订单',
+  }
+},
+//采购收货一览表--明细
+{
+  path: '/cgshDhmx',
+  component: () => import('@/views/jxc/cggl/cgshDhmx'),
+  hidden: true,
+  meta: {
+    title: '采购收货',
+  }
+},
+//采购收货入库--物流管理
+{
+  path: '/cgshrkWlgl',
+  component: () => import('@/views/jxc/ckgl/ywlrck/cgshrkWlgl'),
+  hidden: true,
+  meta: {
+    title: '采购收货入库',
+  }
+},
+//销售开单出库--物流管理
+{
+  path: '/xskdckWlgl',
+  component: () => import('@/views/jxc/ckgl/ywlrck/xskdckWlgl'),
+  hidden: true,
+  meta: {
+    title: '销售开单出库',
+  }
+},
+//预收款单新增
+{
+  path: '/yskdDetails',
+  component: () => import('@/views/finance/ywwl/xswl/yskdDetails'),
+  hidden: true,
+  meta: {
+    title: '预收款单新增/编辑',
+  }
+},
+//预收款单--明细
+{
+  path: '/yskdMx',
+  component: () => import('@/views/finance/ywwl/xswl/yskdMx'),
+  hidden: true,
+  meta: {
+    title: '预收款单查看/审核',
+  }
+},
+//预收款单--明细
+{
+  path: '/yskdHxje',
+  component: () => import('@/views/finance/ywwl/xswl/yskdHxje'),
+  hidden: true,
+  meta: {
+    title: '预收款单查看/审核',
+  }
+},
+//收款单
+{
+  path: '/skdMx',
+  component: () => import('@/views/finance/ywwl/xswl/skdMx'),
+  hidden: true,
+  meta: {
+    title: '收款单',
+  }
+},
+//解决方案新增
+{
+  path: '/jjfaAddEdit',
+  component: () => import('@/views/crm/jjfa/jjfaAddEdit'),
+  hidden: true,
+  meta: {
+    title: '解决方案新增/编辑',
+  }
+},
+//解决方案明细
+{
+  path: '/jjfaDetail',
+  component: () => import('@/views/crm/jjfa/jjfaDetail'),
+  hidden: true,
+  meta: {
+    title: '解决方案查看/审核',
+  }
+},
+//销售机会新增！
+{
+  path: '/xsjhAddEdit',
+  component: () => import('@/views/crm/xmjh/xsjhAddEdit'),//7.22
+  hidden: true,
+  meta: {
+    title: '销售机会新增/编辑',
+  }
+},
+//销售机会查看审核！
+{
+  path: '/xsjhDetail',
+  component: () => import('@/views/crm/xmjh/xsjhDetail'),//7.22
+  hidden: true,
+  meta: {
+    title: '销售机会查看/审核',
+  }
+},
+//销售异动新增
+{
+  path: '/xsydAddEdit',
+  component: () => import('@/views/jxc/xsgl/xsydAddEdit'),
+  hidden: true,
+  meta: {
+    title: '销售异动新增/编辑',
+  }
+},
+//销售异动明细
+{
+  path: '/xsydDetail',
+  component: () => import('@/views/jxc/xsgl/xsydDetail'),
+  hidden: true,
+  meta: {
+    title: '销售机会查看/审核',
+  }
+},
+//个人销售报表--已收查询--收款单详情查询
+{
+  path: '/yingScxMx',
+  component: () => import('@/views/jxc/xsgl/bb/grxsbb/yingScxMx'),
+  hidden: true,
+  meta: {
+    title: '收款单详情',
+  }
+},
+//个人销售报表--已收查询--预收款单详情查询
+{
+  path: '/yingScxMxYsk',
+  component: () => import('@/views/jxc/xsgl/bb/grxsbb/yingScxMxYsk'),
+  hidden: true,
+  meta: {
+    title: '预收款单详情',
+  }
+},
+
+// 采购统计报表
+//应付查询--应付总额
+{
+  path: '/cgtjbbYfze',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/cgtjbbYfze'),
+  hidden: true,
+  meta: {
+    title: '应付总额',
+  }
+},
+//应付查询--应付款增加
+{
+  path: '/cgtjbbYfkMx',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/cgtjbbYfkMx'),
+  hidden: true,
+  meta: {
+    title: '应付款增加',
+  }
+},
+//应付查询--供应商已收款
+{
+  path: '/cgbbtjGysysk',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/cgbbtjGysysk'),
+  hidden: true,
+  meta: {
+    title: '供应商已收款',
+  }
+},
+//应付查询--供应商已收款--查看详情付款明细 --yfkd
+{
+  path: '/cgbbtjGysjbxx',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/cgbbtjGysjbxx'),
+  hidden: true,
+  meta: {
+    title: '供应商已收款/预付款单',
+  }
+},
+//应付查询--供应商已收款--查看详情付款明细-fkd
+{
+  path: '/cgbbtjGysyskFk',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/cgbbtjGysyskFk'),
+  hidden: true,
+  meta: {
+    title: '供应商已收款/付款单',
+  }
+},
+//供应商对账表--对账明细1
+{
+  path: '/gysdzMx1',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/gysdzMx1'),
+  hidden: true,
+  meta: {
+    title: '对账明细',
+  }
+},
+//供应商对账表--对账明细2
+{
+  path: '/gysdzMx2',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/gysdzMx2'),
+  hidden: true,
+  meta: {
+    title: '对账明细',
+  }
+},
+//供应商对账表--对账明细3
+{
+  path: '/gysdzMx3',
+  component: () => import('@/views/jxc/cggl/bb/grcgbb/gysdzMx3'),
+  hidden: true,
+  meta: {
+    title: '对账明细',
+  }
+},
+//通讯管理--收件箱邮件详情
+{
+  path: '/sjxMx',
+  component: () => import('@/views/email/wb/sjx/sjxMx'),
+  hidden: true,
+  meta: {
+    title: '对账明细',
+  }
+},
+{
+  path: '/yingScxMxYsk',
+  component: () => import('@/views/jxc/xsgl/bb/grxsbb/yingScxMxYsk'),
+  hidden: true,
+  meta: {
+    title: '对账明细',
+  }
+},
+//仓库管理新增编辑
+{
+  path: '/ckAddEdit',
+  component: () => import('@/views/jxc/ckgl/ckgl/ckAddEdit'),
+  hidden: true,
+  meta: {
+    title: '仓库管理新增/编辑',
+  }
+},
+//物流公司管理新增编辑
+{
+  path: '/wlgsglAddEdit',
+  component: () => import('@/views/jxc/wlgl/wlgssz/wlgsglAddEdit'),
+  hidden: true,
+  meta: {
+    title: '物流公司管理新增/编辑',
+  }
+},
+//物流公司管理详情
+{
+  path: '/wlgsglDetail',
+  component: () => import('@/views/jxc/wlgl/wlgssz/wlgsglDetail'),
+  hidden: true,
+  meta: {
+    title: '物流公司管理查看/审核',
+  }
+},
+//销售异动新增编辑
+{
+  path: '/xsydAddEdit',
+  component: () => import('@/views/jxc/xsgl/xsydAddEdit'),
+  hidden: true,
+  meta: {
+    title: '销售异动新增/编辑',
+  }
+},
+//销售异动详情
+{
+  path: '/xsydDetail',
+  component: () => import('@/views/jxc/xsgl/xsydDetail'),
+  hidden: true,
+  meta: {
+    title: '销售异动查看/审核',
+  }
+},
+//销售异动选择销售开单
+{
+  path: '/xsydXskdTable',
+  component: () => import('@/views/jxc/xsgl/xsydXskdTable'),
+  hidden: true,
+  meta: {
+    title: '销售异动/销售开单',
+  }
+},
+//公司账户设置新增编辑
+{
+  path: '/gszhglAddEdit',
+  component: () => import('@/views/finance/gszhgl/gszhglAddEdit'),
+  hidden: true,
+  meta: {
+    title: '公司账户设置新增/编辑',
+  }
+},
+//采购异动新增编辑
+{
+  path: '/cgydAddEdit',
+  component: () => import('@/views/jxc/cggl/cgydAddEdit'),
+  hidden: true,
+  meta: {
+    title: '采购异动新增/编辑',
+  }
+},
+//采购异动详情
+{
+  path: '/cgydDetail',
+  component: () => import('@/views/jxc/cggl/cgydDetail'),
+  hidden: true,
+  meta: {
+    title: '采购异动查看/审核',
+  }
+},
+//采购异动选择销售开单
+{
+  path: '/cgydCgshTable',
+  component: () => import('@/views/jxc/cggl/cgydCgshTable'),
+  hidden: true,
+  meta: {
+    title: '采购异动/销售开单',
+  }
+},
+//销售退货入库
+{
+  path: '/xsthrkDetail',
+  component: () => import('@/views/jxc/ckgl/ywlrck/xsthrkDetail'),
+  hidden: true,
+  meta: {
+    title: '销售退货入库',
+  }
+},
+//采购退货出库
+{
+  path: '/cgthckDetail',
+  component: () => import('@/views/jxc/ckgl/ywlrck/cgthckDetail'),
+  hidden: true,
+  meta: {
+    title: '采购退货出库',
+  }
+},
+//其他类入库单
+{
+  path: '/qtlrkdDetail',
+  component: () => import('@/views/jxc/ckgl/qtlrck/qtlrkdDetail'),
+  hidden: true,
+  meta: {
+    title: '其他类入库单',
+  }
+},
+//其他类出库单
+{
+  path: '/qtlckdDetail',
+  component: () => import('@/views/jxc/ckgl/qtlrck/qtlckdDetail'),
+  hidden: true,
+  meta: {
+    title: '其他类出库单',
+  }
+},
+{
+  path: '/xstjYwyToview',
+  component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xstjYwyToview'),
+  hidden: true,
+  meta: {
+    title: '业务员销售明细表',
+  }
+},
+{
+  path: '/compmanAdd',
+  component: () => import('@/views/manage/compman/compmanAdd'),
+  hidden: true,
+  meta: {
+    title: '单位管理添加/编辑',
+  }
+},
+{
+  path: '/compmanDetails',
+  component: () => import('@/views/manage/compman/compmanDetails'),
+  hidden: true,
+  meta: {
+    title: '单位管理详情',
+  }
+},
+{
+  path: '/404',
+  component: () => import('@/views/404'),
+  hidden: true,
+  meta: {
+    title: '错误',
+  }
+},
+{
+  path: '*',
+  redirect: '/404',
+  hidden: true,
+  meta: {
+    title: '错误',
+  }
+}
+]
+
+export default new Router({
+  // mode: 'history',
+  scrollBehavior: () => ({
+    y: 0
+  }),
+  routes: constantRouterMap
+})
+
+export const asyncRouterMap = [
+  oaRouter,
+  crmRouter,
+  jxcRouter,
+  financeRouter,
+  emailRouter,
+  manageRouter
+]

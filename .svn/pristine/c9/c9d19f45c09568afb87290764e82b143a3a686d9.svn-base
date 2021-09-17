@@ -1,0 +1,107 @@
+<template>
+  <div>
+    <el-table :data="dataList" height="670px" stripe style="width: 100%">
+      <el-table-column prop="operatorName" label="操作人"></el-table-column>
+      <el-table-column prop="operateTime" label="分配转移时间"></el-table-column>
+      <el-table-column prop="flag" label="操作类型"></el-table-column>
+      <el-table-column prop="beforeUserName" label="分配/转移前销售负责人"></el-table-column>
+      <el-table-column prop="afterUserName" label="分配/转移后销售负责人"></el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+import { crmCustomerQueryfpzy } from "@/api/crm/khxxgl";
+export default {
+  components: {},
+  name: "",
+  data() {
+    return {
+      dataList: []
+    };
+  },
+  props: ["customerId", "activeName"],
+  watch: {
+    activeName: {
+      handler() {
+        if (this.activeName == "second") {
+          this.loginData();
+        }
+      }
+    }
+  },
+  methods: {
+    loginData() {
+      crmCustomerQueryfpzy({
+        customerId: this.customerId
+      })
+        .then(res => {
+          this.dataList = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+.ha-cont {
+  font-size: 12px;
+  position: relative;
+  line-height: 20px;
+  min-height: 40px;
+  padding-top: 3px;
+  .ha-week {
+    margin: 0 17px 0 10px;
+    flex-shrink: 0;
+    color: #777;
+    width: 120px;
+  }
+  .ha-time {
+    padding: 0 10px 0 24px;
+    flex-shrink: 0;
+    color: #aaa;
+  }
+  .ha-circle {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: white;
+    border: 5px solid #a5ecd7;
+    z-index: 2;
+  }
+  .ha-img {
+    flex-shrink: 0;
+    margin: -3px 10px 0 10px;
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+  }
+  .ha-name {
+    padding: 0 10px;
+    flex-shrink: 0;
+    color: #333;
+  }
+  .ha-content {
+    padding: 0px 10px 10px 10px;
+    flex: 1;
+    color: #333;
+  }
+  .ha-line {
+    position: absolute;
+    z-index: 1;
+    width: 1px;
+    top: 3px;
+    bottom: -3px;
+    left: 155px;
+    background-color: #999;
+  }
+}
+</style>

@@ -1,0 +1,176 @@
+<template>
+  <div class="c-container">
+    <div class="input-box">
+      <label class="input-label">模板类型</label>
+      <el-select v-model="mblx" placeholder="请选择" @change="mblxChange">
+        <el-option v-for="item in mblxList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">报价单类型</label>
+      <el-select v-model="mb" placeholder="请选择" @change="mbChange">
+        <el-option v-for="item in mbList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+      </el-select>
+    </div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <vue-ueditor-wrap v-model="content" :config="myConfig"></vue-ueditor-wrap>
+      </div>
+    </div>
+    <div class="btnStyle">
+      <el-button :disabled="true" @click="submit" type="primary">保存</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import { htmbGetHtmbByType, htmbAddAndUpdateHtmb } from "@/api/manage/xtsz";
+import VueUeditorWrap from "vue-ueditor-wrap";
+
+export default {
+  name: "",
+  components: {
+    VueUeditorWrap
+  },
+  data() {
+    return {
+      mbData: [],
+      content: "",
+      mblx: "xsdd",
+      mblxList: [
+        { name: "销售订单", id: "xsdd" },
+        { name: "销售开单", id: "xskd" },
+        { name: "采购订单", id: "cgdd" },
+        { name: "销售报价单", id: "xsbjd" }
+      ],
+      mbList: [],
+      mb: "",
+      myConfig: {
+        // 编辑器不自动被内容撑高
+        autoHeightEnabled: false,
+        // 初始容器高度
+        initialFrameHeight: 650,
+        // 初始容器宽度
+        initialFrameWidth: "100%",
+        // 上传文件接口（这个地址是我为了方便各位体验文件上传功能搭建的临时接口，请勿在生产环境使用！！！）
+        serverUrl: ""
+        // UEditor 资源文件的存放路径，如果你使用的是 vue-cli 生成的项目，通常不需要设置该选项，vue-ueditor-wrap 会自动处理常见的情况，如果需要特殊配置，参考下方的常见问题2
+      },
+      fillspace: 0,
+      name: "",
+      sort: "",
+      type: "",
+      isDefault: "",
+      rows: ""
+    };
+  },
+
+  methods: {
+    mbChange(val) {
+      for (var i in this.mbList) {
+        if (this.mbList[i].id == val) {
+          this.content = this.mbList[i].content;
+          this.fillspace = this.mbList[i].fillspace;
+          this.name = this.mbList[i].name;
+          this.sort = this.mbList[i].sort;
+          this.type = this.mbList[i].type;
+          this.isDefault = this.mbList[i].isDefault;
+          this.rows = this.mbList[i].rows;
+        }
+      }
+    },
+    mblxChange(val) {
+      this.mbList = this.mbData[val];
+      this.mb = this.mbData[val][0].id;
+      this.content = this.mbData[val][0].content;
+      this.fillspace = this.mbData[val][0].fillspace;
+      this.name = this.mbData[val][0].name;
+      this.sort = this.mbData[val][0].sort;
+      this.type = this.mbData[val][0].type;
+      this.isDefault = this.mbData[val][0].isDefault;
+      this.rows = this.mbData[val][0].rows;
+    },
+    submit() {
+      htmbAddAndUpdateHtmb({
+        fillspace: this.fillspace,
+        name: this.name,
+        id: this.mb,
+        sort: this.sort,
+        type: this.type,
+        isDefault: this.isDefault,
+        rows: this.rows,
+        content: this.content
+      })
+        .then(res => {
+          this.msgSuccess("修改成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    loginData() {
+      htmbGetHtmbByType()
+        .then(res => {
+          this.mbData = res.data;
+          this.mbList = res.data[this.mblx];
+          this.mb = res.data[this.mblx][0].id;
+          this.content = res.data[this.mblx][0].content;
+          this.fillspace = res.data[this.mblx][0].fillspace;
+          this.name = res.data[this.mblx][0].name;
+          this.sort = res.data[this.mblx][0].sort;
+          this.type = res.data[this.mblx][0].type;
+          this.isDefault = res.data[this.mblx][0].isDefault;
+          this.rows = res.data[this.mblx][0].rows;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.el-main {
+  padding-top: 10px;
+}
+.c-container {
+  height: 40px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    width: 300px;
+    margin-left: 15px;
+    .el-select {
+      width: 200px;
+    }
+    .input-label {
+      width: 100px;
+    }
+  }
+}
+.customer-content {
+  float: left;
+  width: 100%;
+}
+.el-checkbox {
+  margin: 10px 0 0 15px;
+}
+.btnStyle {
+  width: 100%;
+  text-align: center;
+  line-height: 40px;
+  margin-top: 10px;
+  background: #fff;
+  float: left;
+}
+</style>

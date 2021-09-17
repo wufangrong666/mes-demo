@@ -1,0 +1,539 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <div style="float:left" v-text="from.customerName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <div style="float:left" v-text="from.contactName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人电话</label>
+            <div style="float:left" v-text="from.contactPhone"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售退货单号</label>
+            <div v-text="from.xsydDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div v-text="from.creatorName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员</label>
+            <div style="float:left" v-text="from.ywyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货仓库</label>
+            <div style="float:left" v-text="from.ckName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="from.dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货日期</label>
+            <div style="float:left" v-text="from.thrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货方式</label>
+            <div style="float:left" v-text="from.thfs"></div>
+          </div>
+          <div class="input-box" v-if="fkfsView">
+            <label class="input-label">退货付款方式</label>
+            <div style="float:left" v-text="from.thfkfsName"></div>
+          </div>
+          <div class="input-box" v-if="fkfsView">
+            <label class="input-label">退货账户</label>
+            <div style="float:left" v-text="from.accountName"></div>
+          </div>
+
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          
+          <div class="input-box" style="width:100%">
+            <label class="input-label">附件信息</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <a style="color:#409eff" :href="item.filePath" :download="item.name">{{item.name}}</a>
+              </li>
+            </ul>
+          </div>
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <div style="float:left" v-text="gxrName"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <!-- <el-button @click="xzXSDD" style="margin-bottom:10px" type="primary">选择销售订单</el-button> -->
+        </sections>
+      </div>
+      <div>
+        <sections title="明细信息">
+            <el-table
+            height="400px"
+            :data="tableList"
+            style="width: 100%"
+            :key="Math.random()"
+          >
+            <el-table-column label="销售开单单号">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.xskdDh"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.brandName"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.comnameCn"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.productModelnum"></span>
+              </template>
+            </el-table-column>
+            <!-- <el-table-column label="批号">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" v-model="scopr.row.productModelnum" clearable></el-input>
+              </template>
+            </el-table-column> -->
+            <el-table-column label="1">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.ylzd1"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="2">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.ylzd2"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="3">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.ylzd3"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="单位">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.measureName"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="未税单价">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.wsdj"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="quantity" label="退货数量">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.thQuantity"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="税率(%)">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.productSl"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hsdj" label="含税单价">
+              <template slot-scope="scopr">
+               <span v-text="scopr.row.hsdj"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="sj" label="成本价">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.cbj"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="sj" label="税金">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.sj"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hk" label="货款">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.hk"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hj" label="合计">
+                
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.hj"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+                
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.zy"></span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="tableButton">
+            <span>合计</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span v-text="from.zkhzje"></span>
+          </div>
+        </sections>
+        <div style="padding-left:10px">
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货人</label>
+            <div style="float:left" v-text="from.rkrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货时间</label>
+            <div style="float:left" v-text="from.sjrksj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发货说明</label>
+            <div style="float:left" v-text="from.rksm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="handle-bar">
+        <el-button v-if="auditStatus" type="primary" @click="audit(1)">审核通过</el-button>
+        <el-button v-if="auditStatus" type="info" @click="audit(2)">审核不通过</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <el-dialog
+      title="审核不通过"
+      :modal-append-to-body="false"
+      :visible.sync="auditDialog"
+      width="30%"
+      :before-close="handleCloseAudit"
+    >
+      <span>
+        <el-input v-model="message" placeholder="不通过原因"></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="auditDialog = false">取 消</el-button>
+        <el-button type="primary" @click="auditDialogSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  jxcXsydFileQueryById,
+  jxcXsydQueryById,
+  jxcXsydCheckStatus,
+} from "@/api/jxc/jxc";
+
+import Lockr from "lockr";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {
+    
+  },
+  computed: {
+   
+  },
+  props: {
+
+  },
+  data() {
+    return {
+      loading: false,
+      auditStatus: false,
+      auditDialog: false,
+      fileList: [], //附件列表
+      gxrName: "", //共享人名称
+      fkfsView: false, //退款账户显示
+      message: "",
+      from: {
+        creatorName: "",//创建人名称
+        xsydId: "", //销售异动id
+        customerId: "", //客户id
+        customerName: "", //客户名称
+        contactId: "", //联系人id
+        contactPhone: "", //联系人电话
+        contactName: "", //联系人名称
+        xsydDh: "", //销售异动单号
+        createDate: "", //添加日期
+        creator: "", //操作人
+        remark: "", //备注
+        ck: "", //仓库id
+        ckName: "", //仓库名称
+        thrq: "", //退货日期
+        sfbd: "否", //是否补单
+        dwtt: "", //单位抬头id
+        dwttName: "", //单位抬头名称
+        thfs: "", //退货方式
+        thfkfs: "", //退货付款方式
+        thfkfsName: "",
+        thzh: "", //退货账户
+        accountName: "",
+        ywy: "", //业务员id
+        ywyName: "", //业务员名称
+        gxr: "", //共享人id
+        xsddId: "", //
+        xskdId: "", //
+        precelx: 2, //1未税  2含税
+        thzje: 0, //退货总金额
+        rkr: "",
+        rkrName: "",
+        rksm: "",
+        sjrksj: "",
+      },
+      
+      tableList: [
+        {
+
+          xsydmxId: "",
+          hsdj: "",//含税单价
+          brandName: "",//品牌名称
+          hj: "",//合计
+          measureUnitid: "",//计量单位id
+          hk: "",//货款
+          kdQuantity: "",// quantity: "",//数量
+          ylzd1: "",
+          ylzd2: "",
+          ylzd3: "",
+          xskdmxId: "",
+          comname: "",//commnameId: "",//品名id
+          cbj: "", // 成本价
+          comnameCn: "",//commName: "",
+          measureName: "",//计量单位名称
+          brandId: "",//品牌id
+          thQuantity: "", // 退货数量
+          wsdj: "",//未税单价
+          productSl: "",//产品税率
+          productId: "",
+          productName: "",
+          sj: "",//税金
+          zy: "", //摘要
+
+          productModelnum: "",//规格型号
+          xskdDh: "",
+        }
+      ],
+      tableData: [],
+    };
+  },
+
+  methods: {
+    //关闭按钮
+    hidenView() {
+      window.top.close();
+    },
+    //关闭审核弹框
+    handleCloseAudit() {
+      this.auditDialog = false;
+    },
+    //提交审核不通过原因
+    auditDialogSubmit() {
+      jxcXsydCheckStatus({
+        id: this.widowData.id,
+        type: 2,
+        message: this.message
+      })
+        .then(res => {
+          this.auditDialog = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              this.resetGetList();
+              this.hidenView();
+              this.loading = false;
+            }
+          });
+        })
+        .catch(res => {});
+    },
+    //点击审核
+    audit(val) {
+      let self = this;
+      if (val == 1) {
+        this.$confirm("请确认审核信息, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            jxcXsydCheckStatus({
+              id: this.widowData.id,
+              type: val,
+              message: this.message
+            })
+              .then(res => {
+                this.loading = true
+                this.$message({
+                  message: "审核通过",
+                  type: "success",
+                  onClose: () => {
+                    this.resetGetList();
+                    this.hidenView();
+                    this.loading = false;
+                  }
+                });
+              })
+              .catch(res => {});
+          })
+          .catch(() => {
+            this.msgInfo("取消审核");
+          });
+      } else {
+        this.auditDialog = true;
+      }
+    },
+    //审核操作完成后，传输数据至列表页
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    //初始化页面数据
+    queryData() {
+        let self = this;
+      
+        //附件
+        jxcXsydFileQueryById({
+            xsydId: this.widowData.id,
+        })
+            .then((res) => {
+            this.fileList = res.data;
+            })
+            .catch((res) => {});
+        //信息
+        jxcXsydQueryById({
+            id: this.widowData.id,
+        })
+            .then((res) => {
+            this.tableList = res.data.djmxList;
+            this.from = res.data;
+            //共享人
+            this.gxrName = res.data.gxrName.join(',');
+            if(res.data.thfs == "退还账户"){
+                this.fkfsView = true;
+            }
+            
+            })
+            .catch((res) => {});
+      
+    },
+    
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+    if (this.widowData.type == "audit") {
+      this.auditStatus = true;
+    } else {
+      this.auditStatus = false;
+    }
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-input__inner {
+  padding-right: 0;
+}
+.content .el-input__inner {
+  height: 25px;
+}
+.content .el-input__icon {
+  line-height: 25px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 80%;
+  float: left;
+  line-height: 20px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

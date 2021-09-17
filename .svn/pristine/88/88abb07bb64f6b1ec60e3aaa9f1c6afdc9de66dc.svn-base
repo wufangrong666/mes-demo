@@ -1,0 +1,233 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="仓库定义">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red;">*</span>仓库名称:
+            </label>
+            <el-input placeholder="" v-model="from.ckName">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              仓库简称:
+            </label>
+            <el-input placeholder="" v-model="from.ckJc">
+            </el-input>
+          </div>
+
+          <div class="input-box">
+            <label class="input-label">
+              仓库管理员:
+            </label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.ckAdminName">
+              <el-button @click="treeDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+         
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red;">*</span>仓库排序:
+            </label>
+            <el-input placeholder="" v-model="from.sort">
+            </el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">备注:</label>
+            <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="from.remark"></el-input>
+          </div>
+        </sections>
+      </div>
+
+      <div class="handle-bar" style="margin-top: 20px;">
+        <el-button type="primary" @click="successClick(-1)">保存</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <treeDlalog
+      @dialogTreeData="treedelog"
+      @close="treedialogVisible = false"
+      :dialogStatus="treedialogVisible"
+    ></treeDlalog>
+  </createView>
+</template>
+
+<script>
+import createView from "@/views/components/createView";
+import treeDlalog from "@/views/components/treeDlalog";
+import sections from "@/views/components/sections";
+import Lockr from "lockr";
+
+
+
+import {
+  jxcCkglQueryById, //详情接口
+  jxcCkglAddEdit, //编辑接口
+} from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    treeDlalog,
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      loading: false,
+      value: "",
+      treedialogVisible: false, // 业务员弹框隐藏
+      from: {
+        ckName: "",//仓库名称
+        ckId:"",//仓库id
+        ckJc: "", //仓库简称
+        ckAdminName: "", //仓库管理员名称
+        ckAdmin: "", //仓库管理员id
+        sort: "", //排序
+        remark: "", //备注
+        status: "",
+      },
+    };
+  },
+
+  methods: {
+
+    // 仓库管理员
+    treedelog(id, name) {
+      this.from.ckAdmin = id;
+      this.from.ckAdminName = name;
+    },
+    // +仓库管理员弹框显示
+    treeDialog() {
+      this.treedialogVisible = true;
+    },
+
+    hidenView() {
+      window.top.close();
+    },
+    successClick(status) {
+      let arr = [];
+      if (this.from.ckName == "") {
+        this.msgInfo("名称不能为空");
+        return;
+      }
+      if (this.from.sort == "") {
+        this.msgInfo("排序不能为空");
+        return;
+      }
+      this.from.status = status; //-1保存还是0提交
+      jxcCkglAddEdit(this.from)
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "提交成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      if (this.widowData.type == "edit") {
+        jxcCkglQueryById({
+          id: this.widowData.id,
+        }).then((res) => {
+          this.from = res.data;
+        });
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "@/views/manage/styles/table.scss";
+@import "@/styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

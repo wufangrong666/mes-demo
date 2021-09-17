@@ -1,0 +1,248 @@
+import request from '@/utils/request'
+//列表查询
+export function bjdQueryPageList(data) {
+    return request({
+        url: 'bjd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//交往记录
+export function bjdQueryJwjl(data) {
+    return request({
+        url: 'bjd/queryJwjl',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//交往记录---新增
+export function bjdAddOrUpdateJwjl(data) {
+    return request({
+        url: 'bjd/addOrUpdateJwjl',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function xsjhXsjhToBjd(data) {
+    return request({
+        url: 'crmXsjh/xsjhToBjd',
+        method: 'post',
+        data: data,
+    })
+}
+//销售订单-----选择报价单
+export function bjdQueryBjd(data) {
+    return request({
+        url: 'jxcXsdd/queryBjd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//交往记录---删除
+export function bjdDeleteJwjl(data) {
+    return request({
+        url: 'bjd/deleteJwjl',
+        method: 'post',
+        data: data,
+    })
+}
+//查询客户
+export function bjdQueryForAdd(data) {
+    return request({
+        url: 'bjd/queryForAdd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//选择项目机会
+export function crmJjfaSelectXsjh(data) {
+    return request({
+        url: 'crmJjfa/selectXsjh',
+        method: 'post',
+        data: data,
+        headers: { 
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//归档类型
+export function bjdUpdateGdlx(data) {
+    return request({
+        url: 'bjd/updateGdlx',
+        method: 'post',
+        data: data
+    })
+}
+//查询单位抬头
+export function bjdQueryDwtt(data) {
+    return request({
+        url: 'bjd/queryDwtt',
+        method: 'post',
+        data: data
+    })
+}
+//合同条款
+export function httkQueryTypeOfContact(data) {
+    return request({
+        url: 'httk/queryTypeOfContact',
+        method: 'post',
+        data: data
+    })
+}
+//合同条款
+export function httkQueryQueryTkByContact(data) {
+    return request({
+        url: 'httk/queryTkByContact',
+        method: 'post',
+        data: data
+    })
+}
+//新增或编辑报价单
+export function bjdAddOrUpdate(data) {
+    return request({
+        url: 'bjd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//编辑查询
+export function bjdQueryForEdit(data) {
+    return request({
+        url: 'bjd/queryForEdit',
+        method: 'post',
+        data: data
+    })
+}
+//报价单删除
+export function bjdDeletById(data) {
+    return request({
+        url: 'bjd/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//单据状态修改
+export function bjdCheckStatus(data) {
+    return request({
+        url: 'bjd/checkStatus',
+        method: 'post',
+        data: data
+    })
+}
+//单据状态修改
+export function bjdQuerydjmxBybjdId(data) {
+    return request({
+        url: 'bjd/querydjmxBybjdId',
+        method: 'post',
+        data: data
+    })
+}
+//新增或编辑报价单
+export function bjdAddCostInfo(data) {
+    return request({
+        url: 'bjd/addCostInfo',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//单据状态修改
+export function htmbPrintByHtmb(data) {
+    return request({
+        url: 'htmb/printByHtmb',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录--报价单
+export function bjdCzjlQueryCrmHistoryList(data) {
+    return request({
+        url: 'bjdCzjl/queryCrmHistoryList',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录---查看明细
+export function bjdCzjlQuerydjmxById(data) {
+    return request({
+        url: 'bjdCzjl/querydjmxById',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录---删除
+export function bjdCzjlDeleteById(data) {
+    return request({
+        url: 'bjdCzjl/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录--询价单
+export function xbjCzjlQueryCrmHistoryList(data) {
+    return request({
+        url: 'xbjCzjl/queryCrmHistoryList',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录---查看明细
+export function xbjCzjlQuerydjmxById(data) {
+    return request({
+        url: 'xbjCzjl/querydjmxById',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录---删除
+export function xbjCzjlDeleteById(data) {
+    return request({
+        url: 'xbjCzjl/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录--销售订单
+export function jxcXsddCzjlQueryCrmHistoryList(data) {
+    return request({
+        url: 'jxcXsddCzjl/queryCrmHistoryList',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录---查看明细
+export function jxcXsddCzjlQuerydjmxById(data) {
+    return request({
+        url: 'jxcXsddCzjl/querydjmxById',
+        method: 'post',
+        data: data
+    })
+}
+//历史记录---删除
+export function jxcXsddCzjlDeleteById(data) {
+    return request({
+        url: 'jxcXsddCzjl/deleteById',
+        method: 'post',
+        data: data
+    })
+}

@@ -1,0 +1,137 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="评价信息">
+          <el-table :data="tableData" style="width: 100%" max-height="700px">
+            <el-table-column prop="realname" label="创建人"></el-table-column>
+            <el-table-column prop="jwtime" label="评价时间"></el-table-column>
+            <el-table-column prop="content" label="评价内容"></el-table-column>
+            <el-table-column prop="address" label="操作">
+              <template slot-scope="scope">
+                <el-button type="text" style="color:red" @click="deleteClick(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="width:100%;text-align:center;margin-top:30px">
+            <el-button type="primary" @click="addPj">新增评价</el-button>
+            <el-button type="info" @click="hidenView" plain>关闭</el-button>
+          </div>
+        </sections>
+
+        <el-dialog
+          title="添加评价"
+          :visible.sync="dialogVisible"
+          width="30%"
+          :before-close="handleClose"
+          :modal-append-to-body="false"
+        >
+          <span>
+            <el-input
+              type="textarea"
+              maxlength="200"
+              show-word-limit
+              :rows="6"
+              placeholder="请输入内容"
+              v-model="textarea"
+            ></el-input>
+          </span>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="submitPj">确 定</el-button>
+          </span>
+        </el-dialog>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { toXjDelPj, toXjFindGysPj, toXjPjGys } from "@/api/crm/xbjTable";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      tableData: [],
+      dialogVisible: false,
+      textarea: "",
+    };
+  },
+
+  methods: {
+    submitPj() {
+      toXjPjGys({
+        gysId: this.widowData.id,
+        contactId: this.widowData.contactId,
+        content: this.textarea,
+        remark: this.textarea,
+      })
+        .then((res) => {
+          this.msgSuccess("添加成功");
+          this.dialogVisible = false;
+          this.pjData();
+        })
+        .catch((res) => {});
+    },
+    hidenView() {
+      window.top.close();
+    },
+    addPj() {
+      this.dialogVisible = true;
+      this.textarea = "";
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    deleteClick(row) {
+      this.$confirm("请确认删除该条评价, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          toXjDelPj({
+            id: row.id,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.pjData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    pjData() {
+      toXjFindGysPj({
+        gysId: this.widowData.id,
+      })
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.pjData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+</style>

@@ -1,0 +1,119 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">公共客户池菜单是否应用数据权限：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.ggkhcSjqxFlag" :label="0">否</el-radio>
+          <el-radio v-model="from.ggkhcSjqxFlag" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:45%">客户信息管理、交往记录管理、超期客户预警、客户生日查询、客户转移、客户关怀 是否应用数据权限设置：</div>
+        <div class="rightStatus" style="width:55%">
+          <el-radio v-model="from.khmkSjqxFlag" :label="0">否</el-radio>
+          <el-radio v-model="from.khmkSjqxFlag" :label="1">是</el-radio>
+          <el-checkbox
+            :disabled="true"
+            :value="from.khmkSjqxXsfzr == 1?true:false"
+            @change="val => $set(from,'khmkSjqxXsfzr',val ? 1 : 0)"
+          >销售负责人</el-checkbox>
+          <el-checkbox
+            :value="from.khmkSjqxCjr == 1?true:false"
+            @change="val => $set(from,'khmkSjqxCjr',val ? 1 : 0)"
+          >创建人</el-checkbox>
+          <el-checkbox
+            :value="from.khmkSjqxGxr == 1?true:false"
+            @change="val => $set(from,'khmkSjqxGxr',val ? 1 : 0)"
+          >共享人</el-checkbox>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" >选择客户是否应用数据权限设置：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.xzkhSjqxFlag" :label="0">否</el-radio>
+          <el-radio v-model="from.xzkhSjqxFlag" :label="1">是</el-radio>
+          <el-checkbox
+            :disabled="true"
+            :value="from.xzkhSjqxXsfzr == 1?true:false"
+            @change="val => $set(from,'xzkhSjqxXsfzr',val ? 1 : 0)"
+          >销售负责人</el-checkbox>
+          <el-checkbox
+            :value="from.xzkhSjqxCjr == 1?true:false"
+            @change="val => $set(from,'xzkhSjqxCjr',val ? 1 : 0)"
+          >创建人</el-checkbox>
+          <el-checkbox
+            :value="from.xzkhSjqxGxr == 1?true:false"
+            @change="val => $set(from,'xzkhSjqxGxr',val ? 1 : 0)"
+          >共享人</el-checkbox>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminKhszQueryKhszSet,
+  adminKhszUpdateKhszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    khlxfsData() {
+      adminKhszQueryKhszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminKhszUpdateKhszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.khlxfsData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.khlxfsData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 15%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 85%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

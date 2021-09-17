@@ -1,0 +1,103 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="终止执行">
+          <span>
+            <span class="shyy">请填终止执行原因：</span>
+            <el-input class="tstj" type="textarea" :rows="6" placeholder="请输入内容" v-model="textarea"></el-input>
+          </span>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="tshSubmit">终止执行</el-button>
+            <el-button @click="hidenView">关 闭</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { cgddFileZzzx } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      textarea: "",
+      title: "",
+      tsshNopassReason: "",
+      textareaYY: "",
+      loading: false,
+      cgddTstjSh: false
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    tshSubmit() {
+      this.$confirm("该单一旦被终止将不能再恢复使用，确定要终止吗?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          cgddFileZzzx({
+            cgddId: this.widowData.id,
+            status:9,
+            message: this.textarea
+          })
+            .then(res => {
+              this.loading = true;
+              this.$message({
+                message: "终止成功",
+                type: "success",
+                onClose: () => {
+                  window.opener.postMessage("child", window.location);
+                  this.hidenView();
+                  this.loading = false;
+                }
+              });
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消"
+          });
+        });
+    }
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+  }
+};
+</script>
+<style lang='scss' scoped>
+.shyy {
+  display: inline-block;
+  width: 100%;
+  line-height: 40px;
+}
+.dialog-footer {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  margin-top: 40px;
+}
+.tstj {
+  width: 50%;
+  margin-left: 25%;
+}
+</style>

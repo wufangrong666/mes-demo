@@ -1,0 +1,1344 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <div style="float:left" v-text="from.gysName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <div style="float:left" v-text="lxrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发票类型</label>
+            <div style="float:left" v-text="from.fplx"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">订单单号</label>
+            <div style="float:left" v-text="from.cgddDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交货地址</label>
+            <div style="float:left" v-text="from.jhdz"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系电话</label>
+            <div style="float:left" v-text="from.contactPhone"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交货日期</label>
+            <div style="float:left" v-text="from.jhrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">制单员</label>
+            <div v-text="from.czyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员</label>
+            <div style="float:left" v-text="ywyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款期限</label>
+            <div style="float:left" v-text="from.fkqx"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">货期</label>
+            <div style="float:left" v-text="from.hq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">整单折扣(%)</label>
+            <div style="float:left" v-text="from.zdzk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购订单类型</label>
+            <div style="float:left" v-text="cgddlxName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款方式</label>
+            <div style="float:left" v-text="from.fksf"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">入货仓库</label>
+            <div style="float:left" v-text="ckName"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <div style="float:left" v-text="gxrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商订单号</label>
+            <div style="float:left" v-text="from.gysdddh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商发票单号</label>
+            <div style="float:left;padding-left:5px" v-text="from.gysfpdh"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">订货方式</label>
+            <div style="float:left" v-text="dhfs"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">实际重量</label>
+            <div style="float:left" v-text="from.actualkg"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">实际体积</label>
+            <div style="float:left" v-text="from.actualv"></div>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <a style="color:#409eff" :href="item.filePath" :download="item.name">{{item.name}}</a>
+              </li>
+            </ul>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label" v-text="from.bjlx == 3?'快递费':' 国外运杂费'"></label>
+            <div style="float:left" v-text="from.gwyzf"></div>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx == 3">
+            <label class="input-label">采购总成本</label>
+            <div style="float:left" v-text="from.cbzje"></div>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx !== 3">
+            <label class="input-label" v-text="from.bjlx == 1?'国际运费':' 国际快递(海运)'"></label>
+            <div style="float:left" v-text="from.gjyf"></div>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx !== 3">
+            <label class="input-label">外币币种</label>
+            <div style="float:left" v-text="from.bzmc"></div>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx !== 3">
+            <label class="input-label">汇率</label>
+            <div style="float:left" v-text="from.hl"></div>
+          </div>
+          <div class="input-boxA" v-show="from.bjlx == 2">
+            <label class="input-label">银行转账费</label>
+            <div style="float:left" v-text="from.yhzzf"></div>
+          </div>
+          <div class="input-boxB" v-show="from.bjlx !== 3">
+            <label class="input-label">其他外币费用合计</label>
+            <div style="float:left" v-text="from.qtwbfyhj"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">其他本币费用合计</label>
+            <div style="float:left" v-text="from.qtbbfyhj"></div>
+          </div>
+          <div style="width:10%;float:left">
+            <el-button type="primary" @click="ftClick" v-text="btnStr"></el-button>
+          </div>
+          <div class="ftStyle" v-show="ftStatus">
+            <el-table :key="tableKey" :data="tableDataFy" style="width: 100%" class="tableStyle">
+              <el-table-column prop="dydddh" label="对应订单单号">
+                <template slot-scope="scope">
+                  <span
+                    @click="dydddhClick(scope.row)"
+                    style="color:#3E84E9;cursor: pointer"
+                    v-text="scope.row.dydddh"
+                  ></span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="gwyzf" :label="from.bjlx == 3?'快递费':' 国外运杂费'">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="scope.row.gwyzf"></div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                v-if="from.bjlx !== 3"
+                prop="gjyf"
+                :label="from.bjlx == 1?'国际运费':' 国际快递(海运)'"
+              >
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="scope.row.gjyf"></div>
+                </template>
+              </el-table-column>
+              <el-table-column v-if="from.bjlx !== 3" prop="zzs" label="增值税">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="scope.row.zzs"></div>
+                </template>
+              </el-table-column>
+              <el-table-column v-if="from.bjlx == 2" prop="yhzzf" label="银行转账费">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="scope.row.yhzzf"></div>
+                </template>
+              </el-table-column>
+              <!-- 外币 -->
+              <el-table-column v-for="(item,index) in wbHeader" :key="index" prop="wbList">
+                <template slot="header" slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="item.value"></div>
+                </template>
+                <template slot-scope="scope">
+                  <div
+                    style="float:left;width:100%;text-align:center"
+                    v-text="scope.row.wbList[index]"
+                  ></div>
+                </template>
+              </el-table-column>
+              <!-- 本币  -->
+              <el-table-column v-for="(item,index) in bbHeader" :key="index + 'i'" prop="bbList">
+                <template slot="header" slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="item.value"></div>
+                </template>
+                <template slot-scope="scope">
+                  <div
+                    style="float:left;width:100%;text-align:center"
+                    v-text="scope.row.bbList[index]"
+                  ></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="remark" label="备注"></el-table-column>
+            </el-table>
+            <el-table
+              :data="hjTableData"
+              :show-header="false"
+              style="width: 100%"
+              class="tableStyle"
+            >
+              <el-table-column prop="hj"></el-table-column>
+              <el-table-column prop="name" label="国外运杂费">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="gwyzfHj"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="name" label="国外运杂费" v-if="from.bjlx !== 3">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="gjyfHj"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="name" label="增值税" v-if="from.bjlx !== 3">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="zzs"></div>
+                </template>
+              </el-table-column>
+              <el-table-column v-if="from.bjlx == 2" prop="name" label="银行转账费">
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="yhzzf"></div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="name"
+                label="外币费用"
+                v-for="(item,index) in wbConte"
+                :key="index"
+              >
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="item.conte"></div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="name"
+                label="本币费用"
+                v-for="(item,index) in bbConte"
+                :key="index + 'i'"
+              >
+                <template slot-scope="scope">
+                  <div style="float:left;width:100%;text-align:center" v-text="item.conte"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="address" label="备注"></el-table-column>
+            </el-table>
+          </div>
+
+          <el-table max-height="300px" :data="tableList" style="width: 100%" show-summary>
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.brandName"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.nameCn"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.modelnum"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName1 != ''" :label="zdyName1">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd1"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName2 != ''" :label="zdyName2">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd2"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName3 != ''" :label="zdyName3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd3"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName4 != ''" :label="zdyName4">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd4"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName5 != ''" :label="zdyName5">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd5"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName6 != ''" :label="zdyName6">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd6"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName7 != ''" :label="zdyName7">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd7"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName8 != ''" :label="zdyName8">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd8"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName9 != ''" :label="zdyName9">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd9"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName10 != ''" :label="zdyName10">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.ylzd10"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="单位" v-if="from.bjlx == 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.measureName"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.orderQuantity"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="未税单价" v-if="from.bjlx == 3">
+              <template slot="header" slot-scope="scope">
+                <span>未税单价</span>
+                <el-checkbox :disabled="true" @change="hsdjChecked = false" v-model="wsdjChecked"></el-checkbox>
+              </template>
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.cgdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column :label="widowData.type== 'sgxt'?'外币单价':'采购单价'" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.cgdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="税率(%)">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.sl"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="含税单价" v-if="from.bjlx == 3">
+              <template slot="header" slot-scope="scope">
+                <span>含税单价</span>
+                <el-checkbox :disabled="true" @change="wsdjChecked = false" v-model="hsdjChecked"></el-checkbox>
+              </template>
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.wbhsdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbhsdj" label="外币含税单价" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.wbhsdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbsj" :label="from.bjlx == 3?'税金':'外币税金'">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.wbsj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbhk" :label="from.bjlx == 3?'货款':'外币货款'">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.wbhk"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="关税" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.gs"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wbhj" :label="from.bjlx == 3?'合计':'外币合计'">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.wbhj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="重量(KG)" v-if="from.bjlx == 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.cpkg"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="人民币单价" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.rmbdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="人民币合计" v-if="from.bjlx !== 3">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.rmbhj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+              <template slot-scope="scopr">
+                <div style="float:left;width: 100%" v-text="scopr.row.zy"></div>
+              </template>
+            </el-table-column>
+          </el-table>
+          <ul class="tableButton">
+            <li
+              :style="{'width':width}"
+              v-for="index of widthList"
+              :key="index"
+            >{{index == 1?'折扣后合计':index == widthList-6?wbsjHjCount():index == widthList-5?wbhkHjCount():index == widthList-3?wbhjZkhCount():''}}</li>
+          </ul>
+        </sections>
+        <div class="conditions">
+          <div class="conditions-top">
+            <div>
+              <span>合同条款主题</span>
+            </div>
+            <div>合同条款内容</div>
+          </div>
+          <div class="conditions-center" style="height:120px">
+            <div v-for="(item,index) in jxcXsddHttkList" :key="index">
+              <div>
+                <span v-text="item.htzt"></span>
+              </div>
+              <div>
+                <span v-text="item.htnr"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="input-box" style="margin-left:1%">
+          <label class="input-label">价格审批人</label>
+          <div style="float:left" v-text="from.shrName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">价格审批时间</label>
+          <div style="float:left" v-text="from.shsj"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">审核人</label>
+          <div style="float:left" v-text="from.shrName"></div>
+        </div>
+        <div class="input-box" style="margin-left:1%">
+          <label class="input-label">审核时间</label>
+          <div style="float:left" v-text="from.shsj"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">终止执行原因</label>
+          <div style="float:left" v-text="from.zzxxyy"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label" style="width:115px">强制执行完毕原因</label>
+          <div style="float:left" v-text="from.qzzxwbyy"></div>
+        </div>
+      </div>
+      <div class="handle-bar">
+        <el-button v-if="auditStatus" type="success" @click="audit(3)">审核通过</el-button>
+        <el-button v-if="auditStatus" type="info" @click="audit(2)">审核不通过</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="审核不通过原因"
+      :visible.sync="auditDialog"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input v-model="message" placeholder="请输入内容"></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="auditDialog = false">取 消</el-button>
+        <el-button type="primary" @click="auditDialogSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  jxcXsddQueryck,
+  sgdSgdToCgdd,
+  cgddFindHttk,
+  cgddAddOrUpdate,
+  cgddFindCgddInfoByCgddId,
+  cgddFindDwtt,
+  cgddFindSl,
+  sgdHttk,
+  cgddFileRemoveById,
+  cgddAuditCgddByCgddIds,
+} from "@/api/jxc/jxc";
+import { crmGysQueryPageList, crmGysQueryById } from "@/api/crm/gysxx";
+import { bjdQueryDwtt, httkQueryTypeOfContact } from "@/api/crm/xsbjd";
+import { usersList, cgddFileUpload } from "@/api/common";
+import {
+  xbjQueryBzhl,
+  xbjQueryBrandTree,
+  xbjQueryProduct,
+  adminYszdGetYlzdSetByType,
+} from "@/api/crm/xbjTable";
+import treeDlalog from "../../components/treeDlalog";
+import Lockr from "lockr";
+import gxrDialog from "../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {},
+  computed: {
+    wbsjHjCount() {
+      return () => {
+        let num = 0;
+        for (var i in this.tableList) {
+          num += Number(this.tableList[i].wbsj);
+        }
+        return (num * (this.from.zdzk / 100)).toFixed(2);
+      };
+    },
+    wbhkHjCount() {
+      return () => {
+        let num = 0;
+        for (var i in this.tableList) {
+          num += Number(this.tableList[i].wbhk);
+        }
+        return (num * (this.from.zdzk / 100)).toFixed(2);
+      };
+    },
+    wbhjZkhCount() {
+      return () => {
+        let num = 0;
+        for (var i in this.tableList) {
+          num += Number(this.tableList[i].wbhj);
+        }
+        return (num * (this.from.zdzk / 100)).toFixed(2);
+      };
+    },
+  },
+  props: {
+    cgddId: {
+      type: Object,
+    },
+  },
+  data() {
+    return {
+      tableListHj: [
+        {
+          hj: "折扣后合计",
+          pm: "",
+          xh: "",
+          mxsl: "",
+          dj: "",
+          sl: "",
+          wbhsdjHj: "",
+          wbsjHj: 0,
+          wbhkHj: 0,
+          gs: "",
+          wbhjZkh: 0,
+          rmbdj: "",
+          rmbhj: "",
+          zy: "",
+        },
+      ],
+      hjTableData: [
+        {
+          hj: "合计",
+        },
+      ],
+      gwyzfHj: 0,
+      yhzzf: 0,
+      gjyfHj: 0,
+      bbConte: [],
+      wbConte: [],
+      tableDataFy: [],
+      bbHeader: [],
+      wbHeader: [],
+      btnStr: "查看订单分摊费用",
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      cgddTitle: "",
+      typeofcontactList: [],
+      jxcXsddHttkList: [],
+      dragtableData: [{}],
+      dialogft: false,
+      customerList: [],
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },
+      customerVisible: false,
+      options: [],
+      cascaderIds: [],
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      hl: "",
+      zzs: "",
+      wbbz: "",
+      wbbzList: [],
+      dwttList: [],
+      contactList: [],
+      total: 0,
+      tableData: [],
+      ckList: [],
+      ywyList: [],
+      bjlxList: [
+        { name: "大货", id: 1 },
+        { name: "单独", id: 2 },
+        { name: "国内", id: 3 },
+      ],
+      cgddlxList: [
+        { name: "新建", id: 2 },
+        { name: "申购生成", id: 1 },
+      ],
+      fplxList: [
+        {
+          name: "采购单据增值税率",
+        },
+        {
+          name: "采购单据普通税率",
+        },
+      ],
+      loading: false,
+      dialogVisible: false,
+      dialogVisibleGys: false,
+      dialogStatus: false,
+      gxrDialogStatus: false,
+      treeId: "",
+      from: {
+        wbbz: "",
+        hl: "",
+        gysName: "",
+        contactPhone: "",
+        wbsum: "12312",
+        cgddId: "",
+        gysId: "",
+        contactId: "",
+        fplx: "采购单据增值税率",
+        cgddDh: "",
+        jhrq: "",
+        czy: "",
+        czyName: "",
+        remark: "",
+        ywy: "",
+        fkqx: "",
+        createDate: "",
+        dwtt: "",
+        bjlx: 1,
+        sfbd: "否",
+        zdzk: "100",
+        cgddlx: 2,
+        ck: "",
+        gysddDh: "",
+        gsyfpdh: "",
+        gwyzf: 0,
+        gjyf: 0,
+        typeofcontract: "",
+        zzs: "",
+        jhdz: "",
+        remark: "",
+        fkfs: "正在跟进",
+        gxr: "",
+        qtwbfyhj: "",
+        qtbbfyhj: "",
+        sgdId: "",
+        cbzje: 0,
+        yhzzf: "",
+      },
+      fkfsList: [{ name: "正在跟进" }],
+      typeofcontract: [],
+      tableList: [
+        {
+          cgddmxId: "",
+          cgddId: "",
+          sgdmxId: "",
+          productId: "",
+          productName: "",
+          productModelnum: "",
+          brandId: "",
+          brandName: "",
+          commnameId: "",
+          commnameName: "",
+          measureName: "",
+          measureUnitid: "",
+          orderQuantity: "",
+          wbdj: "",
+          sl: "",
+          wbbz: "",
+          cgdj: "",
+          hl: "",
+          zzs: "",
+          wbhsdj: "",
+          wbsj: "",
+          wbhk: "",
+          gs: "",
+          zk: "",
+          gwyzf: "",
+          wbhj: "",
+          rmbdj: "",
+          rmbhj: "",
+          bbsum: "",
+          gjyf: "",
+          zy: "",
+        },
+      ],
+      fileList: [],
+      ywyName: "",
+      gxrName: "",
+      ftStatus: false,
+      fileIds: [],
+      tableKey: 0,
+      wsdjChecked: false,
+      hsdjChecked: true,
+      lxrName: "",
+      dwttName: "",
+      cgddlxName: "",
+      ckName: "",
+      dhfs: "",
+      widowData: {},
+      httkzt: "",
+      auditStatus: false,
+      auditDialog: false,
+      message: "",
+      width: "",
+      widthList: 0,
+    };
+  },
+  methods: {
+    dydddhClick(row) {
+      this.windowOpen("/addPrice", {
+        id: this.encode(row.xsddId),
+        type: "toView",
+        listType: "jxc_xsdd",
+      });
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    auditDialogSubmit() {
+      cgddAuditCgddByCgddIds({
+        cgddIds: this.widowData.id,
+        status: 2,
+        nopassReason: this.message,
+      })
+        .then((res) => {
+          this.auditDialog = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              this.resetGetList();
+              this.hidenView();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    audit(val) {
+      let self = this;
+      if (val == 3) {
+        this.$confirm("请确认审核信息, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        })
+          .then(() => {
+            cgddAuditCgddByCgddIds({
+              cgddIds: this.widowData.id,
+              status: val,
+              nopassReason: this.message,
+            })
+              .then((res) => {
+                this.loading = true;
+                this.$message({
+                  message: "审核通过",
+                  type: "success",
+                  onClose: () => {
+                    this.resetGetList();
+                    this.hidenView();
+                    this.loading = false;
+                  },
+                });
+              })
+              .catch((res) => {});
+          })
+          .catch(() => {
+            this.msgInfo("取消审核");
+          });
+      } else {
+        this.auditDialog = true;
+      }
+    },
+    ftClick() {
+      if (this.ftStatus) {
+        this.btnStr = "查看订单分摊费用";
+        this.ftStatus = !this.ftStatus;
+      } else {
+        this.btnStr = "影藏订单分摊费用";
+        this.ftStatus = !this.ftStatus;
+      }
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      cgddFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+          this.fileIds.push({
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    queryName(val) {
+      crmGysQueryById({
+        gysId: val.gysId,
+      })
+        .then((res) => {
+          this.contactList = res.data.CrmGysContactList;
+          this.from.gysId = res.data.gysId;
+          this.from.contactId = res.data.CrmGysContactList[0].contactId;
+          this.from.contactPhone = res.data.CrmGysContactList[0].contactPhone;
+          this.from.gysName = val.name;
+          this.dialogVisible = false;
+        })
+        .catch((res) => {});
+    },
+    querySl() {
+      cgddFindSl({
+        slType: this.from.fplx,
+        dwtt: this.from.dwtt,
+      })
+        .then((res) => {
+          for (var i in this.tableList) {
+            this.tableList[i].sl = Number(res.sl.sl);
+          }
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      let self = this;
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          this.ylzdList = res.data;
+          for (var i in this.tableList) {
+            for (var k in res.data) {
+              this.$set(this.tableList[i], res.data[k].ylzdName, "");
+            }
+          }
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+      httkQueryTypeOfContact({ lx: 1 })
+        .then((res) => {
+          this.typeofcontactList = res.data;
+          this.from.typeofcontract = res.data[0].id;
+          sgdHttk()
+            .then((httk) => {
+              this.jxcXsddHttkList = httk.data[res.data[0].id];
+              this.termsetting = httk.data;
+              this.httkzt = httk.data[res.data[0].id][0].name;
+            })
+            .catch((res) => {});
+        })
+        .catch((res) => {});
+
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      usersList({ pageType: 0 })
+        .then((res) => {
+          this.ywyList = res.data;
+        })
+        .catch(() => {});
+      xbjQueryBzhl()
+        .then((res) => {
+          this.wbbzList = res.data;
+        })
+        .catch((res) => {});
+      cgddFindDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.from.dwtt = res.data[0].id;
+          this.querySl();
+        })
+        .catch((res) => {});
+      cgddFindCgddInfoByCgddId({
+        cgddId: this.$route.query.id,
+      })
+        .then((res) => {
+          this.from = res.cgdd;
+          this.lxrName = res.cgdd.gysContactName;
+          this.cgddlxName = res.cgdd.cgddlxName;
+          this.ckName = res.cgdd.ckName;
+          this.dhfs = res.cgdd.dhfs;
+          this.fileList = res.cgddFile;
+          this.ywyName = res.cgdd.ywyName;
+          this.gxrName = res.cgdd.gxrName;
+          this.dwttName = res.cgdd.dwttName;
+          this.zzs = res.ddft[0].zzs;
+          this.bzmc = res.cgdd.bzmc;
+          for (var i in res.ddft) {
+            res.ddft[i].wbList = [];
+            res.ddft[i].bbList = [];
+          }
+          this.tableDataFy = res.ddft;
+          for (var i in res.cgddmx) {
+            for (var k in res.cgddmx[i].wbinfo) {
+              this.tableDataFy[i].wbList.push(res.cgddmx[i].wbinfo[k].code);
+            }
+            for (var k in res.cgddmx[i].bbinfo) {
+              this.tableDataFy[i].bbList.push(res.cgddmx[i].bbinfo[k].code);
+            }
+          }
+          if (res.cgddmx.length > 0) {
+            this.ftStatus = true;
+            if (res.cgddmx[0].wbinfo.length > 0) {
+              for (var i in res.cgddmx[0].wbinfo) {
+                this.wbHeader.push({
+                  value: res.cgddmx[0].wbinfo[i].name,
+                });
+              }
+            }
+            if (res.cgddmx[0].bbinfo.length > 0) {
+              for (var i in res.cgddmx[0].bbinfo) {
+                this.bbHeader.push({
+                  value: res.cgddmx[0].bbinfo[i].name,
+                });
+              }
+            }
+          }
+          this.from.gwyzf = 0;
+          this.from.gjyf = 0;
+          this.tableDataFy.forEach((item, index) => {
+            this.gwyzfHj += Number(item.gwyzf) || 0;
+            this.from.gwyzf += Number(item.gwyzf) || 0;
+            this.gjyfHj += Number(item.gjyf) || 0;
+            this.from.gjyf += Number(item.gjyf) || 0;
+          });
+          crmGysQueryById({
+            gysId: res.cgdd.gysId,
+          })
+            .then((res) => {
+              this.contactList = res.data.CrmGysContactList;
+              this.from.gysId = res.data.gysId;
+              this.from.contactId = res.data.CrmGysContactList[0].contactId;
+              this.from.gysName = val.name;
+              this.dialogVisible = false;
+            })
+            .catch((res) => {});
+          this.tableList = res.cgddmx;
+          this.wbfyDg(res.cgddmx, 0, 0, 0);
+          this.bbfyDg(res.cgddmx, 0, 0, 0);
+        })
+        .catch((res) => {});
+    },
+    wbfyDg(data, key, fyKey, wbNum) {
+      if (key < data.length) {
+        wbNum += Number(data[key].wbinfo[fyKey].code);
+        key++;
+        this.wbfyDg(data, key, fyKey, wbNum);
+      } else {
+        this.wbConte.push({
+          conte: wbNum,
+        });
+        key = 0;
+        wbNum = 0;
+        fyKey++;
+        if (fyKey == data[key].wbinfo.length) {
+          return;
+        }
+        this.wbfyDg(data, key, fyKey, wbNum);
+      }
+    },
+    bbfyDg(data, key, fyKey, bbNum) {
+      if (key < data.length) {
+        bbNum += Number(data[key].bbinfo[fyKey].code);
+        key++;
+        this.bbfyDg(data, key, fyKey, bbNum);
+      } else {
+        this.bbConte.push({
+          conte: bbNum,
+        });
+        key = 0;
+        bbNum = 0;
+        fyKey++;
+        if (fyKey == data[key].bbinfo.length) {
+          return;
+        }
+        this.bbfyDg(data, key, fyKey, bbNum);
+      }
+    },
+    hidenView() {
+      if (this.fileIds.length != 0) {
+        for (var i in this.fileIds) {
+          cgddFileRemoveById({
+            id: this.fileIds[i].fileId,
+          })
+            .then((res) => {})
+            .catch((res) => {});
+        }
+      }
+      window.top.close();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    setTimeout(() => {
+      this.width = 100 / $(".el-table__row")[2].cells.length + "%";
+      this.widthList = $(".el-table__row")[2].cells.length;
+    }, 300);
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.from.czyName = Lockr.get("loginUserInfo").realname;
+    this.from.createDate = this.getTime();
+    this.queryData();
+    if (this.widowData.type == "audit") {
+      this.auditStatus = true;
+    } else {
+      this.auditStatus = false;
+    }
+  },
+};
+</script>
+<style lang='scss'>
+.tableStyle .el-input__inner {
+  height: 20px;
+}
+.tableStyle .el-input {
+  width: 80%;
+  float: left;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  height: 40px;
+  li {
+    float: left;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+  }
+}
+.conditions {
+  margin-left: 20px;
+  width: 98%;
+  margin-left: 1%;
+}
+.conditions-top {
+  float: left;
+  div {
+    text-align: center;
+    border: 1px solid #999;
+    background: #a3c7f1;
+  }
+  div:nth-child(1) {
+    width: 20%;
+    float: left;
+    border-right: 0;
+  }
+  div:nth-child(2) {
+    width: 80%;
+    float: left;
+    text-align: center;
+  }
+}
+.conditions-center {
+  div {
+    float: left;
+    width: 100%;
+    div {
+      line-height: 40px;
+      text-align: center;
+      border: 1px solid #999;
+      span {
+        margin-left: 10px;
+      }
+    }
+    div:nth-child(1) {
+      width: 20%;
+      float: left;
+      text-align: center;
+      border-right: 0;
+      border-top: 0;
+    }
+    div:nth-child(2) {
+      width: 80%;
+      float: left;
+      text-align: center;
+      text-align: center;
+      border-top: 0;
+    }
+  }
+}
+.ftUlStatus {
+  min-width: 500px;
+  height: 40px;
+
+  li {
+    width: 129px;
+    float: left;
+    text-align: center;
+    line-height: 40px;
+  }
+}
+.ftStyle {
+  margin-top: 20px;
+  width: 100%;
+  min-height: 60px;
+  float: left;
+}
+.dialog-box {
+  .input-label {
+    width: 75px;
+  }
+}
+.input-boxA {
+  width: 10%;
+  float: left;
+  .input-label {
+    float: left;
+    line-height: 25px;
+    width: 100px;
+  }
+  .el-input {
+    width: 45%;
+  }
+  .el-select {
+    width: 45%;
+  }
+  div {
+    line-height: 25px;
+    width: 30%;
+  }
+}
+.input-boxB {
+  width: 16%;
+  float: left;
+  .input-label {
+    width: 140px;
+    float: left;
+  }
+  div {
+    line-height: 25px;
+    width: 30%;
+  }
+  .el-input {
+    width: 55%;
+  }
+  .el-select {
+    width: 67%;
+  }
+}
+.input-box {
+  width: 25%;
+  .input-label {
+    width: 100px;
+  }
+  .el-input {
+    width: 67%;
+  }
+  .el-select {
+    width: 67%;
+  }
+}
+.drag {
+  min-width: 1300px;
+  min-height: 400px;
+  display: flex;
+  border: 1px solid #e6e6e6;
+  z-index: 99999;
+  background: #fff;
+  position: absolute;
+  top: 0;
+  left: 20%;
+  img {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 20px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

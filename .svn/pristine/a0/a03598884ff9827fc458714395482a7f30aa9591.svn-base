@@ -1,0 +1,185 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="品牌名称" @on-search="companySearch" @dcExcel="dcExcel"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="name" label="品牌"></el-table-column>
+      <el-table-column prop="xjdCount" label="单据数量"></el-table-column>
+      <el-table-column prop="djgl" label="得价格率(%)"></el-table-column>
+      <el-table-column prop="bjdCount" label="报价单数量"></el-table-column>
+      <el-table-column prop="bjl" label="报价率(%)"></el-table-column>
+      <el-table-column prop="xbjzdd" label="询报价直转销售订单次数"  width="180px"></el-table-column>
+      <el-table-column prop="xbjzddzhl" label="订单次数直转率"></el-table-column>
+      <el-table-column prop="bjdzxsd" label="报价单转销售订单次数"></el-table-column>
+      <el-table-column prop="bjdzxsdzhl" label="报价单转销售订单转换率(%)" width="200px"></el-table-column>
+      <el-table-column prop="ddzzl" label="询报价到订单总转换率" width="200px"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination 
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import {
+  queryBrandTreeXbj,
+  queryStatisticsQueryStatisticsByBrand,
+} from "@/api/crm/xbjTable";
+import zdyListHeader from "../../components/zdyListHeader";
+import zdyTableHeader from "../../components/zdyTableHeader";
+
+export default {
+  name: "xbjTablePp",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  computed: {},
+  data() {
+    return {
+      listType: "crm_xbjtjbpp",
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        brandIds: "",
+        beginDate: "",
+        endDate: "",
+        search: "",
+      },
+      brandIdsList: [],
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.moreTypes.push({ type: "enter", name: "导入" });
+    this.moreTypes.push({ type: "out", name: "导出" });
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.loginData();
+  },
+  methods: {
+    dcExcel() {
+      let tHeader = [
+        "品牌",
+        "单据数量",
+        "得价格率(%)",
+        "报价单数量",
+        "报价率(%)",
+        "询报价直转销售订单次数",
+        "订单次数直转率",
+        "报价单转销售订单次数",
+        "报价单转销售订单转换率(%)",
+        "询报价到订单总转换率",
+      ];
+      let filterVal = [
+        "name",
+        "xjdCount",
+        "djgl",
+        "bjdCount",
+        "bjl",
+        "xbjzdd",
+        "xbjzddzhl",
+        "bjdzxsd",
+        "bjdzxsdzhl",
+        "ddzzl",
+      ];
+      this.exportInfos(
+        tHeader,
+        filterVal,
+        this.tableData,
+        "询报价统计表(按品牌)"
+      );
+    },
+    gjcxData(list) {
+      this.from.brandIds = "";
+      this.from.beginDate = "";
+      this.from.endDate = "";
+      for (var i in list) {
+        if (list[i].name == "ppmc") {
+          this.$set(this.from, "brandIds", list[i].value.join(","));
+        } else if (list[i].name == "itemData") {
+          this.$set(this.from, "beginDate", list[i].value[0]);
+          this.$set(this.from, "endDate", list[i].value[1]);
+        }
+      }
+      this.loginData();
+    },
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    //获取列表数据
+    loginData() {
+      queryStatisticsQueryStatisticsByBrand(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+</style>

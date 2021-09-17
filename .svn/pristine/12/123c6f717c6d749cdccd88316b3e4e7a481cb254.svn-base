@@ -1,0 +1,156 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="input-box">
+          <label class="input-label">用户名</label>
+          <el-input placeholder="请输入用户名" :readonly="true" clearable v-model="name"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">原始密码</label>
+          <el-input
+            placeholder="请输入原始密码"
+            show-password
+            clearable
+            v-model="from.oldPassword"
+            @blur="oldPassword"
+          ></el-input>
+          <span class="prompt" v-show="oldPasswordFlag">请输入原始密码</span>
+        </div>
+        <div class="input-box">
+          <label class="input-label">新密码</label>
+          <el-input
+            placeholder="请输入新密码"
+            show-password
+            clearable
+            v-model="from.newPassword"
+            @blur="newPassword"
+          ></el-input>
+          <span class="prompt" v-show="newPasswordFlag">请输入新密码</span>
+        </div>
+        <div class="input-box">
+          <label class="input-label">确认新密码</label>
+          <el-input
+            placeholder="请确认新密码"
+            show-password
+            clearable
+            v-model="from.confirmNewPassword"
+            @blur="confirmNewPassword"
+          ></el-input>
+          <span class="prompt" v-show="confirmNewPasswordFlag" v-text="confirmNewPasswordStr"></span>
+        </div>
+        <div class="input-box">
+          <el-button @click="submitPassword" type="primary">修改</el-button>
+          <el-button @click="empty" type="info">清空</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { oaPersonSetUpdatePassword } from "@/api/oa/personCenter";
+import Lockr from "lockr";
+
+export default {
+  name: "",
+  data() {
+    return {
+      title: "",
+      name: "",
+      from: {
+        oldPassword: "",
+        newPassword: "",
+        confirmNewPassword: ""
+      },
+      oldPasswordFlag: false,
+      newPasswordFlag: false,
+      confirmNewPasswordFlag: false,
+      confirmNewPasswordStr: ""
+    };
+  },
+
+  methods: {
+    empty() {
+      this.resetForm(this.from);
+    },
+    submitPassword() {
+      if (this.from.oldPassword == "") {
+        this.oldPasswordFlag = true;
+        this.msgInfo("请输入原始密码");
+        return;
+      }
+      if (this.from.newPassword == "") {
+        this.newPasswordFlag = true;
+        this.msgInfo("请输入新密码");
+        return;
+      }
+      if (this.from.confirmNewPassword == "") {
+        this.confirmNewPasswordFlag = true;
+        this.confirmNewPasswordStr = "请再次输入密码";
+        this.msgInfo("请确认新密码");
+        return;
+      } else if (this.from.confirmNewPassword !== this.from.newPassword) {
+        this.confirmNewPasswordFlag = true;
+        this.msgInfo("两次密码输入不一致");
+        this.confirmNewPasswordStr = "两次密码输入不一致";
+        return;
+      }
+      oaPersonSetUpdatePassword(this.from)
+        .then(res => {
+            this.msgSuccess("修改成功")
+            this.empty()
+        })
+        .catch(res => {});
+    },
+    oldPassword() {
+      if (this.from.oldPassword == "") {
+        this.oldPasswordFlag = true;
+      } else {
+        this.oldPasswordFlag = false;
+      }
+    },
+    newPassword() {
+      if (this.from.newPassword == "") {
+        this.newPasswordFlag = true;
+      } else {
+        this.newPasswordFlag = false;
+      }
+    },
+    confirmNewPassword() {
+      if (this.from.confirmNewPassword == "") {
+        this.confirmNewPasswordFlag = true;
+        this.confirmNewPasswordStr = "请再次输入密码";
+      } else {
+        if (this.from.confirmNewPassword !== this.from.newPassword) {
+          this.confirmNewPasswordFlag = true;
+          this.confirmNewPasswordStr = "两次密码输入不一致";
+        } else {
+          this.confirmNewPasswordFlag = false;
+        }
+      }
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.name = Lockr.get("loginUserInfo").realname;
+    this.title = this.$route.meta.title;
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  position: relative;
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+</style>

@@ -1,0 +1,242 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="品牌/型号" @dcExcel='dcExcel' @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border :height="tableHeight" :data="tableData" style="width: 100%">
+      <el-table-column prop="brandName" label="品牌"></el-table-column>
+      <el-table-column prop="nameCn" label="品名"></el-table-column>
+      <el-table-column prop="productModelNum" label="规格型号"></el-table-column>
+      <el-table-column prop="measureName" label="计量单位"></el-table-column>
+      <el-table-column label="最后一次价格[采购订单]">
+        <el-table-column prop="cgddWsdj" label="未税">
+          <template slot-scope="scope">
+            <span class="rowStyle" @click="rowClick(scope.row,'cgdd')" v-text="scope.row.cgddWsdj"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="cgddHsdj" label="含税">
+          <template slot-scope="scope">
+            <span class="rowStyle" @click="rowClick(scope.row,'cgdd')" v-text="scope.row.cgddHsdj"></span>
+          </template>
+        </el-table-column>
+      </el-table-column>
+      <el-table-column label="最后一次价格[采购收货单]">
+        <el-table-column prop="cgshWsdj" label="未税" width="120">
+          <template slot-scope="scope">
+            <span class="rowStyle" @click="rowClick(scope.row,'cgsh')" v-text="scope.row.cgshWsdj"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="cgshHsdj" label="含税" width="120">
+          <template slot-scope="scope">
+            <span class="rowStyle" @click="rowClick(scope.row,'cgsh')" v-text="scope.row.cgshHsdj"></span>
+          </template>
+        </el-table-column>
+      </el-table-column>
+      <el-table-column prop="costPrice" label="参考成本价"></el-table-column>
+      <el-table-column prop="sellPrice" label="参考出售价"></el-table-column>
+      <el-table-column prop="kc" label="库存"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15,30,50,100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+} from "@/api/crm/ggkhc";
+import { crmPriceFindAll, crmProductBrandQueryList } from "@/api/crm/cpxx";
+import zdyListHeader from "../../components/zdyListHeader";
+import zdyTableHeader from "../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      tableData: [],
+      treeDataR: [],
+      treeData: [],
+      comnameList: [],
+      total: 0,
+      title: "",
+      from: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        nameCn: "",
+        modelNum: "",
+        gys: "",
+        customer: "",
+        search: "",
+      },
+      realtableData: [],
+      dialogVisible: false,
+      data: [],
+      listType: "crm_cpqbjg",
+    };
+  },
+  watch: {},
+  methods: {
+    dcExcel() {
+      if (
+        this.operAuth.othersqx !== undefined &&
+        this.operAuth.othersqx.dcExcelqx
+      ) {
+        let tHeader = [
+          "品牌",
+          "品名",
+          "规格型号",
+          "计量单位",
+          "最后一次价格[采购订单]/未税",
+          "最后一次价格[采购订单]/含税",
+          "最后一次价格[采购收货单]/未税",
+          "最后一次价格[采购收货单]/含税",
+          "参考成本价",
+          "参考出售价",
+          "库存",
+        ];
+        let filterVal = [
+          "brandName",
+          "nameCn",
+          "productModelNum",
+          "measureName",
+          "cgddWsdj",
+          "cgddHsdj",
+          "cgshWsdj",
+          "cgshHsdj",
+          "costPrice",
+          "sellPrice",
+          "kc",
+        ];
+        this.exportInfos(tHeader, filterVal, this.tableData, "产品采购价格");
+      }
+    },
+    companySearch(search) {
+      this.from.search = search;
+      this.tableDataQuery();
+    },
+    gjcxData(list) {
+      this.from.brandName = "";
+      this.from.nameCn = "";
+      this.from.modelNum = "";
+      this.from.gys = "";
+      this.from.customer = "";
+      for (var i in list) {
+        if (list[i].name == "ppmc") {
+          this.$set(this.from, "brandName", list[i].ppName);
+        } else if (list[i].name == "pm") {
+          this.$set(this.from, "nameCn", list[i].value);
+        } else if (list[i].name == "xh") {
+          this.$set(this.from, "modelNum", list[i].value);
+        } else if (list[i].name == "gysmc") {
+          this.$set(this.from, "gys", list[i].value);
+        } else if (list[i].name == "khmc") {
+          this.$set(this.from, "customer", list[i].value);
+        }
+      }
+      this.tableDataQuery();
+    },
+    rowClick(row, type) {
+      let query = true;
+      if (type == "cgdd") {
+        if (row.cgddWsdj == 0 && row.cgddHsdj == 0) {
+          query = false;
+        }
+      } else if (type == "cgsh") {
+        if (row.cgshWsdj == 0 && row.xskdHsdj == 0) {
+          query = false;
+        }
+      } else if (type == "bjd") {
+        if (row.bjdWsdj == 0 && row.bjdHsdj == 0) {
+          query = false;
+        }
+      }
+      this.windowOpen("/cpjgDetails", {
+        id: this.encode(row.brandId),
+        type: type,
+        query: true,
+        modelNum: row.productModelNum,
+      });
+    },
+    handleSizeChange(val) {
+      this.from.page = limit;
+      this.tableDataQuery();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.tableDataQuery();
+    },
+    tableDataQuery() {
+      crmPriceFindAll(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.tableDataQuery();
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .title {
+  clear: both;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.rowStyle {
+  color: #3e84e9;
+  cursor: pointer;
+}
+.c-container {
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 10px;
+    height: 35px;
+    width: 16%;
+    .input-label {
+      line-height: 35px;
+      width: 80px;
+    }
+    .el-input {
+      width: 60%;
+      height: 35px;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

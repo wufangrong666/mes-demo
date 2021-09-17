@@ -1,0 +1,17 @@
+import request from '@/utils/request'
+//按客户转移
+export function crmCustomerTurnOverByCustomer(data) {
+    return request({
+        url: 'crmCustomer/turnOverByCustomer',
+        method: 'post',
+        data: data
+    })
+}
+//按业务员转移
+export function crmCustomerTurnOverByYwy(data) {
+    return request({
+        url: 'crmCustomer/turnOverByYwy',
+        method: 'post',
+        data: data
+    })
+}

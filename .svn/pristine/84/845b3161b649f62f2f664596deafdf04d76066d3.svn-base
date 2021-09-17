@@ -1,0 +1,128 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div v-for="(item,key,index) in tableData" :key="index">
+        <div class="create-flex">
+          <sections :title="key">
+            <span style="float:left;width:100%">
+              <el-table :data="item" style="width: 100%" :span-method="objectSpanMethod">
+                <el-table-column prop="name" label="品牌"></el-table-column>
+                <el-table-column prop="name" label="品名"></el-table-column>
+                <el-table-column prop="modelnum" label="规格型号"></el-table-column>
+                <el-table-column prop="measureName" label="单位"></el-table-column>
+                <el-table-column prop="quantity" label="数量"></el-table-column>
+                <el-table-column prop="zy" label="摘要"></el-table-column>
+                <el-table-column label="操作">
+                  <template slot-scope="scope">
+                    <el-button @click="generateCgd(item,index)" type="text">生成采购订单</el-button>
+                    <el-button type="text">生成采购询价单</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </span>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="dialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+            </span>
+          </sections>
+        </div>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { sgdCreateCgdd, sgdSgdToCgdd } from "@/api/jxc/jxc";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      tableData: [],
+      widowData: {},
+    };
+  },
+
+  methods: {
+    generateCgd(item, index) {
+      let sgdIdList = []
+      for(var i in item){
+        if(sgdIdList.indexOf(item[i].sgdId) == -1){
+          sgdIdList.push(item[i].sgdId)
+        }
+      }
+      sgdSgdToCgdd({
+        gysId: item[0].gysId,
+        sgdIds: sgdIdList.join(','),
+        sgdmxId: item
+          .map((item) => {
+            return item.sgdmx;
+          })
+          .join(","),
+      })
+        .then((res) => {
+          this.windowOpen("/cgddAdd", {
+            list: JSON.stringify(item),
+            sgdId: sgdIdList.join(','),
+            type: "sgxt",
+          });
+        })
+        .catch((res) => {});
+    },
+    previewData() {
+      sgdCreateCgdd({
+        list: JSON.parse(this.widowData.list),
+      })
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+    objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+      // columnIndex === 0 找到第一列，实现合并随机出现的行数
+      if (columnIndex === 6) {
+        return {
+          rowspan: columnIndex,
+          colspan: rowIndex + 1,
+        };
+      }
+    },
+    receiveMessage(event) {
+      if (event.data.type == "sgxt") {
+        window.top.close();
+        window.opener.postMessage({ type: "sgxt" }, window.location);
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+    this.widowData = this.$route.query;
+    this.previewData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.sgdUlStyle {
+  width: 100%;
+  float: left;
+  li {
+    width: 100%;
+    line-height: 40px;
+    float: left;
+    span {
+      display: inline-block;
+      width: 13%;
+    }
+  }
+}
+</style>

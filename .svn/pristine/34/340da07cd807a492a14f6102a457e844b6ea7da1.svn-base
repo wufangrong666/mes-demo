@@ -1,0 +1,400 @@
+<template>
+  <slide-view
+    v-empty="!canShowDetail"
+    xs-empty-icon="nopermission"
+    xs-empty-text="暂无权限"
+    @side-close="hideView"
+    v-clickoutside="hideView"
+    :body-style="{padding: 0, height: '100%'}"
+  >
+    <flexbox
+      v-if="canShowDetail"
+      v-loading="loading"
+      direction="column"
+      align="stretch"
+      class="d-container"
+    >
+      <flexbox class="selection-items-box">
+        <img @click="hideView" class="t-close" src="@/assets/img/task_close.png" />
+        <div :title="name" class="header">{{name}}</div>
+        <flexbox
+          class="selection-item"
+          v-for="(item, index) in getSelectionHandleItemsInfo()"
+          :key="index"
+          @click.native="selectionBarClick(item.type)"
+        >
+          <img class="selection-item-icon" :src="item.icon" />
+          <div class="selection-item-name">{{item.name}}</div>
+        </flexbox>
+      </flexbox>
+      <template>
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="客户详情" name="first">
+            <ul class="details">
+              <li>
+                <span>用户名</span>
+                <span :title="detailsList.name" v-text="detailsList.name"></span>
+              </li>
+              <li>
+                <span>客户编码</span>
+                <span v-text="detailsList.code"></span>
+              </li>
+              <li>
+                <span>客户类型</span>
+                <span v-text="detailsList.type"></span>
+              </li>
+              <li>
+                <span>商务电话</span>
+                <span v-text="detailsList.businessTele"></span>
+              </li>
+              <li>
+                <span>传真</span>
+                <span v-text="detailsList.fax"></span>
+              </li>
+              <li>
+                <span>邮编</span>
+                <span v-text="detailsList.postcode"></span>
+              </li>
+              <li>
+                <span>客户email</span>
+                <span v-text="detailsList.email"></span>
+              </li>
+              <li>
+                <span>客户所在地</span>
+                <span v-text="detailsList.address"></span>
+              </li>
+              <li>
+                <span>客户描述</span>
+                <span v-text="detailsList.description"></span>
+              </li>
+              <li>
+                <span>客户来源</span>
+                <span v-text="detailsList.customerFrom"></span>
+              </li>
+            </ul>
+            <ul class="detailsA">
+              <li>
+                <span>姓名</span>
+                <span>性别</span>
+                <span>生日</span>
+                <span>电话</span>
+                <span>QQ</span>
+                <span>邮箱</span>
+              </li>
+              <li v-for="(item,index) in detailsList.customerContact" :key="index">
+                <span :title="item.contactName">{{item.contactName}}</span>
+                <span>{{item.contactGender == '1'?'男':'女'}}</span>
+                <span>{{item.contactBirthday}}</span>
+                <span>{{item.contactPhone}}</span>
+                <span>{{item.contactQq}}</span>
+                <span>{{item.contactEmail}}</span>
+              </li>
+            </ul>
+          </el-tab-pane>
+          <el-tab-pane label="分配转移记录" name="second">
+            <el-table :data="fpzyList" height="700px" stripe style="width: 100%">
+              <el-table-column prop="operatorName" label="操作人"></el-table-column>
+              <el-table-column prop="operateTime" label="分配转移时间"></el-table-column>
+              <el-table-column prop="flag" label="操作类型"></el-table-column>
+              <el-table-column prop="beforeUserName" label="分配/转移前销售负责人"></el-table-column>
+              <el-table-column prop="afterUserName" label="分配/转移后销售负责人"></el-table-column>
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="交往记录" name="third">
+            <el-table :data="tableData" height="700px" stripe style="width: 100%">
+              <el-table-column prop="customername" label="客户名称"></el-table-column>
+              <el-table-column prop="jwr" label="客户联系人"></el-table-column>
+              <el-table-column prop="content" label="交往内容"></el-table-column>
+              <el-table-column prop="remark" label="点评内容"></el-table-column>
+              <el-table-column prop="jwtime" label="开始时间"></el-table-column>
+            </el-table>
+            <div style="float:right">
+              <el-pagination layout="prev, pager, next" :total="totalRow"></el-pagination>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </template>
+    </flexbox>
+
+    <khxxglDetail
+      :id="khxxglDetailId"
+      @save-success="createSaveSuccess"
+      @close="khxxglDetail=false"
+      v-if="khxxglDetail"
+    ></khxxglDetail>
+
+    <khxxDialog
+      :showTitle="showTitle"
+      :show="showKhxx"
+      :showKhxxId="showKhxxId"
+      @close="showKhxx=false"
+    ></khxxDialog>
+  </slide-view>
+</template>
+
+<script>
+import SlideView from "@/components/SlideView";
+import detail from "../../../manage/mixins/detail";
+import table from "../../../manage/mixins/table";
+import dataList from "../../../components/Json";
+import {
+  crmContactRecordQueryPageList,
+  crmCustomerQueryfpzy
+} from "@/api/crm/jwjl";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import { crmCustomerDeleteByIds } from "@/api/crm/khxxgl";
+import khxxglDetail from "../khxxglDetail";
+import khxxDialog from "../khxxDialog";
+export default {
+  name: "",
+  components: {
+    SlideView,
+    khxxglDetail,
+    khxxDialog
+  },
+  mixins: [detail, table],
+
+  props: {
+    listType: {
+      type: String,
+      default: ""
+    },
+    // 详情信息id
+    id: [String, Number]
+  },
+  data() {
+    return {
+      khxxglDetail: false,
+      activeName: "first",
+      detailData: {},
+      name: "",
+      isCreate: false, // 编辑操作
+      createData: {},
+      createActionInfo: { type: "edit", source: "detail" },
+      loading: false,
+      detailsList: [],
+      page: 1,
+      limit: 9999,
+      totalRow: 0,
+      tableData: [],
+      khxxglDetailId: "",
+      showKhxx: false,
+      showTitle: "",
+      showKhxxId: 0,
+      fpzyList: []
+    };
+  },
+
+  methods: {
+    handleClick() {},
+    hideView() {
+      this.$emit("hide-view");
+      this.$store.commit("edit");
+    },
+    selectionBarClick(type) {
+      let self = this;
+      if (type == "delete") {
+        var message = "";
+        if (type == "delete") {
+          message = "确定要删除这些数据吗?";
+        }
+        this.$confirm(message, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            crmCustomerDeleteByIds({
+              customerIds: this.id
+            })
+              .then(res => {
+                this.msgSuccess("删除成功");
+                this.$emit("handle");
+              })
+              .catch(res => {});
+          })
+          .catch(() => {
+            this.msgInfo("已取消操作");
+          });
+      } else if (type == "edit") {
+        this.khxxglDetail = !this.khxxglDetail;
+        this.khxxglDetailId = this.id;
+      } else if (type == "audit") {
+        this.showTitle = "customer";
+        this.showKhxx = true;
+        this.showKhxxId = Number(this.id);
+      }
+    },
+    getSelectionHandleItemsInfo() {
+      let handleInfos = {
+        delete: {
+          name: "删除",
+          type: "delete",
+          icon: require("@/assets/img/selection_delete.png")
+        },
+        edit: {
+          name: "编辑",
+          type: "edit",
+          icon: require("@/assets/img/selection_delete.png")
+        },
+        audit: {
+          name: "审核",
+          type: "audit",
+          icon: require("@/assets/img/selection_reset.png")
+        }
+      };
+      if (this.listType == "crm_customer") {
+        if (this.detailsList.statusId == "0") {
+          return this.forSelectionHandleItems(handleInfos, [
+            "delete",
+            "edit",
+            "audit"
+          ]);
+        } else {
+          return this.forSelectionHandleItems(handleInfos, ["delete", "edit"]);
+        }
+      }
+    },
+    forSelectionHandleItems(handleInfos, array) {
+      var tempsHandles = [];
+      for (let index = 0; index < array.length; index++) {
+        tempsHandles.push(handleInfos[array[index]]);
+      }
+      return tempsHandles;
+    },
+    dataList() {
+      crmContactRecordQueryPageList({
+        page: this.page,
+        limit: this.limit,
+        search: "",
+        data: {
+          customerId: {
+            condition: "contains",
+            value: this.id,
+            formType: "text",
+            name: "customerId"
+          }
+        }
+      })
+        .then(res => {
+          this.tableData = res.data.list;
+          this.totalRow = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    getDetial() {
+      this.loading = true;
+      crmCustomerqueryById({
+        customerId: this.id
+      })
+        .then(res => {
+          this.loading = false;
+          this.detailsList = res.data;
+          this.name = res.data.name;
+        })
+        .catch(res => {});
+      this.dataList();
+      crmCustomerQueryfpzy({
+        customerId: this.id
+      })
+        .then(res => {
+          this.fpzyList = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/crmdetail.scss";
+.header {
+  width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 80px;
+  font-size: 20px;
+  text-indent: 20px;
+}
+.d-container {
+  position: relative;
+}
+.t-close {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-left: 20px;
+  padding: 10px;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+.details {
+  width: 100%;
+  height: 300px;
+  overflow: auto;
+  li {
+    width: 50%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span:nth-child(1) {
+      float: left;
+      width: 150px;
+    }
+    span:nth-child(2) {
+      float: left;
+      width: 300px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+}
+.detailsA {
+  width: 100%;
+  height: 300px;
+  overflow: auto;
+  li {
+    width: 100%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span {
+      height: 40px;
+      float: left;
+      width: 150px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+}
+</style>

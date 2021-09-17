@@ -1,0 +1,86 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="重单信息">
+          <el-table :data="tableData" stripe>
+            <el-table-column prop="xjdDh" label="单号"></el-table-column>
+            <el-table-column prop="place" label="产地"></el-table-column>
+            <el-table-column prop="brandName" label="品牌"></el-table-column>
+            <el-table-column prop="bjsj" label="报价时间"></el-table-column>
+            <el-table-column prop="bjrName" label="报价人"></el-table-column>
+            <el-table-column prop="quantity" label="数量"></el-table-column>
+            <el-table-column prop="remark" label="备注"></el-table-column>
+            <el-table-column prop="feedbackUnitprice" label="反馈价格"></el-table-column>
+          </el-table>
+          <div class="p-contianer" style="text-align:right;margin:10px 0">
+            <el-pagination
+              class="p-bar"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="page"
+              :page-sizes="[15,30,50,100]"
+              :page-size.sync="limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+            ></el-pagination>
+          </div>
+          <div class="handle-bar"  style="text-align:center">
+            <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { xbjQueryCdxx } from "@/api/crm/xbjTable";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return { 
+      loading: false,
+      tableData: [],
+      page: 1,
+      limit: 15,
+      total: 0,
+    };
+  },
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    handleSizeChange() {},
+    handleCurrentChange() {},
+    cdxxData() {
+      xbjQueryCdxx({
+        xjdId: this.widowData.id,
+        page: this.page,
+        limit: this.limit,
+      })
+        .then((res) => {
+          this.tableData = res.data.cdList;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.cdxxData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+</style>

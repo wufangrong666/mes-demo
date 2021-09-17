@@ -1,0 +1,145 @@
+<template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <el-input
+      class="sc-container"
+      :placeholder="placeholder"
+      v-model="inputContent"
+      @input="inputChange"
+      @keyup.enter.native="searchInput"
+      clearable
+      @clear="clear"
+    >
+      <el-button slot="append" @click.native="searchInput" icon="el-icon-search"></el-button>
+    </el-input>
+    <div class="right-container">
+      <el-button @click="createClick" v-if="canSave" type="primary">{{'新建' + title}}</el-button>
+      <el-dropdown v-if="canSaveExcel" trigger="click" @command="handleTypeDrop">
+        <flexbox class="right-more-item">
+          <div>更多</div>
+          <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+        </flexbox>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item>导出</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript"> 
+import { mapGetters } from "vuex";
+export default {
+  name: "list-head", //客户管理下 重要提醒 回款计划提醒
+  components: {},
+  computed: {
+    ...mapGetters(["manage", "operAuth"]),
+    canSave() {
+      if(this.title == '预收款单' && this.operAuth.cwglqx !== undefined && this.operAuth.cwglqx.xjyskdqx){
+        return true
+      }
+    },
+    canSaveExcel(){
+      if(this.operAuth.othersqx !==undefined && this.operAuth.othersqx.dcExcelqx){
+        return true
+      }
+    }
+  },
+  data() {
+    return {
+      inputContent: "",
+    };
+  },
+  props: {
+    title: {
+      type: String,
+      default: "",
+    },
+    placeholder: {
+      type: String,
+      default: "请输入内容",
+    },
+    mainTitle: {
+      type: String,
+      default: "",
+    },
+    // company类型
+    listType: {
+      type: String,
+      default: "",
+    },
+    isSeas: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  mounted() {},
+  created() {
+    this.gysDetail = false;
+  },
+  activated() {},
+  methods: {
+    createClick(){
+      this.$emit('addClick')
+    },
+    handleTypeDrop() {
+      this.$emit("dcExcel");
+    },
+    clear() {
+      this.$emit("on-search", this.inputContent);
+    },
+    inputChange() {
+      this.$emit("update:search", this.inputContent);
+    },
+    // 进行搜索操作
+    searchInput() {
+      this.$emit("on-search", this.inputContent);
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+.c-container {
+  height: 40px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 40px;
+  }
+  .sc-container {
+    width: 300px;
+    margin: -18px 0 0 -150px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+  }
+
+  .right-container {
+    float: right;
+    margin: 5px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

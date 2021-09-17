@@ -1,0 +1,348 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <span
+              style="width:220px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"
+              :title="data.gys"
+              v-text="data.gys"
+            ></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商类型</label>
+            <span
+              style="width:220px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"
+              :title="data.gyslx"
+              v-text="data.gyslx"
+            ></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">子类型</label>
+            <span
+              style="width:220px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"
+              :title="data.zlx"
+              v-text="data.zlx"
+            ></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">品牌</label>
+            <span
+              style="width:220px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"
+              :title="data.product[0].brandName"
+              v-text="data.product[0].brandName"
+            ></span>
+          </div>
+          <div style="width:100%;float:left">
+            <div class="input-boxA">
+              <label class="input-label">账户</label>
+              <el-select v-model="mailId" placeholder="请选择">
+                <el-option
+                  v-for="item in mailUserList"
+                  :key="item.mailId"
+                  :label="item.mailUsername"
+                  :value="item.mailId"
+                ></el-option>
+              </el-select>
+            </div>
+            <div class="input-boxA">
+              <label class="input-label">收件人邮箱</label>
+              <el-input placeholder="收件人邮箱" v-model="data.toMail"></el-input>
+              <el-select v-model="gys" placeholder="请选择" style="width:150px">
+                <el-option
+                  v-for="item in data.contactInfo"
+                  :key="item.contactName"
+                  :label="item.contactName"
+                  :value="item.contactName"
+                ></el-option>
+              </el-select>
+            </div>
+            <div class="input-boxA">
+              <label class="input-label">邮件主题</label>
+              <el-input placeholder="创建邮件主题人" v-model="data.mailTitle"></el-input>
+              <el-checkbox
+                :value="data.sfjjyj === 1"
+                @change="val => $set(data,'sfjjyj',val ? 1 : 0)"
+              >紧急邮件</el-checkbox>
+            </div>
+            <div class="input-box" style="width:100%;margin:0">
+              <label class="input-label">上传附件</label>
+              <a href="javascript:;" class="a-upload">
+                <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+              </a>
+              <ul class="uploadStyle">
+                <li v-for="(item,index) in fileList" :key="index">
+                  <span>{{item.name}}</span>
+                  <i @click="deleteUpload(index)" class="el-icon-close"></i>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div style="float:left;margin-top:10px">
+            <vue-ueditor-wrap v-model="data.text" :config="myConfig"></vue-ueditor-wrap>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+        <el-button :disabled="disabled" @click="sendEmail" type="success">发送邮件</el-button>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  mailYjmbCreateEmail,
+  mailSendFindAccount,
+  mailSendSendMail,
+} from "@/api/email/email";
+import { mailSendUpload } from "@/api/common";
+import VueUeditorWrap from "vue-ueditor-wrap";
+
+import Lockr from "lockr";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    VueUeditorWrap,
+  },
+  computed: {
+    ...mapGetters(["manage", "companyConfig"]),
+  },
+  props: {
+    toaskRow: String,
+    mblx: {
+      type: Number,
+    },
+    sendRow: {
+      type: Object,
+    },
+  },
+  watch: {},
+  data() {
+    return {
+      gys: "",
+      fileList: [],
+      loading: false,
+      data: {},
+      mailUserList: [],
+      emailId: "",
+      mailId: null,
+      myConfig: {
+        // 编辑器不自动被内容撑高
+        autoHeightEnabled: false,
+        // 初始容器高度
+        initialFrameHeight: 580,
+        // 初始容器宽度
+        initialFrameWidth: "100%",
+        // 上传文件接口（这个地址是我为了方便各位体验文件上传功能搭建的临时接口，请勿在生产环境使用！！！）
+        serverUrl: "",
+        // UEditor 资源文件的存放路径，如果你使用的是 vue-cli 生成的项目，通常不需要设置该选项，vue-ueditor-wrap 会自动处理常见的情况，如果需要特殊配置，参考下方的常见问题2
+      },
+      disabled: false,
+      xjId: "",
+    };
+  },
+
+  methods: {
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      mailSendUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    sendEmail() {
+      if (!this.disabled) {
+        // this.disabled = true;
+        if (this.mailId == null) {
+          this.msgInfo("请先绑定邮箱!");
+          return;
+        }
+        let arr = [];
+        for (var i in this.fileList) {
+          arr.push(this.fileList[i].fileId);
+        }
+        mailSendSendMail({
+          mailFile: arr.join(","),
+          mailId: this.mailId,
+          receive: this.data.toMail,
+          title: this.data.mailTitle,
+          isUrgent: this.data.sfjjyj,
+          content: this.data.text,
+          file: "",
+          djlx: this.widowData.djlx,
+          status: 1,
+          djId: this.widowData.id,
+          cc: "",
+          xj: {
+            xjdId: this.widowData.id,
+            brandId: this.widowData.brandId,
+            gysId: this.widowData.gysId,
+            contactId: this.widowData.contactId,
+          },
+        })
+          .then((res) => {
+            this.loading = true;
+            this.$message({
+              message: "发送成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage("email", window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          })
+          .catch((res) => {
+            this.loading = false;
+          });
+      }
+    },
+    hidenView() {
+      window.top.close();
+    },
+    queryData() {
+      let id = "";
+      mailYjmbCreateEmail({
+        mblx: this.widowData.type,
+        djId: this.widowData.id,
+        contactId: this.widowData.contactId,
+        brandId: this.widowData.brandId,
+      })
+        .then((res) => {
+          this.data = res.data;
+          this.gys = res.data.contactInfo[0].contactName;
+        })
+        .catch((res) => {});
+      mailSendFindAccount({
+        userId: Lockr.get("loginUserInfo").userId,
+      })
+        .then((res) => {
+          this.mailUserList = res.data;
+          this.mailId = res.data[0].mailId;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.handle-bar {
+  text-align: center;
+  margin-top: 20px;
+}
+.input-box {
+  span {
+    display: inline-block;
+    line-height: 25px;
+  }
+  .el-select {
+    width: 70%;
+  }
+}
+.input-boxA {
+  width: 100%;
+  float: left;
+  margin: 5px 0;
+  .input-label {
+    width: 80px;
+    float: left;
+  }
+  .el-select {
+    width: 20%;
+  }
+  .el-input {
+    width: 20%;
+  }
+}
+.a-upload {
+  padding: 4px 10px;
+  margin-top: 5px;
+  height: 30px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

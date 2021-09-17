@@ -1,0 +1,354 @@
+<template>
+  <div>
+    <el-dialog
+      :modal-append-to-body="false"
+      :title="title"
+      :visible.sync="showDialog"
+      width="40%"
+      :before-close="handleClose"
+    >
+      <div>
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane :label="original" name="initial">
+            <ul class="details">
+              <li>
+                <span>{{name + '名称'}}</span>
+                <span v-text="initial.name"></span>
+              </li>
+              <li>
+                <span>{{name + '编码'}}</span>
+                <span v-text="initial.code"></span>
+              </li>
+              <li>
+                <span>{{name + '类型'}}</span>
+                <span v-text="initial.type"></span>
+              </li>
+              <li>
+                <span>{{name + '电话'}}</span>
+                <span v-text="initial.businessTele"></span>
+              </li>
+              <li>
+                <span>{{name + '传真'}}</span>
+                <span v-text="initial.fax"></span>
+              </li>
+              <li>
+                <span>{{name + '邮箱'}}</span>
+                <span v-text="initial.email"></span>
+              </li>
+              <li>
+                <span>{{name + '地址'}}</span>
+                <span v-text="initial.address"></span>
+              </li>
+              <li>
+                <span>{{name + '描述'}}</span>
+                <span v-text="initial.description"></span>
+              </li>
+              <li>
+                <span>{{name + '备注'}}</span>
+                <span v-text="initial.remark"></span>
+              </li>
+            </ul>
+            <ul class="detailsB">
+              <li>
+                <span>姓名</span>
+                <span>性别</span>
+                <span>电话</span>
+                <span>生日</span>
+                <span>邮箱</span>
+                <span>QQ</span>
+              </li>
+              <li v-for="(item,index) in initial.list" :key="index">
+                <span v-text="item.contactName"></span>
+                <span v-text="item.contactGender == 1?'男':item.contactGender == 2?'女':'保密'"></span>
+                <span v-text="item.contactPhone"></span>
+                <span v-text="item.contactBirthday"></span>
+                <span v-text="item.contactEmail"></span>
+                <span v-text="item.contactQq"></span>
+              </li>
+            </ul>
+          </el-tab-pane>
+          <el-tab-pane :label="later" name="entity">
+            <ul class="details">
+              <li>
+                <span>{{name + '名称'}}</span>
+                <span v-text="initial.name"></span>
+              </li>
+              <li>
+                <span>{{name + '编码'}}</span>
+                <span v-text="initial.code"></span>
+              </li>
+              <li>
+                <span>{{name + '类型'}}</span>
+                <span v-text="initial.type"></span>
+              </li>
+              <li>
+                <span>{{name + '电话'}}</span>
+                <span v-text="initial.businessTele"></span>
+              </li>
+              <li>
+                <span>{{name + '传真'}}</span>
+                <span v-text="initial.fax"></span>
+              </li>
+              <li>
+                <span>{{name + '邮箱'}}</span>
+                <span v-text="initial.email"></span>
+              </li>
+              <li>
+                <span>{{name + '地址'}}</span>
+                <span v-text="initial.address"></span>
+              </li>
+              <li>
+                <span>{{name + '描述'}}</span>
+                <span v-text="initial.description"></span>
+              </li>
+              <li>
+                <span>{{name + '备注'}}</span>
+                <span v-text="initial.remark"></span>
+              </li>
+            </ul>
+            <ul class="detailsB">
+              <li>
+                <span>姓名</span>
+                <span>性别</span>
+                <span>电话</span>
+                <span>生日</span>
+                <span>邮箱</span>
+                <span>QQ</span>
+              </li>
+              <li v-for="(item,index) in initial.list" :key="index">
+                <span v-text="item.contactName"></span>
+                <span v-text="item.contactGender == 1?'男':item.contactGender == 2?'女':'保密'"></span>
+                <span v-text="item.contactPhone"></span>
+                <span v-text="item.contactBirthday"></span>
+                <span v-text="item.contactEmail"></span>
+                <span v-text="item.contactQq"></span>
+              </li>
+            </ul>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button v-if="activeName == 'entity'" type="primary" @click="dialogVisible">审核通过</el-button>
+        <el-button v-if="activeName == 'entity'" type="info" @click="dialogVisibleNo">审核不通过</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import {
+  crmCustomerQueryEditById,
+  crmCustomerCheckStatus
+} from "@/api/crm/khxxgl";
+import {
+  crmGysQueryById,
+  crmGysQueryEditById,
+  crmGysCheckStatus
+} from "@/api/crm/gysxx";
+import dataList from "../../components/Json";
+
+export default {
+  name: "",
+  data() {
+    return {
+      textarea: "",
+      showDialog: false,
+      activeName: "initial",
+      initial: {},
+      entity: {},
+      original: "",
+      later: "",
+      title: "",
+      name: "",
+      message: "",
+      type: ""
+    };
+  },
+  watch: {
+    show: {
+      handler(val) {
+        this.showDialog = val;
+        this.loginData(this.activeName);
+      }
+    },
+    showTitle: {
+      handler(val) {
+        if (val == "supplier") {
+          this.original = "初始供应商信息";
+          this.later = "修改供应商信息";
+          this.title = "审核供应商信息";
+          this.name = "供应商";
+        } else {
+          this.original = "初始客户信息";
+          this.later = "修改客户信息";
+          this.title = "审核客户信息";
+          this.name = "客户";
+        }
+      }
+    }
+  },
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    },
+    showKhxxId: {
+      type: Number,
+      default: ""
+    },
+    showTitle: String
+  },
+  methods: {
+    handleClick(val) {
+      this.activeName = val.name;
+      this.loginData(this.activeName);
+    },
+    handleCloseA() {
+      this.showdialogVisible = false;
+    },
+    handleClose() {
+      this.$emit("close");
+    },
+    loginData(name) {
+      if (name == "initial") {
+        if (this.showTitle == "customer") {
+          crmCustomerqueryById({
+            customerId: this.showKhxxId
+          })
+            .then(res => {
+              this.initial = res.data;
+              this.initial.list = res.data.customerContact;
+            })
+            .catch(res => {});
+        } else {
+          crmGysQueryById({
+            gysId: this.showKhxxId
+          })
+            .then(res => {
+              this.initial = res.data;
+              this.initial.list = res.data.CrmGysContactList;
+            })
+            .catch(res => {});
+        }
+      } else {
+        if (this.showTitle == "customer") {
+          crmCustomerQueryEditById({
+            customerId: this.showKhxxId
+          })
+            .then(res => {
+              this.initial = res.data;
+              this.initial.list = res.data.customerContactEdit;
+            })
+            .catch(res => {});
+        } else {
+          crmGysQueryEditById({
+            gysId: this.showKhxxId
+          })
+            .then(res => {
+              this.initial = res.data;
+              this.initial.list = res.data.CrmGysContactList;
+            })
+            .catch(res => {});
+        }
+      }
+    },
+    dialogVisible() {
+      this.type = "1";
+      this.$confirm("请确认需要审核的客户信息！, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          if (this.showTitle == "customer") {
+            crmCustomerCheckStatus({
+              customerId: this.initial.customerId,
+              type: this.type 
+            })
+              .then(res => {
+                this.msgSuccess("审核成功");
+                this.handleClose();
+                this.$emit('save-success')
+                this.$store.commit("edit");
+              })
+              .catch(res => {});
+          } else {
+            crmGysCheckStatus({
+              gysId: this.initial.gysId,
+              type: this.type
+            })
+              .then(res => {
+                this.msgSuccess("审核成功");
+                this.$store.commit("edit");
+                this.$emit('save-success')
+                this.handleClose();
+              })
+              .catch(res => {});
+          }
+        })
+        .catch(() => {
+          this.msgInfo("已取消审核");
+        });
+    },
+    dialogVisibleNo() {
+      this.type = "2";
+      if (this.showTitle == "customer") {
+        crmCustomerCheckStatus({
+          customerId: this.initial.customerId,
+          type: this.type
+        })
+          .then(res => {
+            this.handleClose();
+          })
+          .catch(res => {});
+      } else {
+        crmGysCheckStatus({
+          gysId: this.initial.customerId,
+          type: this.type
+        })
+          .then(res => {
+            this.handleClose();
+          })
+          .catch(res => {});
+      }
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+.details {
+  width: 100%;
+  overflow: auto;
+  li {
+    width: 50%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span:nth-child(1) {
+      display: inline-block;
+      width: 150px;
+    }
+  }
+}
+.detailsB {
+  width: 100%;
+  overflow: auto;
+  height: 300px;
+  li {
+    width: 100%;
+    line-height: 40px;
+    float: left;
+    span {
+      display: inline-block;
+      width: 16%;
+      line-height: 40px;
+      text-align: center;
+    }
+  }
+}
+</style>

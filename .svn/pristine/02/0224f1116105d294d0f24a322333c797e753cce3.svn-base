@@ -1,0 +1,84 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">是否启用产品序列号：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.sfqycpxlh" :label="0">否</el-radio>
+          <el-radio v-model="from.sfqycpxlh" :label="1">是</el-radio>
+          <span>序列号是否必填：</span>
+          <el-radio v-model="from.sfbt" :label="0">否</el-radio>
+          <el-radio v-model="from.sfbt" :label="1">是</el-radio>
+          <span>字段名称：</span>
+          <el-input style="width:200px" v-model="from.zdmc" placeholder="请输入内容"></el-input>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminCpxlhQueryCpxlhSet,
+  adminCpxlhUpdateCpxlhSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    xlhData() {
+      adminCpxlhQueryCpxlhSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminCpxlhUpdateCpxlhSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.xlhData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.xlhData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

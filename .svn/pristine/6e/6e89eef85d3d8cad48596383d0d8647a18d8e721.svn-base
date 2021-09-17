@@ -1,0 +1,179 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="姓名、手机、商务电话、email"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title=""
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        class="n-table--border"
+        id="table"
+        v-loading="loading"
+        :data="list"
+        :height="tableHeight"
+        stripe
+        border
+        highlight-current-row
+        style="width: 100%"
+        :cell-style="cellStyle"
+        @row-click="handleRowClick"
+        @sort-change="sortChange"
+        @header-dragend="handleHeaderDragend"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column show-overflow-tooltip type="selection" align="center" width="55"></el-table-column>
+        <el-table-column
+          v-for="(item, index) in fieldList"
+          :key="index"
+          sortable="custom"
+          show-overflow-tooltip
+          :fixed="index==0"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width"
+          :formatter="fieldFormatter"
+        ></el-table-column>
+        <el-table-column></el-table-column>
+        <el-table-column fixed="right" width="36">
+          <template slot="header" slot-scope="slot">
+            <el-popover
+              :ref="`popover-${slot.$index}`"
+              placement="bottom-end"
+              width="220"
+              trigger="click"
+            >
+              <div>
+                <ul class="ul-popover">
+                  <draggable v-model="checkList">
+                    <li v-for="item in checkList" :key="item.id">
+                      <el-switch v-model="item.show" active-color="#2362fb"></el-switch>
+                      <span v-text="item.name"></span>
+                    </li>
+                  </draggable>
+                </ul>
+                <div class="btn">
+                  <el-button type="primary" @click="reset">重置</el-button>
+                  <el-button type="primary" @click="addPopover(slot)">提交</el-button>
+                </div>
+              </div>
+              <img
+                slot="reference"
+                src="@/assets/img/t_set.png"
+                @click="handleTableSet"
+                class="table-set"
+              />
+            </el-popover>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="pageSizes"
+          :page-size.sync="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import table from "../../manage/mixins/table";
+import draggable from "vuedraggable";
+
+export default {
+  name: "",
+  mixins: [table],
+  components: {
+    draggable,
+  },
+  data() {
+    return {
+      title: "",
+      listType: "oa_txl",
+    };
+  },
+
+  methods: {
+    /** 通过回调控制style */
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      if (column.property === "name") {
+        return { color: "#3E84E9", cursor: "pointer" };
+      } else {
+        return "";
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.c-container {
+  height: 50px;
+  position: relative;
+  z-index: 100;
+  .title {
+    margin: 0;
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 50px;
+  }
+  .sc-container {
+    width: 300px;
+    margin: -18px 0 0 -150px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+  }
+
+  .right-container {
+    margin-right: -10px;
+    float: right;
+    margin: 12px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

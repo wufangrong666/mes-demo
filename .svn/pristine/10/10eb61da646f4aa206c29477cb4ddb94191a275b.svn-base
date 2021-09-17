@@ -1,0 +1,307 @@
+<template>
+  <slide-view
+    v-empty="!canShowDetail"
+    xs-empty-icon="nopermission"
+    xs-empty-text="暂无权限"
+    @side-close="hideView"
+    v-clickoutside="hideView"
+    :body-style="{padding: 0, height: '100%'}"
+  >
+    <flexbox
+      v-if="canShowDetail"
+      v-loading="loading"
+      direction="column"
+      align="stretch"
+      class="d-container"
+    >
+      <flexbox class="selection-items-box">
+        <img @click="hideView" class="t-close" src="@/assets/img/task_close.png" />
+        <div class="header">{{detailData.nameCn}}</div>
+        <flexbox
+          class="selection-item"
+          v-for="(item, index) in getSelectionHandleItemsInfo()"
+          :key="index"
+          @click.native="selectionBarClick(item.type)"
+        >
+          <img class="selection-item-icon" :src="item.icon" />
+          <div class="selection-item-name">{{item.name}}</div>
+        </flexbox>
+      </flexbox>
+      <template>
+        <el-tabs style="height:100%" v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="单位基本信息" name="first">
+            <detailTbs :detailData="detailData" />
+          </el-tab-pane>
+          <el-tab-pane label="操作记录" name="second">
+            <recordTbs style="height:600px;overflow: auto;" :recordData="recordData" />
+          </el-tab-pane>
+        </el-tabs>
+      </template>
+    </flexbox>
+    <createView
+      v-if="isCreate"
+      :dataList="createData"
+      :listType="listType"
+      :action="createActionInfo"
+      @hiden-view="hideView"
+    ></createView>
+  </slide-view>
+</template>
+
+<script>
+import {
+  customerRead,
+  companyDelete,
+  isdefault,
+  IndexFieldRecord
+} from "@/api/manage/SystemConfig";
+import SlideView from "@/components/SlideView";
+import detailTbs from "./details";
+import recordTbs from "./record";
+import createView from "../../components/createView"; // 新建页面
+import detail from "../mixins/detail";
+import table from "../mixins/table";
+import dataList from "../../components/Json";
+
+export default {
+  /** 客户管理 的 客户详情 */
+  name: "customer-detail",
+  components: {
+    SlideView,
+    detailTbs,
+    recordTbs,
+    createView
+  },
+  mixins: [detail, table],
+  props: {
+    listType: {
+      type: String,
+      default: ""
+    },
+    // 详情信息id
+    id: [String, Number]
+  },
+  data() {
+    return {
+      createData: {},
+      activeName: "first",
+      loading: false, // 展示加载loading
+      detailData: {}, // read 详情
+      tabCurrentName: "followlog",
+      isCreate: false, // 编辑操作
+      recordData: [],
+      createActionInfo: { type: "edit", source: "detail" }
+    };
+  },
+  mounted() {
+    IndexFieldRecord({
+      actionId: this.id
+    })
+      .then(res => {
+        this.recordData = res.data;
+      })
+      .catch(res => {});
+  },
+  methods: {
+    /** 操作 */
+    selectionBarClick(type) {
+      if (type == "edit") {
+        this.isCreate = !this.isCreate;
+        customerRead({
+          companyId: this.detailData.id
+        })
+          .then(res => {
+            dataList.admin_company.formData = res.data;
+            if (res.data.isdefault == 1) {
+              dataList.admin_company.formData.isdefaultStatus = true;
+            } else {
+              dataList.admin_company.formData.isdefaultStatus = false;
+            }
+            this.createData = dataList.admin_company;
+          })
+          .catch(() => {
+            this.loading = false;
+          });
+      } else if (type == "delete") {
+        var message = "";
+        if (type == "delete") {
+          message = "确定要删除这些数据吗?";
+        } else if (type == "lock") {
+          message = "确定要锁定这些客户吗？锁定后将不会掉入公海。";
+        }
+        this.$confirm(message, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            this.confirmHandle(type);
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消操作"
+            });
+          });
+      } else if (type == "default") {
+        this.$confirm("是否设为默认抬头", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            isdefault({
+              companyId: this.detailData.id
+            })
+              .then(res => {
+                this.$message({
+                  type: "success",
+                  message: "操作成功"
+                });
+                this.$store.commit("edit");
+              })
+              .catch(res => {});
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消操作"
+            });
+          });
+      }
+    },
+    handleClick(tab, event) {},
+    getDetial() {
+      this.loading = true;
+      customerRead({
+        companyId: this.id
+      })
+        .then(res => {
+          this.loading = false;
+          this.detailData = res.data;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
+    //** 点击关闭按钮隐藏视图 */
+    hideView() {
+      this.$emit("hide-view");
+      this.$store.commit("edit")
+    },
+    getSelectionHandleItemsInfo() {
+      let handleInfos = {
+        delete: {
+          name: "删除",
+          type: "delete",
+          icon: require("@/assets/img/selection_delete.png")
+        },
+        edit: {
+          name: "编辑",
+          type: "edit",
+          icon: require("@/assets/img/selection_edit.png")
+        },
+        default: {
+          name: "设为默认",
+          type: "default",
+          icon: require("@/assets/img/selection_reset.png")
+        }
+      };
+      if (this.detailData.isdefault === 0) {
+        if (this.listType == "admin_company") {
+          return this.forSelectionHandleItems(handleInfos, [
+            "delete",
+            "edit",
+            "default"
+          ]);
+        }
+      } else {
+        if (this.listType == "admin_company") {
+          return this.forSelectionHandleItems(handleInfos, ["delete", "edit"]);
+        }
+      }
+    },
+    forSelectionHandleItems(handleInfos, array) {
+      var tempsHandles = [];
+      for (let index = 0; index < array.length; index++) {
+        tempsHandles.push(handleInfos[array[index]]);
+      }
+      return tempsHandles;
+    },
+    // 判断是否展示
+    whetherTypeShowByPermision: function(type) {
+      if (type == "delete") {
+        return true;
+      }
+      return true;
+    },
+
+    confirmHandle(type) {
+      if (type === "delete") {
+        let self = this;
+        let request = {
+          admin_company: companyDelete
+        }[this.listType];
+        request({
+          companyIds: this.detailData.id
+        })
+          .then(res => {
+            this.$message({
+              type: "success",
+              message: "删除成功"
+            });
+            this.$emit("hide-view");
+            this.$store.commit("edit");
+          })
+          .catch(() => {});
+      }
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+@import "../styles/crmdetail.scss";
+.header {
+  width: 30%;
+  line-height: 80px;
+  font-size: 20px;
+  text-indent: 20px;
+}
+.d-container {
+  position: relative;
+}
+.t-close {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-left: 20px;
+  padding: 10px;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+</style>

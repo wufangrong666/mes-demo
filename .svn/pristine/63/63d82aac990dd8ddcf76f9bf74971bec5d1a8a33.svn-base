@@ -1,0 +1,153 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="单号">
+          <div class="input-box" style="width:100%">
+            <label class="input-label">订单单号</label>
+            <div v-text="dddh"></div>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">交往人</label>
+            <div v-text="jwrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交往日期</label>
+            <el-date-picker
+              :disabled="toViewJwjlStatus"
+              v-model="jwtime"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交往内容</label>
+            <el-input
+              type="textarea"
+              maxlength="200"
+              show-word-limit
+              :readonly="toViewJwjlStatus"
+              :rows="6"
+              placeholder="请输入内容"
+              v-model="content"
+            ></el-input>
+          </div>
+          <span class="dialog-footer">
+            <el-button v-show="!toViewJwjlStatus" type="primary" @click="tshSubmit">保存</el-button>
+            <el-button @click="hidenView">关 闭</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {jxcXsddAddOrUpdateJwjl} from "@/api/jxc/jxc"
+import Lockr from "lockr";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      loading: false,
+      dddh: "",
+      jwrName: "",
+      jwr: "",
+      jwtime: "",
+      content: "",
+      id: "",
+      toViewJwjlStatus: false,
+      mess: ""
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    tshSubmit() {
+      if (this.content == "") {
+        this.msgInfo("请输入交往内容");
+        return;
+      }
+      jxcXsddAddOrUpdateJwjl({
+        id: this.id,
+        djModule: "xsdd",
+        djId: this.widowData.djId,
+        jwr: this.jwr,
+        jwtime: this.jwtime,
+        content: this.content
+      })
+        .then(res => {
+          this.loading = true;
+          this.$message({
+            message: this.mess,
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              this.hidenView();
+              this.loading = false;
+            }
+          });
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    console.log(this.widowData)
+    this.dddh = this.widowData.dh;
+    this.jwrName = Lockr.get("loginUserInfo").realname;
+    this.jwr = Lockr.get("loginUserInfo").userId;
+    this.jwtime = this.getTime();
+    this.widowData.djId = this.$route.query.djId;
+    if (this.widowData.type == "toViewJwjl") {
+      this.id = this.widowData.id;
+      this.jwtime = this.widowData.time;
+      this.content = this.widowData.content;
+      this.toViewJwjlStatus = true;
+    } else if (this.widowData.type == "edit") {
+      this.id = this.widowData.id;
+      this.jwtime = this.widowData.time;
+      this.content = this.widowData.content;
+      this.toViewJwjlStatus = false;
+      this.mess = "编辑成功";
+    } else if (this.widowData.type == "jwjlAdd") {
+      this.toViewJwjlStatus = false;
+      this.mess = "新增成功";
+    }
+  }
+};
+</script>
+<style lang='scss' scoped>
+.input-box {
+  width: 400px;
+  line-height: 40px;
+  .input-label {
+    float: left;
+    width: 100px;
+  }
+  .el-input {
+    float: left;
+    width: 300px;
+  }
+  .el-textarea {
+    width: 300px;
+  }
+}
+.dialog-footer {
+  display: inline-block;
+  width: 90%;
+  margin: 40px 0 0 100px;
+}
+</style>

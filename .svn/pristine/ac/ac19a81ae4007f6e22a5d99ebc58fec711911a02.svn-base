@@ -1,0 +1,140 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">邮件主题</label>
+            <div style="float:left" v-text="from.mailTitle"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发件人</label>
+            <div style="float:left" v-text="from.sendMail"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发送时间</label>
+            <div style="float:left" v-text="from.receiveTime"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收件人</label>
+            <div style="float:left" v-text="from.receiveMail"></div>
+          </div>
+          <div class="input-box" v-show="mailCopyStatus">
+            <label class="input-label">抄送</label>
+            <div style="float:left" v-text="from.mailCopy"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">附件</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i v-if="!toViewType" @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <div class="wrap" style="float:left">
+            <vue-ueditor-wrap v-model="from.mailContent" :config="myConfig"></vue-ueditor-wrap>
+          </div>
+          <div class="handle-bar" style="margin-top:20px;float:left">
+            <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../components/createView";
+import sections from "../../../components/sections";
+import {
+  mailReceiveFindReceiveMailInfo,
+  mailSendFindMailInfoBySendId,
+} from "@/api/email/email";
+import VueUeditorWrap from "vue-ueditor-wrap";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    VueUeditorWrap,
+  },
+  data() {
+    return {
+      loading: false,
+      from: {
+        mailTitle: "",
+        sendMail: "",
+        receiveTime: "",
+        receiveMail: "",
+        mailContent: "",
+        mailCopy:""
+      },
+      mailCopyStatus: false,
+      fileList: [],
+      myConfig: {
+        // 编辑器不自动被内容撑高
+        autoHeightEnabled: false,
+        // 初始容器高度
+        initialFrameHeight: 500,
+        // 初始容器宽度
+        initialFrameWidth: "100%",
+        // 上传文件接口（这个地址是我为了方便各位体验文件上传功能搭建的临时接口，请勿在生产环境使用！！！）
+        serverUrl: "",
+        // UEditor 资源文件的存放路径，如果你使用的是 vue-cli 生成的项目，通常不需要设置该选项，vue-ueditor-wrap 会自动处理常见的情况，如果需要特殊配置，参考下方的常见问题2
+      },
+    };
+  },
+
+  methods: {
+    emailData() {
+      if (this.widowData.type == "sjxMx") {
+        this.mailCopyStatus = false;
+
+        mailReceiveFindReceiveMailInfo({
+          receiveId: this.widowData.id,
+        })
+          .then((res) => {
+            this.from = res.receiveMail;
+            this.fileList = res.mailFile;
+          })
+          .catch((res) => {});
+      } else {
+        this.mailCopyStatus = true;
+        mailSendFindMailInfoBySendId({
+          sendId: this.widowData.id,
+        })
+          .then((res) => {
+            this.from.mailTitle = res.mail.mailTitle;
+            this.from.sendMail = res.mail.mailTo;
+            this.from.receiveTime = res.mail.createDate;
+            this.from.receiveMail = res.mail.mailUsername;
+            this.from.mailCopy = res.mail.mailCopy
+            this.fileList = res.mailFile
+            this.from.mailContent = res.mail.mailContent
+          })
+          .catch((res) => {});
+      }
+    },
+    hidenView() {
+      window.top.close();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.emailData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+.input-box {
+  width: 100%;
+}
+</style>

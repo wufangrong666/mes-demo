@@ -1,0 +1,248 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="input-box">
+          <label class="input-label">任务名称</label>
+          <el-input placeholder="请输入任务名称" clearable v-model="from.taskName"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">紧急程度</label>
+          <el-select v-model="from.degree" placeholder="请选择">
+            <el-option
+              v-for="item in degreeList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            ></el-option>
+          </el-select>
+        </div>
+        <div class="input-box">
+          <label class="input-label">负责人</label>
+          <el-input placeholder="请选择" :readonly="true" clearable v-model="fzrName">
+            <el-button @click="fzrDialog" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">告知人</label>
+          <el-input :readonly="true" clearable placeholder="请选择共享人" v-model="gzrName">
+            <el-button @click="gzrDialog" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">开始日期</label>
+          <el-date-picker
+            v-model="from.start"
+            value-format="yyyy-MM-dd"
+            type="date"
+            placeholder="选择日期"
+          ></el-date-picker>
+        </div>
+        <div class="input-box">
+          <label class="input-label">开始日期</label>
+          <el-date-picker
+            v-model="from.end"
+            value-format="yyyy-MM-dd"
+            type="date"
+            placeholder="选择日期"
+          ></el-date-picker>
+        </div>
+        <div class="input-box">
+          <label class="input-label">执行人</label>
+          <el-input :readonly="true" clearable placeholder="请选择共享人" v-model="zxrName">
+            <el-button @click="zxrDialog" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box" style="width:100%">
+          <label class="input-label">任务内容</label>
+          <el-input type="textarea" :rows="2" placeholder="请输入任务内容" v-model="from.taskContent"></el-input>
+        </div>
+        <div class="input-box" style="width:100%">
+          <label class="input-label">完成标准</label>
+          <el-input type="textarea" :rows="2" placeholder="请输入完成标准" v-model="from.standard"></el-input>
+        </div>
+        <div class="input-box" style='text-align:center;margin-top:30px'>
+          <el-button type="primary" @click="release">发布</el-button>
+        </div>
+      </div>
+    </div>
+
+    <treeDlalog
+      @dialogTreeData="dialogTreeData"
+      :trddId="treeId"
+      @close="dialogStatus = false"
+      :dialogStatus="dialogStatus"
+    ></treeDlalog>
+
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+  </div>
+</template>
+
+<script>
+import { queryDeptTreeAndUser } from "@/api/crm/ggkhc";
+import { oaTaskManagerAddOrUpdateTask } from "@/api/oa/personCenter";
+import treeDlalog from "../../components/treeDlalog";
+import gxrDialog from "../../components/gxrDialog";
+import Lockr from "lockr";
+export default {
+  name: "",
+  components: {
+    treeDlalog,
+    gxrDialog,
+  },
+  data() {
+    return {
+      title: "",
+      from: {
+        taskName: "",
+        degree: 1,
+        start: "",
+        end: "",
+        taskContent: "",
+        standard: "",
+        userFzr: "",
+        userGzr: "",
+        userCjr: "",
+        userZxr: "",
+      },
+      degreeList: [
+        { name: "一般", code: 1 },
+        { name: "紧急", code: 2 },
+      ],
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+      },
+      selectList: [],
+      gzrProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      treeId: "",
+      dialogStatus: false,
+      gxrDialogStatus: false,
+      fzrName: "",
+      gzrName: "",
+      zxrName: "",
+      gxrFlag: false,
+    };
+  },
+
+  methods: {
+    gzrDialog() {
+      this.gxrDialogStatus = true;
+      this.gxrFlag = true;
+    },
+    zxrDialog() {
+      this.gxrDialogStatus = true;
+      this.gxrFlag = false;
+    },
+    gxrDialogTreeData(id, name) {
+      if (this.gxrFlag) {
+        this.gzrName = name;
+        this.from.userGzr = id;
+      } else {
+        this.from.userZxr = id;
+        this.zxrName = name
+      }
+    },
+    dialogTreeData(id, name) {
+      this.from.userFzr = id;
+      this.fzrName = name;
+    },
+    fzrDialog() {
+      this.dialogStatus = true;
+    },
+    release() {
+      if (this.from.taskName == "") {
+        this.msgInfo("请输入任务名称");
+        return;
+      }
+      if (this.from.userFzr == "") {
+        this.msgInfo("请选择负责人");
+        return;
+      }
+      if (this.from.start == "") {
+        this.msgInfo("请选择任务开始时间");
+        return;
+      }
+      if (this.from.end == "") {
+        this.msgInfo("请选择任务结束时间");
+        return;
+      }
+      if (this.from.taskContent == "") {
+        this.msgInfo("请输入任务内容");
+        return;
+      }
+      if (this.from.standard == "") {
+        this.msgInfo("请输入完成标准");
+        return;
+      }
+      if (this.from.userZxr == "") {
+        this.msgInfo("请选择执行人");
+        return;
+      }
+      this.from.userCjr = Lockr.get("loginUserInfo").userId;
+      oaTaskManagerAddOrUpdateTask(this.from)
+        .then((res) => {
+          this.msgSuccess("添加成功");
+          this.resetForm(this.from);
+          this.from.degree = 1;
+          this.fzrName = ''
+          this.gzrName = ''
+          this.zxrName = ''
+        })
+        .catch((res) => {});
+    },
+    cascader(data) {
+      for (var item in data) {
+        if (data[item].children === undefined) {
+          data[item].children = data[item].user;
+          for (var i in data[item].children) {
+            data[item].children[i].name = data[item].children[i].realname;
+            data[item].children[i].id = data[item].children[i].userId;
+          }
+        } else {
+          this.cascader(data[item].children);
+        }
+      }
+      return data;
+    },
+    loginData() {
+      queryDeptTreeAndUser()
+        .then((res) => {
+          this.selectList = this.cascader(res.data);
+        })
+        .catch(() => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.loginData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  height: 35px;
+  .el-select {
+    width: 60%;
+  }
+  .el-cascader {
+    width: 70%;
+  }
+}
+</style>

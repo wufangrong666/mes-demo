@@ -1,0 +1,327 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader
+      :title="title"
+      placeholder="客户名称/客户编码"
+      @on-search="companySearch"
+      main-title="新建产品信息"
+      @dcExcel="dcExcel"
+    ></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table
+      border
+      :height="tableHeight"
+      :data="tableData"
+      style="width: 100%;border: 1px solid #E6E6E6;border-bottom:0"
+    >
+      <el-table-column prop="ywy" label="销售负责人"></el-table-column>
+      <el-table-column prop="customerName" label="客户名称"></el-table-column>
+      <el-table-column prop="khlx" label="客户类型"></el-table-column>
+      <el-table-column prop="code" label="客户编码"></el-table-column>
+      <el-table-column prop="jwpl" label="交往频率预警天数"></el-table-column>
+      <el-table-column prop="zjlxrq" label="最近联系日期"></el-table-column>
+      <el-table-column prop="jwnr" label="交往内容">
+        <template slot-scope="scope">
+          <span
+            @click="jwnrClick(scope.row)"
+            style="color:blue;cursor: pointer"
+            v-text="scope.row.jwnr"
+          ></span>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15,30,50,100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+} from "@/api/crm/ggkhc";
+import { usersList } from "@/api/common";
+import { crmCustomerQueryCqyj } from "@/api/crm/cpxx";
+import zdyListHeader from "../../components/zdyListHeader";
+import zdyTableHeader from "../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      listType: "crm_khcqyj",
+      search: "",
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      tableData: [],
+      treeDataR: [],
+      treeData: [],
+      realRadio: "",
+      total: 0,
+      activeName: "department",
+      defaultProps: {
+        label: "name",
+        children: "children",
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user",
+      },
+      dialogYwy: false,
+      title: "",
+      realStatus: "",
+      ywyName: "",
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: "",
+        khlx: "",
+        ywy: "",
+        search: "",
+      },
+      realname: "",
+      realtableData: [],
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" },
+      ],
+    };
+  },
+
+  methods: {
+    dcExcel() {
+      let tHeader = [
+        "销售负责人",
+        "客户名称",
+        "客户类型",
+        "客户编码",
+        "交往频率预警天数",
+        "最近联系日期",
+        "交往类容",
+      ];
+      let filterVal = [
+        "ywy",
+        "customerName",
+        "khlx",
+        "code",
+        "jwpl",
+        "zjlxrq",
+        "jwnr",
+      ];
+      this.exportInfos(tHeader, filterVal, this.tableData, "超期客户预警");
+    },
+    gjcxData(list) {
+      this.from.name = "";
+      this.from.code = "";
+      this.from.khlx = "";
+      this.from.ywy = "";
+      for (var i in list) {
+        if (list[i].name == "khmc") {
+          this.$set(this.from, "name", list[i].value);
+        } else if (list[i].name == "khbm") {
+          this.$set(this.from, "code", list[i].value);
+        } else if (list[i].name == "khlx") {
+          this.$set(this.from, "khlx", list[i].value);
+        } else if (list[i].name == "ywy") {
+          this.$set(this.from, "ywy", list[i].value);
+        }
+      }
+      this.tableDataQuery();
+    },
+    companySearch(search) {
+      this.from.search = search;
+      this.tableDataQuery();
+    },
+    jwnrClick(row) {
+      this.windowOpen("/jwjlAddEdit", {
+        id: this.encode(row.jwjlId),
+        type: "toView",
+      });
+    },
+    handleSizeChange(val) {
+      this.from.page = limit;
+      this.tableDataQuery();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.tableDataQuery();
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    realRadioChange(val) {
+      this.from.ywy = val.userId;
+      this.ywyName = val.realname;
+    },
+    duakigReal() {
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus,
+      })
+        .then((res) => {
+          this.realtableData = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+        if (this.from.ywy != "") {
+          this.$refs.tree.setCheckedKeys([this.from.ywy]);
+        }
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+        if (this.from.ywy != "") {
+          this.$refs.treeR.setCheckedKeys([this.xsfzrRoleId]);
+        }
+      } else {
+      }
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      if (this.activeName == "department") {
+        if (this.$refs.tree.getCheckedKeys().length == 0) {
+          this.from.ywy = "";
+          this.ywyName = "";
+        } else {
+          this.from.ywy = this.$refs.tree.getCheckedKeys().join("");
+          this.ywyName = this.$refs.tree.getCheckedNodes()[0].name;
+        }
+      } else if (this.activeName == "role") {
+        if (this.$refs.treeR.getCheckedNodes().length == 0) {
+          this.from.ywy = "";
+          this.ywyName = "";
+          this.xsfzrRoleId = "";
+        } else {
+          this.from.ywy = this.$refs.treeR.getCheckedNodes()[0].userId;
+          this.ywyName = this.$refs.treeR.getCheckedNodes()[0].realname;
+          this.xsfzrRoleId = this.$refs.treeR.getCheckedKeys().join("");
+        }
+      }
+    },
+    downYwy() {
+      this.dialogYwy = false;
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    ywyDialog() {
+      this.dialogYwy = true;
+      this.dialogYwyTree();
+      this.activeName = "department";
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then((res) => {
+          this.treeData = res.data;
+          if (this.from.ywy != "") {
+            if (this.widowData.id != "") {
+            } else {
+              this.$refs.tree.setCheckedKeys([this.from.ywy]);
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then((res) => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    tableDataQuery() {
+      crmCustomerQueryCqyj(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+  activated() {
+    this.tableDataQuery();
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .title {
+  clear: both;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.p-contianer {
+  border: 1px solid #e6e6e6;
+  border-top: 0;
+}
+.c-container {
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 10px;
+    height: 35px;
+    width: 18%;
+    .input-label {
+      line-height: 35px;
+      width: 80px;
+    }
+    .el-input {
+      width: 70%;
+      height: 35px;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

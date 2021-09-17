@@ -1,0 +1,264 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="关联费用">
+          <div class="input-box">
+            <label class="input-label">采购收货单号</label>
+            <div v-text="kddh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购收货</label>
+            <div>{{hj +'元'}}</div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <el-select v-model="fylb" placeholder="请选择" @change="fylbChange">
+              <el-option
+                v-for="item in fylbList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box" v-show="flag">
+            <label class="input-label">付款帐户</label>
+            <el-select v-model="fkzh" placeholder="请选择">
+              <el-option
+                v-for="item in fkzhList"
+                :key="item.accountId"
+                :label="item.accountName"
+                :value="item.accountId"
+              ></el-option>
+            </el-select>
+          </div>
+          <el-table height="700px" :data="tableData" style="width: 100%">
+            <el-table-column prop="date" label="费用类型">
+              <template slot="header" slot-scope="scope">
+                <span>费用类型</span>
+                <el-button type="primary">编辑</el-button>
+              </template>
+              <template slot-scope="scope">
+                <el-select v-model="scope.row.fylxid" placeholder="请选择">
+                  <el-option
+                    v-for="item in fylxList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="费用名称">
+              <template slot-scope="scope">
+                <el-input v-model="scope.row.fymc"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="费用比率(%)">
+              <template slot-scope="scope">
+                <el-input @input="fyblInput(scope.row)" v-model="scope.row.fybl"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="费用金额">
+              <template slot-scope="scope">
+                <el-input v-model="scope.row.fyje"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="address" label="操作">
+              <template slot-scope="scope">
+                <el-button v-show="scope.row.fyid !=''" type="text" @click="fpFy(scope)">分配</el-button>
+                <el-button type="text" @click="deleteFy(scope)" style="color:red">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="btn">
+            <el-button @click="appendFy" type="text">添加一行</el-button>
+            <el-button @click="submitFy" type="success">保存</el-button>
+            <el-button type="info"  @click.native="hidenView" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  cgshGlfy,
+  bankaccountQueryZkcsh,
+  bankaccountSelectFylx,
+  cgshAddGlfy,
+  jxcXskdDelGlfyByFyId
+} from "@/api/jxc/jxc";
+export default {
+  components: {
+    createView,
+    sections
+  },
+  name: "",
+  data() {
+    return {
+      loading: false,
+      kddh: "",
+      hj: "",
+      fylb: "1",
+      fylbList: [
+        { name: "现金", id: "1" },
+        { name: "银行汇款", id: "2" }
+      ],
+      fkzh: "",
+      fkzhList: [],
+      flag: false,
+      tableData: [
+        {
+          fyid: "",
+          dyid: "",
+          fylxid: "",
+          fymc: "",
+          fyje: "",
+          flag: 1,
+          fylb: "",
+          fkzh: "",
+          fybl: ""
+        }
+      ],
+      fylxList: [],
+      deleteIds: []
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    fpFy(scope) {
+      this.windowOpen("/cgshFyfp", {
+        id: this.encode(this.widowData.id),
+        fyid:scope.row.fyid,
+        fy: scope.row.fyje,
+        type: "fyfp"
+      });
+    },
+    fyblInput(row) {
+      row.fyje = (this.hj * (row.fybl * 0.01)).toFixed(2);
+    },
+    submitFy() {
+      if (this.deleteIds.length > 0) {
+        for (var k in this.deleteIds) {
+          jxcXskdDelGlfyByFyId({
+            fyid: this.deleteIds[k].fyid
+          })
+            .then(res => {})
+            .catch(res => {});
+        }
+      }
+      for (var i in this.tableData) {
+        this.tableData[i].fylb = this.fylb;
+        this.tableData[i].fkzh = this.fkzh;
+        this.tableData[i].dyid = this.widowData.id;
+      }
+      cgshAddGlfy({
+        list: this.tableData
+      })
+        .then(res => {
+          this.loading = true;
+          this.$message({
+            message: "保存成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            }
+          });
+        })
+        .catch(res => {});
+    },
+    deleteFy(scope) {
+      this.deleteIds.push(this.tableData[scope.$index]);
+      this.tableData.splice(scope.$index, 1);
+    },
+    appendFy() {
+      this.tableData.push({
+        fyid: "",
+        dyid: "",
+        fylxid: "",
+        fymc: "",
+        fyje: "",
+        flag: 1,
+        fylb: "",
+        fkzh: "",
+        fybl: ""
+      });
+    },
+    fylbBtnClick() {
+      console.log(1);
+    },
+    fylbChange(val) {
+      if (val == 2) {
+        this.flag = !this.flag;
+      } else {
+        this.flag = !this.flag;
+      }
+    },
+    glfyData() {
+      cgshGlfy({
+        cgshId: this.widowData.id
+      })
+        .then(res => {
+          for (var i in res.data) {
+            res.data[i].fylxid = Number(res.data[i].fylxid);
+          }
+          this.fylb = res.data[0].fylb;
+          if (res.data[0].fylb == 1) {
+            this.flag = false;
+          } else {
+            this.flag = true;
+            this.fkzh = Number(res.data[0].fkzh);
+          }
+          this.tableData = res.data;
+        })
+        .catch(res => {});
+      bankaccountQueryZkcsh()
+        .then(res => {
+          for (var i in res.data) {
+            if (i == 1) {
+              this.fkzhList = res.data[i];
+            }
+          }
+        })
+        .catch(res => {});
+      bankaccountSelectFylx()
+        .then(res => {
+          this.fylxList = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.kddh = this.widowData.dh;
+    this.hj = this.widowData.hj;
+    this.glfyData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.btn {
+  width: 100%;
+  height: 50px;
+  margin: 20px 0;
+  text-align: center;
+}
+</style>    

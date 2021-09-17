@@ -1,0 +1,342 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader
+      @addClick="yskdAdd"
+      :title="title"
+      placeholder="客户名称/预收款单号"
+      @on-search="companySearch"
+    ></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+
+    <el-table border :data="tableData" id="table" :height="tableHeight" stripe style="width: 100%">
+      <el-table-column width="140" label="销售预收款单单号">
+        <template slot-scope="scope">
+          <span
+            @click="lookClick(scope.row)"
+            style="color: #3E84E9;cursor:pointer"
+            v-text="scope.row.yskddh"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="customerName" label="客户名称"></el-table-column>
+      <el-table-column prop="skfsName" label="收款方式"></el-table-column>
+      <el-table-column prop="accountName" label="收款账户"></el-table-column>
+      <el-table-column prop="skrq" :show-overflow-tooltip="true" label="收款日期"></el-table-column>
+      <el-table-column prop="creatorName" label="创建人"></el-table-column>
+      <el-table-column prop="createDate" :show-overflow-tooltip="true" label="创建日期"></el-table-column>
+      <el-table-column prop="je" label="本单收款金额"></el-table-column>
+      <el-table-column label="核销金额">
+        <template slot-scope="scope">
+          <span
+            @click="hxjeClick(scope.row)"
+            style="color: #3E84E9;cursor:pointer"
+          >{{scope.row.hxje == ""?"0":scope.row.hxje}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="剩余金额">
+        <template slot-scope="scope">
+          <span>{{scope.row.syje == ""?"0":scope.row.syje}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" prop="status">
+        <template slot-scope="scope">
+          <span
+            :style="{'color':scope.row.status == '未审核'?'#F00':scope.row.status == '审核不通过'?'#F00':scope.row.status == '已审核'?'green':'black'}"
+            v-text="scope.row.status"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="sfhxwb" label="是否核销完毕">
+        <template slot-scope="scope">
+          <span>{{scope.row.syje == 0?"是":'否'}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="address" width="340px" label="操作">
+        <template slot-scope="scope">
+          <el-button @click="lookClick(scope.row)" type="text">查看明细</el-button>
+          <el-button
+            :disabled="scope.row.status == '已审核'?true:scope.row.status == '未审核'?true:scope.row.creatorId != userId"
+            @click="editClick(scope.row)"
+            type="text"
+          >编辑</el-button>
+          <el-button
+            :disabled="operAuth.cwglqx == undefined?true:scope.row.status == '未审核'?!operAuth.cwglqx.xsskshqx:true"
+            @click="audit(scope.row)"
+            type="text"
+          >审核</el-button>
+          <el-button
+            :disabled="operAuth.cwglqx == undefined?true:scope.row.status == '已审核'?Number(scope.row.syje) == 0 ?'true':!operAuth.cwglqx.xsyskhxqx:true"
+            @click="auditClick(scope.row)"
+            type="text"
+          >核销</el-button>
+          <el-button
+            :disabled="operAuth.othersqx == undefined?true:!operAuth.othersqx.glyscqx"
+            @click="adminmDeleteClick(scope.row)"
+            style="color:red"
+            type="text"
+          >管理员删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15,30,50,100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  yskdQueryPageList,
+  yskdDeleteById,
+  yskdAdminDeleteById,
+} from "@/api/finance/finance";
+import zdyListHeader from "../../../components/zdyListHeader";
+import zdyTableHeader from "../../../components/zdyTableHeader";
+import { mapGetters } from "vuex";
+
+import Lockr from "lockr";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  computed: {
+    ...mapGetters(["operAuth"]),
+  },
+  data() {
+    return {
+      yskdDetails: false,
+      yskdMx: false,
+      yskdDetailsId: "",
+      title: "",
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        yskddh: "",
+        skfs: "",
+        skrqBegin: "",
+        skrqEnd: "",
+        createDateBegin: "",
+        createDateEnd: "",
+        bankaccount: "",
+        sfbd: "",
+        status: "",
+        dwtt: "",
+        sfhxwb: "",
+        search: "",
+      },
+      skrqItem: [],
+      createDateItem: [],
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      total: 0,
+      data: {},
+      yskdDetailsTitle: "新增",
+      listType: "finance_xswl_yskd",
+      userId: "",
+    };
+  },
+
+  methods: {
+    adminmDeleteClick(row) {
+      this.$confirm("请确认是否删除, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          yskdAdminDeleteById({
+            yskdId: row.yskdId,
+          })
+            .then((res) => {
+              this.$message({
+                type: "success",
+                message: "删除成功!",
+              });
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      console.log(list);
+      this.from.customerName = "";
+      this.from.yskddh = "";
+      for (var i in list) {
+        if (list[i].name == "khmc") {
+          this.$set(this.from, "customerName", list[i].value);
+        } else if (list[i].name == "yskdh") {
+          this.$set(this.from, "yskddh", list[i].value);
+        } else if (list[i].name == "skfs") {
+          this.$set(this.from, "skfs", list[i].value);
+        } else if (list[i].name == "skrq") {
+          this.skrqItem = list[i].value;
+        } else if (list[i].name == "cjrq") {
+          this.createDateItem = list[i].value;
+        } else if (list[i].name == "skzh") {
+          this.$set(this.from, "bankaccount", list[i].value);
+        } else if (list[i].name == "sfbd") {
+          this.$set(this.from, "sfbd", list[i].value);
+        } else if (list[i].name == "zt") {
+          this.$set(this.from, "status", list[i].value);
+        } else if (list[i].name == "dwtt") {
+          this.$set(this.from, "dwtt", list[i].value);
+        } else if (list[i].name == "sfhxwb") {
+          this.$set(this.from, "sfhxwb", list[i].value);
+        }
+      }
+      this.loginData();
+    },
+    hxjeClick(row) {
+      this.windowOpen("/yskdHxje", {
+        list: JSON.stringify(row),
+        type: "audit",
+      });
+    },
+    audit(row) {
+      this.windowOpen("/yskdMx", {
+        id: this.encode(row.yskdId),
+        type: "audit",
+      });
+    },
+    lookClick(row) {
+      this.windowOpen("/yskdMx", {
+        id: this.encode(row.yskdId),
+        type: "lookClick",
+      });
+    },
+    auditClick(row) {
+      this.windowOpen("/yskdMx", {
+        id: this.encode(row.yskdId),
+        type: "auditClick",
+      });
+    },
+    deleteClick(val) {
+      this.$confirm("请确认删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          yskdDeleteById({
+            yskdId: val.yskdId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("已取消删除");
+        });
+    },
+    editClick(row) {
+      this.windowOpen("/yskdDetails", {
+        id: this.encode(row.yskdId),
+        type: "edit",
+      });
+    },
+    onHanle() {
+      this.loginData();
+    },
+    yskdAdd() {
+      this.windowOpen("/yskdDetails", {
+        id: this.encode(""),
+        type: "add",
+      });
+    },
+    loginData() {
+      if (this.skrqItem.length) {
+        this.from.skrqBegin = this.skrqItem[0];
+        this.from.skrqEnd = this.skrqItem[1];
+      }
+      if (this.skrqItem.length) {
+        this.from.createDateBegin = this.createDateItem[0];
+        this.from.createDateEnd = this.createDateItem[1];
+      }
+      yskdQueryPageList(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+    receiveMessage(event) {
+      this.loginData();
+    },
+  },
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+    this.userId = Lockr.get("loginUserInfo").userId;
+    console.log(this.userId);
+    this.title = this.$route.meta.title;
+    this.updateTableHeight();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+.c-container {
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 50px;
+    .el-date-editor {
+      width: 400px;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

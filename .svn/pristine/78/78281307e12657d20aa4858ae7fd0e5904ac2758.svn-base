@@ -1,0 +1,181 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="客户名称/收款单号/开单单号"  @dcExcel="dcExcel" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="dh" label="销售收款单号"></el-table-column>
+      <el-table-column prop="customerName" label="客户"></el-table-column>
+      <el-table-column prop="skfsName" label="收款方式"></el-table-column>
+      <el-table-column prop="fkzh" label="收款账户"></el-table-column>
+      <el-table-column prop="creatorName" label="操作员"></el-table-column>
+      <el-table-column prop="createDate" label="创建日期"></el-table-column>
+      <el-table-column prop="bcsk" label="本次收款"></el-table-column>
+      <el-table-column prop="bjdzxsd" label="操作">
+        <template slot-scope="scope">
+          <el-button @click="toViewClick(scope.row)" type="text">查看明细</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { reportYscx2 } from "@/api/jxc/jxc";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  computed: {},
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        code: "",
+        skdh: "",
+        kddh: "",
+        search: "",
+      },
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      gxrDialogStatus: false,
+      listType: "jxc_grxsbb_yings",
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.loginData();
+  },
+  methods: {
+    dcExcel() {
+      let tHeader = [
+        "销售收款单号",
+        "客户",
+        "收款方式",
+        "收款账户",
+        "操作员",
+        "创建日期",
+        "本次收款",
+      ];
+      let filterVal = [
+        "dh",
+        "customerName",
+        "skfsName",
+        "fkzh",
+        "creatorName",
+        "createDate",
+        "bcsk",
+      ];
+      this.exportInfos(
+        tHeader,
+        filterVal,
+        this.tableData,
+        "已收查询"
+      );
+    },
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.customerName = "";
+      this.from.code = "";
+      this.from.skdh = "";
+      this.from.kddh = "";
+      for (var i in list) {
+        if (list[i].name == "khmc") {
+          this.$set(this.from, "customerName", list[i].value);
+        } else if (list[i].name == "khbm") {
+          this.$set(this.from, "code", list[i].value);
+        } else if (list[i].name == "skdh") {
+          this.$set(this.from, "skdh", list[i].value);
+        } else if (list[i].name == "kddh") {
+          this.$set(this.from, "kddh", list[i].value);
+        }
+      }
+      this.loginData();
+    },
+    toViewClick(row) {
+      if (row.djType == "yskd") {
+        this.windowOpen("/yingScxMxYsk", {
+          row: JSON.stringify(row),
+          type: "yskd",
+        });
+      } else {
+        this.windowOpen("/yingScxMx", {
+          row: JSON.stringify(row),
+          type: "skd",
+        });
+      }
+    },
+
+    //获取列表数据
+    loginData() {
+      reportYscx2(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+</style>

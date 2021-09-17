@@ -1,0 +1,67 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">供应商提示设置：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.gysTipFlag" :label="1">全部提示</el-radio>
+          <el-radio v-model="from.gysTipFlag" :label="2">数据权限范围内提示</el-radio>
+          <el-radio v-model="from.gysTipFlag" :label="3">无提示</el-radio>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { adminGysszUpdateGysszSet } from "@/api/manage/xtsz";
+export default {
+  name: "",
+  props: ["from"],
+  data() {
+    return {};
+  },
+
+  methods: {
+    submit() {
+      adminGysszUpdateGysszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.$emit("refreshData");
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 15%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 85%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

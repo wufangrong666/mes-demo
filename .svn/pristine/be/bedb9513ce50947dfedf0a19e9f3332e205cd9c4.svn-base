@@ -1,0 +1,380 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="section">
+          <el-upload
+            v-if="systemImage == ''"
+            drag
+            class="upload"
+            :show-file-list="false"
+            action="http"
+            accept="image/png, image/jpeg, image/gif, image/jpg"
+            :http-request="fileUpload"
+          >
+            <i class="el-icon-plus uploader-icon"></i>
+          </el-upload>
+          <div v-else class="upload-show">
+            <img :src="systemImage" />
+            <i @click="deleteSystemImage" class="el-icon-remove icon-delete"></i>
+          </div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">姓名</label>
+          <span style="line-height:35px" v-text="from.realname"></span>
+        </div>
+        <div class="input-box">
+          <label class="input-label">英文名</label>
+          <el-input placeholder="请输入英文名" clearable v-model="from.enName"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">工号</label>
+          <span style="line-height:35px" v-text="from.num"></span>
+        </div>
+        <div class="input-box">
+          <label class="input-label">性别</label>
+          <el-select v-model="from.sex" placeholder="请选择">
+            <el-option
+              v-for="item in sexList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            ></el-option>
+          </el-select>
+        </div>
+        <div class="input-box">
+          <label class="input-label">出生年月</label>
+          <el-date-picker
+            v-model="from.birthday"
+            value-format="yyyy-MM-dd"
+            type="date"
+            placeholder="选择日期"
+            :picker-options="pickerOptions"
+          ></el-date-picker>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">登录账号</label>
+          <span style="line-height:35px" v-text="from.username"></span>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">部门</label>
+          <span style="line-height:35px" v-text="from.deptName"></span>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">上级领导</label>
+          <span style="line-height:35px" v-text="from.parentRealname"></span>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">商务电话</label>
+          <el-input placeholder="请输入商务电话" clearable v-model="from.privatePhone"></el-input>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">手机</label>
+          <el-input placeholder="请输入手机" clearable v-model="from.mobile"></el-input>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">QQ</label>
+          <el-input placeholder="请输入QQ" clearable v-model="from.comQq"></el-input>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">邮箱地址(中国)</label>
+          <el-input placeholder="请输入邮箱地址" clearable v-model="from.email"></el-input>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">邮箱地址(德国)</label>
+          <el-input placeholder="请输入邮箱地址" clearable v-model="from.emailDe"></el-input>
+        </div>
+        <div class="input-boxA">
+          <label class="input-label">备注</label>
+          <el-input placeholder="请输入备注" clearable v-model="from.remark"></el-input>
+        </div>
+        <div class="input-boxA" style="text-align:center">
+          <el-button @click="submitPassword" type="primary">保存</el-button>
+        </div>
+      </div>
+    </div>
+
+    <edit-image
+      title="修改个人图像"
+      :fixedNumber="[4.2, 5]"
+      previewWidth="80px"
+      previewHeight="90px"
+      previewRadius="0"
+      width="550px"
+      :show="showEditImage"
+      :image="editImage"
+      :file="editFile"
+      save-button-title="确定"
+      @save="submiteImage"
+      @close="showEditImage=false"
+    ></edit-image>
+  </div>
+</template>
+
+<script>
+import {
+  oaPersonSetFindUserInfo,
+  oaPersonSetUploadImg,
+  userGetUserByRloe,
+  oaPersonSetUpdateUserInfo,
+  oaPersonSetFindUser
+} from "@/api/oa/personCenter";
+import EditImage from "@/components/EditImage";
+
+import Lockr from "lockr";
+
+export default {
+  name: "",
+  components: {
+    EditImage
+  },
+  data() {
+    return {
+      editFile: null,
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        }
+      },
+      systemImage: "",
+      options: [],
+      title: "",
+      name: "",
+      imageUrl: "",
+      sexList: [
+        { name: "男", code: 1 },
+        { name: "女", code: 2 }
+      ],
+      img: "",
+      from: {},
+      oldPasswordFlag: false,
+      newPasswordFlag: false,
+      confirmNewPasswordFlag: false,
+      confirmNewPasswordStr: "",
+      editImage: null,
+      userId: "",
+      showEditImage: false
+    };
+  },
+
+  methods: {
+    deleteSystemImage() {
+      this.systemImage = "";
+      this.editedImage = null;
+    },
+    fileUpload(content) {
+      const reader = new FileReader();
+      var self = this;
+      reader.onload = function(e) {
+        let result;
+        if (typeof e.target.result === "object") {
+          // 把Array Buffer转化为blob 如果是base64不需要
+          result = window.URL.createObjectURL(new Blob([e.target.result]));
+        } else {
+          result = e.target.result;
+        }
+        self.editImage = result;
+        self.editFile = content.file;
+        self.showEditImage = true;
+        // self.imageUrl = self.editImage[0];
+        // self.img = self.editImage;
+      };
+      reader.readAsDataURL(content.file);
+    },
+    submiteImage(data) {
+      this.editedImage = data;
+      this.systemImage = data.image;
+      let img = "logo." + this.editedImage.file.name.split(".")[1];
+      var param = new FormData();
+      if (this.editedImage) {
+        param.append(
+          "file",
+          this.editedImage.blob,
+           this.editedImage.file.name
+        );
+      }
+      oaPersonSetUploadImg(param)
+        .then(res => {
+          this.userId = res.userId;
+          this.from.img = res.img
+        })
+        .catch(res => {});
+    },
+    submitPassword() {
+      if (this.from.mobile == "") {
+        this.msgInfo("请输入手机号号码");
+        return;
+      }
+      var num = /[0-9]{11}/g;
+      if (!num.test(this.from.mobile)) {
+        this.msgInfo("请输入正确的手机号号码");
+        return;
+      }
+      var ema = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+      if (!ema.test(this.from.email)) {
+        this.msgInfo("请输入正确的邮箱");
+        return;
+      }
+      if (!ema.test(this.from.emailDe)) {
+        this.msgInfo("请输入正确的德国邮箱");
+        return;
+      }
+      this.from.id = Lockr.get("loginUserInfo").userId;
+      oaPersonSetUpdateUserInfo(this.from)
+        .then(res => {
+          this.msgSuccess("修改成功");
+          this.lognData();
+        })
+        .catch(res => {});
+    },
+    lognData() {
+      oaPersonSetFindUserInfo()
+        .then(res => {
+          this.from = res.data;
+          this.systemImage = res.data.img;
+        })
+        .catch(res => {});
+      oaPersonSetFindUser()
+        .then(res => {
+          this.options = res.data;
+        })
+        .catch(() => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.name = Lockr.get("loginUserInfo").realname;
+    this.title = this.$route.meta.title;
+    this.lognData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 5px 0 0 20px;
+  position: relative;
+  height: 35px;
+  .input-label {
+    width: 100px;
+    height: 35px;
+  }
+  .el-input {
+    width: 65%;
+    height: 35px;
+  }
+  .el-select {
+    width: 65%;
+    height: 35px;
+  }
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+.input-boxA {
+  width: 592px;
+  height: auto;
+  float: left;
+  margin: 5px 0 0 20px;
+  position: relative;
+  .el-cascader {
+    width: 65%;
+    height: 35px;
+  }
+  .input-label {
+    width: 100px;
+    line-height: 40px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-input {
+    width: 65%;
+    height: 35px;
+  }
+  .el-select {
+    width: 65%;
+    height: 35px;
+  }
+}
+.avatar-uploader {
+  position: absolute;
+  top: 0;
+  left: 325px;
+  width: 180px;
+  height: 180px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 14px;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+  border-radius: 6px;
+}
+.section {
+  position: absolute;
+  top: 0;
+  left: 26%;
+  width: 160px;
+  height: 180px;
+  margin-top: 20px;
+}
+.upload /deep/ .el-upload-dragger {
+  width: 160px;
+  height: 180px;
+}
+.uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 160px;
+  height: 180px;
+  line-height: 180px;
+  text-align: center;
+}
+.upload-show {
+  position: relative;
+  display: block;
+  width: 160px;
+  height: 180px;
+  img {
+    width: 160px;
+    height: 180px;
+  }
+
+  .icon-delete {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    color: red;
+    font-size: 20px;
+    display: none;
+  }
+}
+.upload-show:hover {
+  .icon-delete {
+    display: block;
+  }
+}
+</style>

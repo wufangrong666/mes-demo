@@ -1,0 +1,551 @@
+/** company自定义列表 公共逻辑 */
+import {
+  mapGetters
+} from 'vuex'
+import listHead from '../../components/listHead'
+import typeModel from '@/views/manage/model/typeModel'
+import tableHead from '../../components/tableHead'
+import Lockr from 'lockr'
+import { Loading } from 'element-ui'
+
+import {
+  filedGetTableField,
+  fieldColumnWidth,
+  fieldConfigIndex,
+  fieldConfig,
+  adminCompanyTabList
+} from '@/api/manage/SystemConfig'
+import { crmCustomerPoolqueryPageList } from '@/api/crm/ggkhc'
+import { crmCustomerQueryPageList, crmCustomerCareQueryPageList, crmCustomerQueryKhzyPageList } from '@/api/crm/khxxgl'
+import { crmContactRecordQueryPageList } from '@/api/crm/jwjl'
+import { crmProductQueryPageList } from "@/api/crm/cpxx"
+import { crmProductComnameQueryPageList } from "@/api/crm/pmgl"
+import { crmGysQueryPageList } from "@/api/crm/gysxx"
+import { bjdQueryPageList } from "@/api/crm/xsbjd"
+import { oaAddressBookQueryPageList } from "@/api/oa/personCenter"
+import { jxcXsddQueryPageList, sgdQueryPageList, sgddQueryPageList, jxcXskdQueryPageList, cgshQueryPageList, jxcCkglQueryPageList, jxcWlgsglQueryPageList, jxcXsydQueryPageList, jxcCgydQueryPageList, jxcXsthrkQueryPageList, jxcCgthckQueryPageList, jxcQtlrkdQueryPageList, jxcQtlckdQueryPageList, jxcRckmxhzQueryPageList, jxcRckslhzQueryPageList, jxcLlylbQueryPageList, jxcDzpfxbQueryPageList, } from "@/api/jxc/jxc"
+import { EventBus } from "../../../utils/eventBus";
+import { crmJjfaQueryPageList } from "@/api/crm/jjfa"
+import { crmXsjhQueryPageList } from "@/api/crm/xsjh"
+export default {
+  components: {
+    listHead,
+    tableHead
+  },
+  data() {
+    return {
+      loading: false, // 加载动画
+      tableHeight: document.documentElement.clientHeight - 225, // 表的高度
+      /** 列表展示字段管理 */
+      list: [],//tab数据
+      fieldList: [],//tab表头数据
+      sortData: {}, // 字段排序
+      currentPage: 1,//当前页
+      pageSize: Lockr.get('companyPageSizes') || 15,//每页条数
+      pageSizes: [15, 30, 60, 100],//切换每页显示
+      total: 0,//总共页数
+      search: '', // 搜索内容
+      /** 控制详情展示 */
+      rowID: '', // 行信息
+      rowType: '', //详情类型
+      showDview: false,//详情显示影藏
+      xsddDhmx: false,
+      sgdDhmx: false,
+      cgddDhmx: false,
+      cgddId: 0,
+      sgdId: 0,
+      isCreateKhxx: false,
+      xskdDetail: false,
+      xskdId: 0,
+      khxxId: 0,
+      xsddId: 0,
+      bjdEditId: 0,
+      bjdEdit: false,
+      cgddDhmxStatus: false,
+      cgshDetails: false,
+      cgshDetailsData: {},
+      /** 高级筛选 */
+      filterObj: {}, // 筛选确定数据
+      checkList: [],//popover显示影藏数据
+      /** 勾选行 */
+      selectionList: [], // 勾选数据 用于全局导出
+    }
+  },
+
+  computed: {
+    ...mapGetters(['manage']),
+    showFlag() {
+      return this.$store.state.showFlag;
+    }
+  },
+  watch: {
+    showFlag(val) {
+      if (val) {
+        this.$store.commit('set')
+        this.getList()
+      }
+    }
+  },
+  activated() {
+    this.getFieldList()
+    this.loading = true
+  },
+  mounted() {
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight()
+    }
+    document.getElementById('table').addEventListener('click', e => {
+      e.stopPropagation()
+    })
+    window.addEventListener("message", this.receiveMessage, false)
+  },
+  methods: {
+    receiveMessage(event) {
+      if (event.data == 'child') {
+        this.getList()
+        EventBus.$emit("message", '来自A页面的消息');
+      } else if (event.data == 'pm') {
+        this.loginDataPm()
+      }
+    },
+    /** 获取列表数据 */
+    getList() {
+      this.loading = true
+      var indexRequest = this.getIndexRequest()
+      var params = {
+        page: this.currentPage,
+        limit: this.pageSize,
+        search: this.search,
+      }
+      if (this.sortData.order) {
+        params.sortField = this.sortData.prop
+        params.order = this.sortData.order == "ascending" ? 2 : 1
+      }
+
+      if (this.sceneId) {
+        params.sceneId = this.sceneId
+      }
+      if (this.filterObj && Object.keys(this.filterObj).length > 0) {
+        params.data = this.filterObj
+      }
+      indexRequest(params)
+        .then(res => {
+          this.list = res.data.list
+          this.list.forEach(item => {
+            if (item.isdefault == 0) {
+              item.isdefaultName = '否'
+            } else {
+              item.isdefaultName = '是'
+            }
+          })
+          if (this.listType == 'jxc_xsdd') {
+            for (var i = 0; i < this.list.length; i++) {
+              if (this.list[i].jwjl == '' || this.list[i].jwjl == null) {
+                this.list[i].jwjl = '填写'
+              }
+              // for (var j = i + 1; j < this.list.length; j++) {
+              //   if (this.list[i].xsddDh == this.list[j].xsddDh) {         //第一个等同于第二个，splice方法删除第二个
+              //     this.list[i].brandName = this.list[i].brandName + ',' + this.list[j].brandName
+              //     this.list.splice(j, 1);
+              //     j--;
+              //   }
+              // }
+            }
+          } else if (this.listType == 'crm_bjd') {
+            for (var i in this.list) {
+              if (this.list[i].jwjl == '' || this.list[i].jwjl == null) {
+                this.list[i].jwjl = '填写'
+              }
+            }
+          }
+          this.total = res.data.totalRow
+          this.loading = false
+        })
+        .catch(() => {
+          this.loading = false
+        })
+    },
+    /** 获取列表请求接口判断 */
+    getIndexRequest() {
+      if (this.listType === 'admin_company') {
+        return adminCompanyTabList
+      } else if (this.listType === 'crm_customerpool') {
+        return crmCustomerPoolqueryPageList
+      } else if (this.listType == 'crm_customer') {
+        return crmCustomerQueryPageList
+      } else if (this.listType == 'crm_contactRecord') {
+        return crmContactRecordQueryPageList
+      } else if (this.listType == 'crm_product') {
+        return crmProductQueryPageList
+      } else if (this.listType == 'crm_comname') {
+        return crmProductComnameQueryPageList
+      } else if (this.listType == "crm_gys") {
+        return crmGysQueryPageList
+      } else if (this.listType == "crm_bjd") {
+        return bjdQueryPageList
+      } else if (this.listType == 'oa_txl') {
+        return oaAddressBookQueryPageList
+      } else if (this.listType == 'jxc_xsdd') {
+        return jxcXsddQueryPageList
+      } else if (this.listType == 'jxc_sgd') {
+        return sgdQueryPageList
+      } else if (this.listType == 'jxc_cgdd') {
+        return sgddQueryPageList
+      } else if (this.listType == 'jxc_xskd') {
+        return jxcXskdQueryPageList
+      } else if (this.listType == 'jxc_cgsh') {
+        return cgshQueryPageList
+      } else if (this.listType == 'crm_customerCare') {
+        return crmCustomerCareQueryPageList
+      } else if (this.listType == 'crm_khzy') {
+        return crmCustomerQueryKhzyPageList
+      } else if (this.listType == 'crm_jjfa') {
+        return crmJjfaQueryPageList
+      } else if (this.listType == 'crm_xsjh') {
+        return crmXsjhQueryPageList
+      } else if (this.listType == 'jxc_cgth') {
+        return jxcCgthQueryPageList
+      } else if (this.listType == 'jxc_xsth') {
+        return jxcXsthQueryPageList
+      } else if (this.listType == 'jxc_ckgl') {
+        return jxcCkglQueryPageList
+      } else if (this.listType == 'jxc_wlgsgl') {
+        return jxcWlgsglQueryPageList
+      } else if (this.listType == 'jxc_xsyd') {
+        return jxcXsydQueryPageList
+      } else if (this.listType == 'jxc_cgyd') {
+        return jxcCgydQueryPageList
+      } else if (this.listType == "jxc_xsthrk") {
+        return jxcXsthrkQueryPageList
+      } else if (this.listType == 'jxc_cgthck') {
+        return jxcCgthckQueryPageList
+      } else if (this.listType == 'jxc_qtlrkd') {
+        return jxcQtlrkdQueryPageList
+      } else if (this.listType == 'jxc_qtlckd') {
+        return jxcQtlckdQueryPageList
+      } else if (this.listType == 'jxc_rckmxhz') {
+        return jxcRckmxhzQueryPageList
+      } else if (this.listType == 'jxc_rckslhz') {
+        return jxcRckslhzQueryPageList
+      } else if (this.listType == 'jxc_llylb') {
+        return jxcLlylbQueryPageList
+      } else if (this.listType == 'jxc_dzpfxb') {
+        return jxcDzpfxbQueryPageList
+      }
+    },
+    /** 获取表头字段 */
+    getFieldList() {
+      if (this.listType !== 'crm_xbj') {
+        if (this.fieldList.length == 0) {
+          this.loading = true
+          filedGetTableField({
+            label: typeModel[this.listType] // 单位
+          })
+            .then(res => {
+              for (let index = 0; index < res.data.length; index++) {
+                const element = res.data[index]
+
+                var width = 0
+                if (!element.width) {
+                  if (element.name && element.name.length <= 6) {
+                    width = element.name.length * 15 + 45
+                  } else {
+                    width = 140
+                  }
+                } else {
+                  width = element.width
+                }
+                if (element.fieldName == 'isdefault') {
+                  this.fieldList.push({
+                    prop: 'isdefaultName',
+                    label: element.name,
+                    width: width
+                  })
+                } else {
+                  this.fieldList.push({
+                    prop: element.fieldName,
+                    label: element.name,
+                    width: width
+                  })
+                }
+              }
+              // 获取好字段开始请求数据
+              this.getList()
+            })
+            .catch(() => {
+              this.loading = false
+            })
+        } else {
+          // 获取好字段开始请求数据
+          this.getList()
+        }
+      }
+    },
+    /** 格式化字段 */
+    fieldFormatter(row, column) {
+      // 如果需要格式化
+      return row[column.property] || '--'
+    },
+    /** */
+    /** */
+    /** 搜索操作 */
+    companySearch(value) {
+      this.search = value
+      if (this.fieldList.length) {
+        this.getList()
+      }
+    },
+    /** 列表操作 */
+    // 当某一行被点击时查看详情
+    handleRowClick(row, column) {
+      if (this.listType == 'jxc_cgsh') {
+        if (column.property === 'cgshDh') {
+          this.windowOpen("/cgshDhmx", {
+            id: this.encode(row.cgshId),
+            type: "toView",
+          });
+        }
+      } else if (this.listType == 'jxc_xskd') {
+        if (column.property === 'xskdDh') {
+          this.windowOpen("/xskdDhmx", {
+            id: this.encode(row.xskdId),
+            type: "toView",
+          });
+        }
+      } else if (this.listType === 'admin_company') {
+        this.windowOpen("/compmanDetails", {
+          id: this.encode(row.companyId),
+          type: "toView",
+        });
+      } else if (this.listType == 'crm_gys') {
+        if (column.property === 'name') {
+          this.windowOpen("/gysCard", {
+            id: this.encode(row.gysId),
+            type: "lookCard"
+          });
+        }
+      } else if (this.listType === 'crm_customerpool') {
+        if (column.property === "khqf") {
+          if (row.khqf == "再分配客户") {
+            this.windowOpen("/khqf", {
+              id: this.encode(row.customerId),
+              type: ""
+            });
+          }
+        }
+      } else if (this.listType == 'crm_customer') {
+        if (column.property == 'name') {
+          this.windowOpen("/khxxDeail", {
+            id: this.encode(row.customerId),
+            type: "lookCard"
+          });
+        }
+      } else if (this.listType == 'jxc_xsdd') {
+        if (column.property === 'xsddDh') {
+          this.windowOpen("/xsddDhmx", {
+            id: this.encode(row.xsddId),
+            type: "lookCard"
+          });
+        }
+        if (column.property === 'jwjl') {
+          this.windowOpen("/xsddJwjl", {
+            id: this.encode(row.xsddId),
+            dh: row.xsddDh,
+            type: "jwjl"
+          });
+        }
+      } else if (this.listType == 'jxc_sgdd') {
+        if (column.property === 'sgdDh') {
+          this.windowOpen("/sgddDhmx", {
+            id: this.encode(row.sgdId),
+            type: "lookCard"
+          });
+        }
+      } else if (this.listType == 'crm_bjd') {
+        if (column.property == 'customerName') {
+          this.windowOpen("/bjdDetails", {
+            id: this.encode(row.bjdId),
+            type: "toView"
+          });
+        } else if (column.property == 'jwjl') {
+          this.windowOpen("/xsbjdJwjl", {
+            id: this.encode(row.bjdId),
+            dh: row.bjdDh,
+            type: "jwjl"
+          });
+        }
+      } else if (this.listType == 'crm_product') {
+        if (column.property == 'brandName') {
+          this.windowOpen("/cpxxAddEdit", {
+            id: this.encode(row.productId),
+            type: "lookCard"
+          });
+        }
+      } else if (this.listType == 'crm_khzy') {
+        if (column.property == 'name') {
+          this.windowOpen("/customerPoolAddEdit", {
+            id: this.encode(row.customerId),
+            type: "toView"
+          });
+        }
+      } else if (this.listType == 'crm_jjfa') {
+        if (column.property == 'fabh') {
+          this.windowOpen("/jjfaDetail", {
+            id: this.encode(row.jjfaId),
+            type: "toView"
+          });
+        }
+      } else if (this.listType == 'crm_xsjh') {
+        if (column.property == 'jhbh') {
+          this.windowOpen("/xsjhDetail", {
+            id: this.encode(row.xsjhId),
+            type: "toView"
+          });
+        }
+      }
+    },
+    /**
+     * 导出 线索 客户 联系人 产品
+     * @param {*} data 
+     */
+    // 导出操作
+    exportInfos() {
+      let tHeader = []//生成Excel表格的头部标题栏
+      let filterVal = []//生成Excel表格的内容栏（根据自己的数据内容属性填写）
+      for (var i in this.fieldList) {
+        tHeader.push(this.fieldList[i].label)
+        filterVal.push(this.fieldList[i].prop)
+      }
+      require.ensure([], () => {
+        const { export_json_to_excel } = require('../../../vendor/Export2Excel');
+        const list = this.list;//需要导出Excel的数据
+        const data = this.formatJson(filterVal, list);
+        export_json_to_excel(tHeader, data, this.$route.meta.title);//这里可以定义你的Excel表的默认名称
+      })
+    },
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => v[j]))
+    },
+    /** 筛选操作 */
+    handleFilter(data) {
+      this.filterObj = data
+      var offsetHei = document.documentElement.clientHeight
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240
+      this.tableHeight = offsetHei - removeHeight
+      this.currentPage = 1
+      this.getList()
+    },
+    /** 刷新数据 */
+    handleHandle(data) {
+      this.getList()
+    },
+    hidenKhxxview() {
+      this.isCreateKhxx = false
+    },
+    /** */
+    /** 页面头部操作 */
+    listHeadHandle(data) {
+      if (data.type === 'save-success') {
+        // 重新请求第一页数据
+        this.currentPage = 1
+        this.getList()
+      }
+    },
+    //popover显示影藏重置
+    reset() {
+      this.handleTableSet()
+    },
+    // popover显示影藏设置点击
+    handleTableSet() {
+      fieldConfigIndex({
+        label: typeModel[this.listType]
+      })
+        .then(res => {
+          let checkShowList = res.data.value.map(function (item, index) {
+            item.show = true
+            return item
+          })
+          this.checkList = checkShowList
+          let checkHidList = res.data.hideValue.map(function (item, index) {
+            item.show = false
+            return item
+          })
+          this.checkList = checkShowList.concat(checkHidList)
+        })
+        .catch(() => { })
+    },
+    //popover显示影藏确认
+    addPopover(data) {
+      data._self.$refs[`popover-${data.$index}`].doClose()
+      if (this.checkList.length < 2) {
+        this.$message.error('至少要显示两列')
+      } else {
+        let noHideIds = [];
+        let hideIds = [];
+        this.checkList.forEach(item => {
+          if (item.show) {
+            noHideIds.push(item.id)
+          } else {
+            hideIds.push(item.id)
+          }
+        });
+        fieldConfig({
+          label: typeModel[this.listType],
+          noHideIds: noHideIds.join(','),
+          hideIds: hideIds.join(',')
+        })
+          .then(res => {
+            this.$message.success('操作成功')
+            this.fieldList = []
+            this.getFieldList()
+          })
+          .catch(() => { })
+      }
+    },
+    /**
+     * 字段排序
+     */
+    sortChange(column, prop, order) {
+      this.sortData = column
+      this.getList()
+    },
+    /** 勾选操作 */
+    handleSelectionChange(val) {
+      this.selectionList = val // 勾选的行
+      this.$refs.tableHead.headSelectionChange(val)
+    },
+    // 当拖动表头改变了列的宽度的时候会触发该事件
+    handleHeaderDragend(newWidth, oldWidth, column, event) {
+      if (column.property) {
+        fieldColumnWidth({
+          types: this.listType,
+          field: column.property,
+          width: newWidth
+        })
+          .then(res => {
+          })
+          .catch(() => { })
+      }
+    },
+    // 更改每页展示数量
+    handleSizeChange(val) {
+      Lockr.set('companyPageSizes', val)
+      this.pageSize = val
+      this.getList()
+    },
+    // 更改当前页数
+    handleCurrentChange(val) {
+      this.currentPage = val
+      this.getList()
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240
+      this.tableHeight = offsetHei - removeHeight
+    }
+  },
+}

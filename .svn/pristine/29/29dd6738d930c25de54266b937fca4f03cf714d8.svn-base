@@ -1,0 +1,308 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="供应商名称/采购订单单号/品牌名/产品型号"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title="新建采购订单"
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @on-handle="handleHandle"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        class="n-table--border"
+        id="table"
+        v-loading="loading"
+        :data="list"
+        :height="tableHeight"
+        stripe
+        border
+        highlight-current-row
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column show-overflow-tooltip type="selection" align="center" width="55"></el-table-column>
+        <el-table-column fixed="left" label="订货情况" width="140px">
+          <template slot-scope="scope">
+            <el-button
+              disabled
+              v-if="scope.row.gysdddh !== null && scope.row.gysdddh !== ''|| scope.row.gysfpdh !== null  && scope.row.gysfpdh !== ''"
+              type="text"
+            >去下订单</el-button>
+            <el-button
+              v-else
+              @click="xDD(scope.row)"
+              :disabled="scope.row.sendStatus == 1"
+              type="text"
+            >去下订单</el-button>
+            <el-button
+              v-if="scope.row.gysdddh !== null && scope.row.gysdddh !== ''|| scope.row.gysfpdh !== null  && scope.row.gysfpdh !== ''"
+              style="color:green"
+              type="text"
+            >已AB</el-button>
+            <el-button
+              v-else
+              @click="sendStatus(scope.row)"
+              :style="{'color':scope.row.sendStatus == 0 ?'red':'orange'}"
+              type="text"
+            >{{scope.row.sendStatus == 0 ?'未下单':'已下单'}}</el-button>
+            <!-- <el-button
+              @click="cDD(scope.row)"
+              :disabled="scope.row.sendStatus == 0"
+              type="text"7
+            >崔订单确认</el-button>-->
+            <el-button
+              @click="cDD(scope.row)"
+              :disabled="scope.row.gysdddh == ''?scope.row.gysfpdh == ''?scope.row.sendStatus == 0:true:true"
+              type="text"
+            >崔订单确认</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="采购订单单号" width="140px">
+          <template slot-scope="scope">
+            <span
+              style="color: #3E84E9; cursor: pointer"
+              @click="cgddDh(scope.row)"
+              v-text="scope.row.cgddDh"
+            ></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="brandName" label="品牌"></el-table-column>
+        <el-table-column prop="sfpd" label="是否拼单"></el-table-column>
+        <el-table-column prop="cyts" label="差异天数"></el-table-column>
+        <el-table-column prop="bjlx" label="订货方式"></el-table-column>
+        <el-table-column prop="gysName" label="供应商名称" width="140px">
+          <template slot-scope="scope">
+            <span
+              style="color: #3E84E9; cursor: pointer"
+              @click="gysNameClick(scope.row)"
+              v-text="scope.row.gysName"
+            ></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="bzbm" label="币种编码"></el-table-column>
+        <el-table-column>
+          <template slot="header" slot-scope="scope">
+            <span
+              @click="sjStatus = !sjStatus"
+              style="color:blue;cursor: pointer"
+            >{{sjStatus?'未税金额':'含税金额'}}</span>
+          </template>
+          <template slot-scope="scope">
+            <span>{{sjStatus?scope.row.wszje:scope.row.hszje}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="cbzje" label="成本总金额(元)" width="140px"></el-table-column>
+        <el-table-column prop="jhrq" label="交货日期" width="140px">
+          <template slot-scope="scope">
+            <span @click="jhrqTx(scope.row)" v-if="scope.row.jhrq !== null" v-text="scope.row.jhrq"></span>
+            <el-button @click="jhrqTx(scope.row)" v-else type="text">填写</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createDate" label="创建日期" width="140px"></el-table-column>
+        <el-table-column prop="creator" label="制单员" width="140px"></el-table-column>
+        <el-table-column prop="status" label="状态">
+          <template slot-scope="scope">
+            <span
+              :style="{'color':scope.row.status == '审核不通过' ? 'red':scope.row.status == '已审核' ?'green':scope.row.status == '执行中货未发' ?'green':scope.row.status == '执行中货未发全' ?'green':scope.row.status == '执行完毕' ?'green':scope.row.status == '强制执行完毕' ?'green':scope.row.status == '执行中货未到' ?'green':scope.row.status == '执行中货未收全' ?'green':scope.row.status == '终止执行' ?'green':scope.row.status == '已收货' ?'green':'black'}"
+              v-text="scope.row.status"
+            ></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="sfcs" label="是否超收"></el-table-column>
+        <el-table-column prop="fkfs" label="付款方式"></el-table-column>
+        <el-table-column prop="jwjl" label="交往记录">
+          <template slot-scope="scope">
+            <span @click="jwjlTx(scope.row)" v-if="scope.row.jwjl !== null" v-text="scope.row.jwjl"></span>
+            <el-button @click="jwjlTx(scope.row)" v-else type="text">填写</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="gysdddh" label="供应商订单号" width="140px">
+          <template slot-scope="scope">
+            <span
+              @click="gysdddhTx(scope.row)"
+              v-if="scope.row.gysdddh !== null && scope.row.gysdddh !== ''"
+              v-text="scope.row.gysdddh"
+            ></span>
+            <el-button @click="gysdddhTx(scope.row)" v-else type="text">填写</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="gysfpdh" label="供应商发票单号" width="140px">
+          <template slot-scope="scope">
+            <span
+              @click="gysdddhTx(scope.row)"
+              v-if="scope.row.gysfpdh !== null && scope.row.gysfpdh !== ''"
+              v-text="scope.row.gysfpdh"
+            ></span>
+            <el-button @click="gysdddhTx(scope.row)" v-else type="text">填写</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="pageSizes"
+          :page-size.sync="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+    <cgddDhmx
+      :cgddDhmxStatus="cgddDhmxStatus"
+      :cgddId="cgddId"
+      v-if="cgddDhmx"
+      @close="cgddDhmx=false"
+    ></cgddDhmx>
+
+    <xbjSendEmail
+      :toaskRow="toaskRow"
+      :mblx="2"
+      @close="sendEmailStatus = false"
+      v-if="sendEmailStatus"
+    ></xbjSendEmail>
+  </div>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import table from "../../manage/mixins/table";
+import draggable from "vuedraggable";
+import cgddDhmx from "./cgddDhmx";
+import xbjSendEmail from "../../crm/xbj/xbjSendEmail";
+import { cgddChangeSendStatus } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    draggable,
+    cgddDhmx,
+    xbjSendEmail,
+  },
+  mixins: [table],
+  data() {
+    return {
+      title: "",
+      listType: "jxc_cgdd",
+      toaskRow: "",
+      sendEmailStatus: false,
+      sjStatus: true,
+    };
+  },
+  methods: {
+    gysNameClick(row) {
+      this.windowOpen("/cgddGysPj", {
+        id: this.encode(row.cgddId),
+        contactId: row.contactId,
+        type: "cgddGysPj",
+      });
+    },
+    jwjlTx(row) {
+      this.windowOpen("/cgddJwjl", {
+        id: this.encode(row.cgddId),
+        dh: row.cgddDh,
+        type: "jwjl",
+      });
+    },
+    gysdddhTx(row) {
+      this.windowOpen("/cgddTxdh", {
+        id: this.encode(row.cgddId),
+        dh: row.cgddDh,
+        gysdddh: row.gysdddh,
+        gysfpdh: row.gysfpdh,
+        type: "dh",
+      });
+    },
+    jhrqTx(row) {
+      this.windowOpen("/cgddTxjhrq", {
+        id: this.encode(row.cgddId),
+        jhrq: row.jhrq,
+        type: "jhrq",
+      });
+    },
+    cDD(row) {
+      this.windowOpen("/xbjSendEmail", {
+        id: this.encode(row.cgddId),
+        brandId: "",
+        contactId: "",
+        type: "4",
+        djlx: "cgdd",
+      });
+    },
+    xDD(row) {
+      this.windowOpen("/xbjSendEmail", {
+        id: this.encode(row.cgddId),
+        brandId: "",
+        contactId: "",
+        type: "2",
+        djlx: "cgdd",
+      });
+    },
+    cgddDh(row) {
+      this.windowOpen("/cgddDhmx", {
+        id: this.encode(row.cgddId),
+        type: "toView",
+      });
+    },
+    sendStatus(row) {
+      this.$confirm("请确认修改状态, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          cgddChangeSendStatus({
+            cgddId: row.cgddId,
+          })
+            .then((res) => {
+              this.handleHandle();
+              this.msgSuccess("修改成功");
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消修改",
+          });
+        });
+    },
+    receiveMessage(event) {
+      if (
+        event.data == "email" ||
+        event.data == "dh" ||
+        event.data == "rq" ||
+        event.data == "child"
+      ) {
+        this.handleHandle();
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style>
+.container .el-table__fixed {  
+  height: 686px !important;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+</style>

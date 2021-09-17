@@ -1,0 +1,277 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="input-box">
+          <label class="input-label">分组</label>
+          <el-select v-model="group" placeholder="请选择">
+            <el-option
+              v-for="item in groupList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            ></el-option>
+          </el-select>
+        </div>
+        <div class="input-box">
+          <label class="input-label">文件</label>
+          <el-upload
+            class="upload-demo"
+            action="https"
+            :before-remove="beforeRemove"
+            :http-request="fileUpload"
+            multiple
+            :limit="1"
+            :file-list="fileList"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </div>
+        <div class="input-box" style='margin-top:40px'>
+          <label class="input-label">权限类型</label>
+          <el-select filterable v-model="qxlx" collapse-tags @change="toViewQx">
+            <el-option v-for="item in qxlxList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+          </el-select>
+        </div>
+        <div class="input-box" v-if="qxStatus">
+          <label class="input-label">人员:</label>
+          <el-input :readonly="true" clearable placeholder="请选择人员" v-model="userName">
+            <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box" v-if="qxStatus">
+          <label class="input-label">部门:</label>
+          <el-input :readonly="true" clearable placeholder="请选择部门" v-model="bmName">
+            <el-button @click="bmDialog" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box" v-if="qxStatus">
+          <label class="input-label">角色:</label>
+          <el-input :readonly="true" clearable placeholder="请选择角色" v-model="jsName">
+            <el-button @click="jsDialog" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box">
+          <el-button type="primary" @click="submitClick">提交</el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 部门 -->
+    <el-dialog
+      title="部门选择"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :modal-append-to-body="false"
+      :before-close="handleCloseBm"
+    >
+      <span>
+        <el-tree :props="propsPm" :data="dataPm" show-checkbox node-key="id" ref="treeBm"></el-tree>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitBm">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 角色 -->
+    <el-dialog
+      title="角色选择"
+      :visible.sync="dialogVisibleJs"
+      width="30%"
+      :modal-append-to-body="false"
+      :before-close="handleCloseJs"
+    >
+      <span>
+        <el-tree :props="propsJs" :data="dataJs" show-checkbox node-key="id" ref="treeJs"></el-tree>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisibleJs = false">取 消</el-button>
+        <el-button type="primary" @click="submitJs">确 定</el-button>
+      </span>
+    </el-dialog>
+    <gxrDialog
+      @gxrDialogTreeData="gxrdialog"
+      @close="gxrDialogVisible = false"
+      :gxrDialogStatus="gxrDialogVisible"
+    ></gxrDialog>
+  </div>
+</template>
+
+<script>
+import { oaDownloadUpload } from "@/api/oa/personCenter";
+import gxrDialog from "../../components/gxrDialog";
+import { deptQueryDeptTree, roleGetAllRole } from "@/api/crm/ppgl";
+export default {
+  name: "",
+  components: {
+    gxrDialog,
+  },
+  data() {
+    return {
+      title: "",
+      group: "",
+      fileList: [],
+      editFileL: "",
+      editImage: [],
+      groupList: [
+        { name: "oa", code: 1 },
+        { name: "销售", code: 2 },
+        { name: "采购", code: 3 },
+        { name: "财务", code: 4 },
+      ],
+      qxlx: "0",
+      qxlxList: [
+        { name: "全体人员", id: "0" },
+        { name: "指定人员", id: "1" },
+      ],
+      propsPm: {
+        label: "name",
+        children: "children",
+      },
+      propsJs: {
+        label: "roleName",
+        children: "children",
+      },
+      userName: "",
+      gxry: "",
+      bmName: "",
+      gxbm: "",
+      gxjs: "",
+      jsName: "",
+      qxStatus: false,
+      gxrDialogVisible: false,
+      dialogVisible: false,
+      dialogVisibleJs: false,
+      dataPm: [],
+      dataJs: [],
+    };
+  },
+
+  methods: {
+    handleCloseJs() {
+      this.dialogVisibleJs = false;
+    },
+    handleCloseBm() {
+      this.dialogVisible = false;
+    },
+    gxrdialog(id, name) {
+      this.userName = name;
+      this.gxry = id;
+    },
+    ywyDialog() {
+      this.gxrDialogVisible = true;
+    },
+    submitBm() {
+      this.bmName = "";
+      let arr = [];
+      let str = [];
+      let data = this.$refs.treeBm.getCheckedNodes();
+      for (var i in data) {
+        str.push(data[i].name);
+        arr.push(data[i].id);
+      }
+      this.bmName = str.join(",");
+      this.gxbm = arr.join(",");
+      this.dialogVisible = false;
+    },
+    bmDialog() {
+      this.dialogVisible = true;
+      deptQueryDeptTree()
+        .then((res) => {
+          this.dataPm = res.data;
+        })
+        .catch((res) => {});
+    },
+    submitJs() {
+      this.jsName = "";
+      let arr = [];
+      let str = [];
+      let data = this.$refs.treeJs.getCheckedNodes();
+      for (var i in data) {
+        str.push(data[i].roleName);
+        arr.push(data[i].roleId);
+      }
+      this.jsName = str.join(",");
+      this.gxjs = arr.join(",");
+      this.dialogVisibleJs = false;
+    },
+    jsDialog() {
+      this.dialogVisibleJs = true;
+      roleGetAllRole()
+        .then((res) => {
+          this.dataJs = res.data;
+        })
+        .catch((res) => {});
+    },
+    toViewQx(val) {
+      this.gxry = "";
+      this.userName = "";
+      this.gxbm = "";
+      this.bmName = "";
+      this.gxjs = "";
+      this.jsName = "";
+      if (val == 0) {
+        this.qxStatus = false;
+      } else {
+        this.qxStatus = true;
+      }
+    },
+    beforeRemove(file, fileList) {
+      return this.$confirm(`确定移除 ${file.name}？`);
+    },
+    fileUpload(content) {
+      const reader = new FileReader();
+      var self = this;
+      reader.onload = function (e) {
+        let result;
+        if (typeof e.target.result === "object") {
+          // 把Array Buffer转化为blob 如果是base64不需要
+          result = window.URL.createObjectURL(new Blob([e.target.result]));
+        } else {
+          result = e.target.result;
+        }
+        self.editImage.push(result);
+        self.editFile = content.file;
+        console.log(self.editImage);
+        console.log(self.editFile);
+      };
+      reader.readAsDataURL(content.file);
+    },
+    submitClick() {
+      const blob = new Blob([this.editFile.size], {
+        type: this.editFile.type || "image/png",
+      });
+      const data = {
+        blob: blob,
+        file: this.editFile,
+        image: this.editImage,
+      };
+      var param = new FormData();
+      param.append("group", this.group);
+      param.append("qxlx", this.qxlx);
+      param.append("gxry", this.gxry);
+      param.append("gxbm", this.gxbm);
+      param.append("gxjs", this.gxjs);
+      param.append("file", data.blob, data.file.name, self.editImage);
+      oaDownloadUpload(param)
+        .then((res) => {
+          this.msgSuccess("上传成功");
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+}
+</style>

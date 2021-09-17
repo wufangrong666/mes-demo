@@ -1,0 +1,1245 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="采购退货基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.gysName">
+              <el-button @click="dialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <el-select v-model="from.contactName" @change="contactPhoneChange" placeholder="请选择">
+              <el-option
+                v-for="item in contactList"
+                :key="item.contactId"
+                :label="item.contactName"
+                :value="item.contactId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人电话</label>
+            <div v-text="from.contactPhone"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购退货单号</label>
+            <div v-text="from.dh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div v-text="creatorName"></div>
+          </div>
+          
+          <div class="input-box">
+            <label class="input-label">退货仓库</label>
+            <el-select v-model="from.ck" placeholder="请选择">
+              <el-option
+                v-for="item in ckList"
+                :key="item.ckId"
+                :label="item.ckName"
+                :value="item.ckId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货日期</label>
+            <el-date-picker
+              v-model="from.thrq"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <el-radio v-model="from.sfbd" label="是">是</el-radio>
+            <el-radio v-model="from.sfbd" label="否">否</el-radio>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <el-select v-model="from.dwtt" placeholder="请选择" @change="dwttChange">
+              <el-option
+                v-for="item in dwttList"
+                :key="item.id"
+                :label="item.nameCn"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员</label>
+            <el-input :readonly="true" clearable placeholder="请选择业务员" v-model="from.ywy">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货方式</label>
+            <el-select v-model="from.thfs" @change="xzThfs" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="(item,key) in thfsList"
+                :key="key"
+                :label="item"
+                :value="item"
+              ></el-option>
+            </el-select>
+          </div>
+          <div v-if="fkfsView" class="input-box">
+            <label class="input-label">退货收款方式</label>
+            <el-select v-model="from.thskfs" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in thskfsList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div v-if="fkfsView" class="input-box">
+            <label class="input-label">退货账户</label>
+            <el-select v-model="from.thzh" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in thzhList"
+                :key="item.accountId"
+                :label="item.accountName"
+                :value="item.accountName"
+              ></el-option>
+            </el-select>
+          </div>
+
+          
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <el-input :readonly="true" clearable placeholder="请选择业务员" v-model="gxrName">
+              <el-button @click="gxrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <el-input placeholder="请输入备注" clearable v-model="from.remark"></el-input>
+          </div>
+          
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <el-button @click="xzCGSH" style="margin-bottom:10px" type="primary">选择采购收货单</el-button>
+        </sections>
+      </div>
+      <div>
+        <sections title="采购收货单信息">
+          <el-table
+            height="400px"
+            :data="tableList"
+            style="width: 100%"
+            :summary-method="getSummaries"
+            show-summary
+            :key="Math.random()"
+          >
+            <el-table-column label="采购收货单号">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.cgshDh"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <el-input
+                  placeholder="请选择"
+                  :readonly="true"
+                  clearable
+                  v-model="scopr.row.brandName"
+                >
+                  <el-button
+                    :disabled="xskdStatus"
+                    @click="customerCliuck(scopr.$index)"
+                    slot="append"
+                    icon="el-icon-plus"
+                  ></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <el-select v-model="scopr.row.nameCn" placeholder="请选择">
+                  <el-option
+                    v-for="item in productList"
+                    :key="item.id"
+                    :label="item.nameCn"
+                    :value="item.id"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" v-model="scopr.row.modelNum" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="1">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" v-model="scopr.row.ylzd1" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="2">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" v-model="scopr.row.ylzd2" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="3">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" v-model="scopr.row.ylzd3" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="单位">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.measureName" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="未税单价" :render-header="wsdjHeader">
+              <template slot-scope="scopr">
+                <el-input
+                  :readonly="!wsdjCheckbox"
+                  v-model="scopr.row.wsdj"
+                  clearable
+                  @input="wsdjInput(scopr)"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="退货数量" prop="thQuantity">
+              <template slot-scope="scopr">
+                <el-input @input="quantity(scopr)" v-model="scopr.row.thQuantity" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="税率(%)">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" @input="productSlInput(scopr)" v-model="scopr.row.productSl" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hsdj" label="含税单价" :render-header="hsdjHeader">
+              <template slot-scope="scopr">
+                <el-input
+                  :readonly="!hsdjCheckbox"
+                  v-model="scopr.row.hsdj"
+                  clearable
+                   @input="hsdjInput(scopr)"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="sj" label="税金">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.sj" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hk" label="货款">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.hk" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hj" label="合计">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.hj" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+              <template slot-scope="scopr">
+                <el-input :readonly="xskdStatus" v-model="scopr.row.zy" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scopr">
+                <el-button
+                  :disabled="xskdStatus"
+                  style="color:#f56c6c"
+                  @click="deletClick(scopr.$index)"
+                  type="text"
+                >删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button v-show="!xskdStatus" icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button type="primary" @click="successClick(-1)">保存</el-button>
+        <el-button type="success" @click="successClick(0)">提交</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+    <!-- 品牌选择 -->
+    <el-dialog
+      title="产品列表"
+      :visible.sync="customerVisible"
+      width="70%"
+      :before-close="handleCloseVisible"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-cascader
+          v-model="cascaderIds"
+          :options="options"
+          :props="props"
+          :show-all-levels="false"
+          collapse-tags
+          clearable
+        ></el-cascader>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-input placeholder="请输入品牌" clearable v-model="customerFrom.brandName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品名</label>
+        <el-input placeholder="请输入品名" clearable v-model="customerFrom.productName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">规格型号</label>
+        <el-input placeholder="请输入规格型号" clearable v-model="customerFrom.productModelnum"></el-input>
+      </div>
+      <div style="width:100%;text-align: center;margin-bottom:20px">
+        <el-button type="primary" @click="customerSearch">查询</el-button>
+        <el-button @click="customerReset">重置</el-button>
+      </div>
+      <div class="customer-box">
+        <el-table
+          :data="customerList"
+          style="width: 100%"
+          height="400"
+          :summary-method="getSummaries"
+          show-summary
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column label="品牌">
+            <template slot-scope="scope">
+              <span
+                @click="customerClick(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.brandName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="productName" label="品名"></el-table-column>
+          <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+          <el-table-column prop="measureName" label="单位"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChangeA"
+        @current-change="handleCurrentChangeA"
+        :current-page.sync="customerFrom.page"
+        :page-size="customerFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span
+        slot="footer"
+        class="dialog-footer"
+        style="width: 100%;
+    display: inline-block;
+    text-align: center;"
+      >
+        <el-button type="success" @click="customerAdd">确认</el-button>
+        <el-button @click="customerVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <gysDialog @gysDialog="hkDialog" @close="dialogVisibleGys = false" :dialogVisibleGys="dialogVisibleGys"></gysDialog>
+
+    <treeDlalog
+      @dialogTreeData="dialogTreeData"
+      :trddId="treeId"
+      @close="dialogStatus = false"
+      :dialogStatus="dialogStatus"
+    ></treeDlalog>
+
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  jxcCgydCreate,
+  jxcCgydAddEdit,
+  jxcCgydQueryById,
+  jxcCgydFileUpload,
+  jxcCgydFileRemoveById,
+  jxcCgydCgshById,
+  jxcXsddQueryck,
+  sgdFindGysContactByGysId
+} from "@/api/jxc/jxc";
+import {
+  bjdQueryDwtt,
+} from "@/api/crm/xsbjd";
+import {
+  yskdQueryAccount,
+  yskdQuerySkfs,
+} from "@/api/finance/finance";
+import {
+  xbjQueryCustomer,
+  xbjQueryProduct,
+  xbjQueryBrandTree,
+  xbjQueryComname,
+} from "@/api/crm/xbjTable";
+import Lockr from "lockr";
+import gysDialog from "../../components/gysDialog";
+import treeDlalog from "../../components/treeDlalog";
+import gxrDialog from "../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    gysDialog,
+    treeDlalog,
+    gxrDialog
+  },
+  watch: {
+    
+  },
+  computed: {
+    
+  },
+  props: {
+    xskdId: {
+      type: Object,
+    },
+    xskdType: {
+      type: String,
+    },
+    xskdStatus: {
+      type: Boolean,
+    },
+  },
+  data() {
+    return {
+      customerVisible: false, //品牌弹框显示
+      customerList: [], //品牌列表
+      options: [],
+      cascaderIds: [],
+      total: 0,
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },//品牌弹框上的搜索
+
+      wsdjCheckbox: false,//选择未税单价
+      hsdjCheckbox: true,//选择含税单价
+      dialogStatus: false,
+
+      treeId: "",
+      fkfsView: false, //退款账户显示
+      loading: false,
+      fileList: [], //附件列表
+      fileIds: [], //附件id
+      dialogVisibleGys: false,//供应商弹框
+      dialogStatus: false, //业务员弹框
+      gxrDialogStatus: false, //共享人弹框
+      productList: [], //产品列表
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      
+      contactList: [], //联系人列表
+      ckList: [], //仓库列表
+      dwttList: [], //单位抬头列表
+      thfsList: {"1":"换货","2":"冲抵往来","3":"退还账户","4":"退还现款"}, //退货方式
+      thskfsList: [], //退货付款方式
+      thzhList: [], //退货账户列表
+      creatorName: "", //创建人名称
+      gxrName: "", //共享人名称
+      delmxIds: [], //删除的明细id
+      from: {
+        contactPhone: "",//联系人电话
+        contactId: "",//联系人id
+        contactName: "",
+        dh: "",//
+        thrq: "",//退货日期
+        remark: "",//备注
+        cgydId: "",//采购异动id
+        precelx: "",//
+        thzje: "",//退货总金额
+        thzh: "",//退货账户
+        thzhName: "",
+        shsj: "",//
+        create: "",//操作者
+        ywy: "",//业务员
+        createDate: "",//添加时间
+        sfbd: "否",//是否补单
+        gxr: "",//共享人
+        creator: "",//操作者id
+        ck: "",//仓库
+        ckName: "",
+        cgddId: "",//
+        cgydDh: "",//采购异动单号
+        cgshId: "",//
+        thfs: "",//退货方式
+        gysId: "",//供应商id
+        thskfs: "",//退货收款方式
+        thskfsName: "",
+        gysName: "",//供应商名称
+        dwtt: "",//单位抬头
+        dwttName: "",
+      },
+      
+      tableList: [
+        {
+          cgydDh: "", //采购异动单号
+          hsdj: "", //含税单价
+          brandName: "", //品牌名称
+          hj: "", //合计
+          hk: "", //货款
+          productId: "", //产品id
+          modelNum: "", //
+          productSl: "", //税率
+          thQuantity: "", //退货数量
+          shdQuantity: "", //收货数量
+          nameCn: "", //品名
+          comname: "", //品名id
+          measureName: "", //单位名称
+          measureUnitid: "", //单位id
+          cgydmxId: "",//采购异动明细id
+          wsdj: "",//未税单价
+          brandId: "", //品牌id
+          sj: "", //税金
+          cgydId: "", //采购异动id
+          ylzd1: "", //预留字段1
+          ylzd2: "", //预留字段2
+          ylzd3: "", //预留字段3
+          zy: "", //摘要
+        }
+      ],
+      tableData: [],
+    };
+  },
+
+  methods: {
+    //业务员
+    dialogTreeData(id, name) {
+      this.from.ywy = name;
+    },
+    ywyDialog() {
+      this.dialogStatus = true;
+    },
+    //共享人
+    gxrDialogTreeData(id, name){
+      this.gxrName = name;
+      this.from.gxr = id;
+    },
+    gxrDialog(){
+      this.gxrDialogStatus = true;
+    },
+    //供应商
+    hkDialog(id,name) {
+      this.from.gysName = name;
+      this.from.gysId = id;
+      sgdFindGysContactByGysId({
+        gysId: id,
+      })
+        .then((res) => {
+          this.contactList = res.data;
+          this.from.contactId = res.data[0].contactId;
+          this.from.contactPhone = res.data[0].contactPhone;
+          this.from.contactName = res.data[0].contactName;
+          this.dialogVisibleGys = false;
+        })
+        .catch((res) => {});
+    },
+    dialog() {
+      this.dialogVisibleGys = true;
+    },
+    //联系人电话
+    contactPhoneChange(val) {
+      for (var i in this.contactList) {
+        if (this.contactList[i].contactId == val) {
+          this.from.contactPhone = this.contactList[i].contactPhone;
+          break;
+        }
+      }
+    },
+    //选择退货方式
+    xzThfs(val){
+      if(val == "退还账户"){
+        this.fkfsView = true;
+      }else{
+        this.fkfsView = false;
+        this.from.thfkfs = "";
+        this.from.thzh = "";
+        this.from.thfkfsName = "";
+        this.from.thzhName = "";
+      }
+    },
+    //删除附件
+    deleteUpload(index, item) {
+      this.fileList.splice(index, 1);
+      jxcCgydFileRemoveById({
+        fileId: item.fileId,
+      })
+        .then((res) => {
+          this.msgSuccess("删除成功");
+        })
+        .catch((res) => {});
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    //上传图片
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      jxcCgydFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+          this.fileIds.push({
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    //关闭时删除已上传的附件
+    hidenView() {
+      if (this.fileIds.length != 0) {
+        jxcCgydFileRemoveById({
+          id: this.fileIds[i].fileId,
+        })
+          .then((res) => {
+            this.msgSuccess("删除成功");
+          })
+          .catch((res) => {});
+      }
+      window.top.close();
+    },
+    //提交
+    successClick(status) {
+      if (this.wsdjCheckbox && this.hsdjCheckbox) {
+        this.msgInfo("请选择一个单价类型!");
+        return;
+      } else if (!this.wsdjCheckbox && !this.hsdjCheckbox) {
+        this.msgInfo("请选择单价类型!");
+        return;
+      }
+
+      if (this.wsdjCheckbox) {
+        this.from.pricelx = 1;
+      } else if (this.hsdjCheckbox) {
+        this.from.pricelx = 2;
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.status = status;
+
+      let data = {};
+      data.cgydmx = this.tableList;
+      data.cgydFile = arr.join(",");
+      data.cgyd = this.from;
+      jxcCgydAddEdit(data)
+        .then((res) => {
+          if (this.widowData.type == "add") {
+            var msg = '新增成功';
+            if (res.xsydDh != this.from.xsydDh) {
+              msg += ",该单号已占用,已为你生成新单号" + res.xsydDh;
+            }
+          } else if (this.widowData.type == "edit") {
+            var msg = '编辑成功';
+          }
+          this.loading = true;
+          this.$message({
+            message: msg,
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    //公司抬头
+    dwttChange(val) {
+      let saleZzsl = 0;
+      for (var i in this.dwttList) {
+        if (this.dwttList[i].id == val) {
+          saleZzsl = this.dwttList[i].saleZzsl;
+          break;
+        }
+      }
+      for (var i in this.tableList) {
+        this.tableList[i].productSl = saleZzsl;
+        if (this.hsdjCheckbox) {
+          this.hsdjChange(i);
+        }
+        if (this.wsdjCheckbox) {
+          this.wsdjChange(i);
+        }
+        this.shujuChange(i);
+      }
+    },
+    //初始化页面数据
+    queryData() {
+      let self = this;
+      //仓库
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      //单位抬头
+      bjdQueryDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.from.dwtt = res.data[0].id;
+          this.from.dwttName = res.data[0].nameCn;
+          this.tableList[0].productSl = res.data[0].saleZzsl;
+        })
+        .catch((res) => {});
+      //产品
+      xbjQueryComname()
+        .then((res) => {
+          this.productList = res.data;
+        })
+        .catch((res) => {});
+      //退货付款方式
+      yskdQueryAccount()
+        .then((res) => {
+          this.thzhList = res.data;
+        });
+      //退货账户
+      yskdQuerySkfs()
+        .then((res) => {
+          this.thskfsList = res.data;
+        });
+      if (this.widowData.type == "add") {
+        jxcCgydCreate()
+          .then((res) => {
+            this.from.cgydDh = res.data.cgydDh;
+            this.from.dh = res.data.cgydDh;
+            this.from.createDate = res.data.createDate;
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "edit") {
+        //信息
+        jxcCgydQueryById({
+          cgydId: this.widowData.id,
+        })
+          .then((res) => {
+            this.fileList = res.cgydFile;
+            this.tableList = res.cgydmx;
+            this.from = res.cgyd;
+            this.from.dwtt = Number( this.from.dwtt);
+            this.from.ck = Number( this.from.ck);
+            if(this.from.thfs == "退还账户"){
+              this.fkfsView = true;
+            }
+            if(this.from.precelx == 1){
+              this.wsdjCheckbox = true;
+              this.hsdjCheckbox = false;
+            }
+            //共享人
+            var gxrName = [];
+            for(var i in res.cgyd.gxrName){
+              gxrName[i] = res.cgyd.gxrName[i].realname;
+            }
+            
+            this.gxrName = gxrName.join(',');
+            //联系人
+            sgdFindGysContactByGysId({
+              gysId: res.cgyd.gysId,
+            })
+              .then((res) => {
+                this.contactList = res.data;
+              })
+              .catch((res) => {});
+          })
+          .catch((res) => {});
+      }
+    },
+    //选择采购收货
+    xzCGSH() {
+      this.windowOpen("/cgydCgshTable", {
+        name: this.from.gysName,
+        type: "xzcgsh",
+      });
+    },
+    //接收选择的采购收货id
+    receiveMessage(event) {
+      if (event.data.type == "table") {
+        this.xtQuery(
+          event.data.list
+            .map((item) => {
+              return item.cgshId;
+            })
+            .join(",")
+        );
+      }
+    },
+    //根据选择的销售开单id查询详情
+    xtQuery(id) {
+      jxcCgydCgshById({
+        cgshId: id,
+      })
+        .then((res) => {
+          this.tableList = res.data;
+
+          for (var i in this.tableList) {
+            this.tableList[i].comname = this.tableList[i].commnameId;
+            this.tableList[i].productName = this.tableList[i].nameCn;
+            this.tableList[i].modelNum = this.tableList[i].productModelnum;
+            this.tableList[i].productSl = this.tableList[i].sl;
+            this.tableList[i].sj = 0;
+            this.tableList[i].hk = 0;
+            this.tableList[i].hj = 0;
+            this.tableList[i].zy = '';
+            this.tableList[i].thQuantity = "";
+            this.tableList[i].cgydmxId = "";
+            
+          }
+
+          this.$set(this.tableList, this.tableList, res.data);
+          this.from.gysName = res.info.gysName;
+          this.from.gysId = res.cgsh.gysId;
+          this.from.dwtt = res.cgsh.dwtt;
+          this.from.dwttName = res.info.dwttName;
+          //this.from.ywy = res.cgsh.ywy;
+          this.from.ywy = res.info.ywyName;
+          this.from.contactId = res.cgsh.contactId;
+          this.from.contactPhone = res.cgsh.contactPhone;
+          this.from.contactName = res.info.contactName;
+          //客户id查询联系人
+          sgdFindGysContactByGysId({
+            gysId: res.cgsh.gysId,
+          })
+            .then((res) => {
+              this.contactList = res.data;
+            })
+            .catch((res) => {});
+        })
+        .catch((res) => {});
+    },
+    //品牌弹框关闭
+    handleCloseVisible() {
+      this.customerVisible = false;
+    },
+    //点击选择品牌
+    customerCliuck(val) {
+      this.customerIndex = val;
+      this.customerVisible = true;
+      this.customerData();
+      xbjQueryBrandTree()
+        .then((res) => {
+          this.options = res.data;
+        })
+        .catch((res) => {});
+    },
+    //产品列表
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    //品牌查询
+    customerSearch() {
+      let arr = [];
+      if (this.cascaderIds.length) {
+        for (var i in this.cascaderIds) {
+          arr.push(this.cascaderIds[i][this.cascaderIds[i].length - 1]);
+        }
+        this.customerFrom.brandName = arr.join("|");
+      }
+      this.customerData();
+    },
+    //品牌弹框查询重置按钮
+    customerReset() {
+      this.customerFrom.page = 1;
+      this.customerFrom.limit = 15;
+      this.cascaderIds = [];
+      this.customerFrom.brandName = "";
+      this.customerFrom.productModelnum = "";
+      this.customerData();
+    },
+    //填充tableList
+    customerClick(data) {
+      this.customerVisible = false;
+      this.tableList[this.customerIndex].brandName = data.brandName;
+      this.tableList[this.customerIndex].brandId = data.brandId;
+      this.tableList[this.customerIndex].comname = data.comnameId;
+      this.tableList[this.customerIndex].nameCn = data.productName;
+      this.tableList[this.customerIndex].measureName = data.measureName;
+      this.tableList[this.customerIndex].measureUnitid = data.measureUnitid;
+      this.tableList[this.customerIndex].productId = data.productId;
+      this.tableList[this.customerIndex].modelNum = data.productModelnum;
+      this.tableList[this.customerIndex].thQuantity = 0;
+      this.tableList[this.customerIndex].sj = 0;
+      this.tableList[this.customerIndex].hk = 0;
+      this.tableList[this.customerIndex].hj = 0;
+    },
+    //产品弹框查询显示条数
+    handleSizeChangeA(val) {
+      this.customerFrom.limit = val;
+      this.customerData();
+    },
+    //产品弹框页码
+    handleCurrentChangeA(val) {
+      this.customerFrom.page = val;
+      this.customerData();
+    },
+    //选中产品事件
+    handleSelectionChange(val) {
+      this.selectionList = val;
+    },
+    //确认选择的品牌
+    customerAdd() {
+      this.customerVisible = false;
+      for (var i in this.selectionList) {
+        this.tableList[Number(i) + this.customerIndex] = Object.assign(
+          {},
+          this.selectionList[i]
+        );
+        this.$set(this.tableList, i, this.tableList[i]);
+      }
+    },
+    //删除一条明细
+    deletClick(val) {
+      if (this.tableList.length == 1) {
+        this.msgInfo("无法删除最后一条");
+      } else {
+        this.tableList.splice(val, 1);
+      }
+    },
+    //添加一行
+    appendClick() {
+      var saleZzsl = "";
+      for (var i in this.dwttList) {
+        if (this.dwttList[i].id == this.from.dwtt) {
+          saleZzsl = this.dwttList[i].saleZzsl;
+          break;
+        }
+      }
+      this.tableList.push({
+          cgydDh: "", //采购异动单号
+          hsdj: "", //含税单价
+          brandName: "", //品牌名称
+          hj: "", //合计
+          hk: "", //货款
+          productId: "", //产品id
+          modelNum: "", //规格型号
+          productSl: saleZzsl, //税率
+          thQuantity: "", //退货数量
+          shdQuantity: "",
+          nameCn: "", //品名
+          comname: "", //品名id
+          measureName: "", //单位名称
+          measureUnitid: "", //单位id
+          cgydmxId: "",//采购异动明细id
+          wsdj: "",//未税单价
+          brandId: "", //品牌id
+          sj: "", //税金
+          cgydId: "", //采购异动id
+          ylzd1: "", //预留字段1
+          ylzd2: "", //预留字段2
+          ylzd3: "", //预留字段3
+          zy: "", //摘要
+      });
+    },
+    //未税单价
+    wsdjHeader(h, { column }) {
+      return h("div", [
+        h("span", column.label),
+        h("el-checkbox", {
+          style: "display:inline-flex;margin-left:5px;",
+          on: {
+            change: ($event, column) => (
+              (this.hsdjCheckbox = !$event), (this.wsdjCheckbox = $event)
+            ), // 选中事件 $event, column，这里$event=true,column是input的dom当在select里打印的时候
+          },
+          props: {
+            value: this.wsdjCheckbox, //文字框的内容取决于这个value，如果value不存在，会报错
+          },
+        }),
+      ]);
+    },
+    //含税
+    hsdjHeader(h, { column }) {
+      return h("div", [
+        h("span", column.label),
+        h("el-checkbox", {
+          style: "display:inline-flex;margin-left:5px;",
+          on: {
+            change: ($event, column) => (
+              (this.hsdjCheckbox = $event), (this.wsdjCheckbox = !$event)
+            ), // 选中事件 $event, column，这里$event=true,column是input的dom当在select里打印的时候
+          },
+          props: {
+            value: this.hsdjCheckbox, //文字框的内容取决于这个value，如果value不存在，会报错
+          },
+        }),
+      ]);
+    },
+    //税率改变时
+    productSlInput(data) {
+      if (this.hsdjCheckbox) {
+        this.hsdjChange(data.$index);
+      }
+      if (this.wsdjCheckbox) {
+        this.wsdjChange(data.$index);
+      }
+      this.shujuChange(data.$index);
+    },
+    hsdjInput(data) {
+      if (this.hsdjCheckbox) {
+        this.hsdjChange(data.$index);
+        this.shujuChange(data.$index);
+      }  
+    },
+    hsdjChange(index){
+      let num = 0;
+        if (
+          this.tableList[index].hsdj != "" &&
+          this.tableList[index].productSl != ""
+        ) {
+          num = (
+            this.tableList[index].hsdj /
+            (1 + this.tableList[index].productSl * 0.01)
+          ).toFixed(2);
+        } else {
+          num = 0;
+        }
+        this.tableList[index].wsdj = num;
+    },
+    //计算未税数据
+    wsdjInput(data) {
+      if (this.wsdjCheckbox) {
+        this.wsdjChange(data.$index);
+        this.shujuChange(data.$index);
+      }
+    },
+    wsdjChange(index){
+      let num = 0;
+        if (
+          this.tableList[index].wsdj != "" &&
+          this.tableList[index].productSl != ""
+        ) {
+          num = (
+            this.tableList[index].wsdj *
+            (1 + this.tableList[index].productSl * 0.01)
+          ).toFixed(2);
+        } else {
+          num = 0;
+        }
+        this.tableList[index].hsdj = num;
+    },
+    //退货数量
+    quantity(data) {
+
+      if (this.tableList[data.$index].brandName == "") {
+        this.tableList[data.$index].thQuantity = "";
+        this.msgInfo("请选择商品");
+        return '';
+      }
+      if(this.tableList[data.$index].shdQuantity != '' && Number(this.tableList[data.$index].thQuantity) > Number(this.tableList[data.$index].shdQuantity)){
+        this.tableList[data.$index].thQuantity = "";
+        this.msgInfo("退货数量不能大于销售开单数量！");
+        return '';
+      }
+      this.shujuChange(data.$index);
+    },
+    shujuChange(index){
+      this.sjShow(index);
+      this.hkShow(index);
+      this.hjShow(index);
+    },
+    sjShow(index) {
+      let num = Number(this.tableList[index].thQuantity);
+      if (
+        this.tableList[index].wsdj != "" &&
+        this.tableList[index].hsdj != ""
+      ) {
+        this.tableList[index].sj = (
+          (this.tableList[index].hsdj - this.tableList[index].wsdj) * num
+        ).toFixed(2);
+      } else {
+        this.tableList[index].sj = 0;
+      }
+    },
+    hkShow(index) {
+      let num = Number(this.tableList[index].thQuantity);
+      if (this.tableList[index].wsdj != "") {
+        this.tableList[index].hk = (this.tableList[index].wsdj * num).toFixed(2);
+      } else {
+        this.tableList[index].hk = 0;
+      }
+    },
+    hjShow(index) {
+      if (this.tableList[index].hsdj != "") {
+        this.tableList[index].hj = (Number(this.tableList[index].sj) + Number(this.tableList[index].hk)).toFixed(2);
+      } else {
+        this.tableList[index].hj = 0;
+      }
+    },
+    //合计
+    getSummaries(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        const values = data.map((item) => Number(item[column.property]));
+        if (!values.every((value) => isNaN(value)) && (column.property == 'sj' || column.property == 'hk' || column.property == 'hj')) {
+          sums[index] = values
+            .reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0)
+            .toFixed(2);
+        } else {
+          sums[index] = "";
+        }
+      });
+
+      this.from.thzje = sums[14];
+      return sums;
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.creatorName = Lockr.get("loginUserInfo").realname;
+    this.from.creator = Lockr.get("loginUserInfo").userId;
+    window.addEventListener("message", this.receiveMessage, false);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-input__inner {
+  padding-right: 0;
+}
+.content .el-input__inner {
+  height: 25px;
+}
+.content .el-input__icon {
+  line-height: 25px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 103px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

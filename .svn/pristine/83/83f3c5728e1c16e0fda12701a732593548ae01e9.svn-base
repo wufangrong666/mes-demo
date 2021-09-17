@@ -1,0 +1,165 @@
+<template>
+  <div>
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商名称:</label>
+            <span
+              style="float: left;overflow: hidden;white-space: nowrap"
+              class="el-span"
+              v-text="from.name"
+            ></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商编码:</label>
+            <span
+              style="float: left;overflow: hidden;white-space: nowrap"
+              class="el-span"
+              v-text="from.code"
+            ></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款期限设置:</label>
+            <span class="el-span" v-text="from.fkqxszFlag"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商类型:</label>
+            <div v-text="from.type == 1?'德语类':from.type == 2?'英语类':from.type == 3?'中文类':'中英类'"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购员:</label>
+            <span class="el-span" v-text="from.cgyName"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">电话:</label>
+            <div v-text="from.businessTele"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在国家:</label>
+            <div v-text="from.szgj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">传真:</label>
+            <span class="el-span" v-text="from.fax"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在省份:</label>
+            <span class="el-span" v-text="from.szsf"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">网址:</label>
+            <span class="el-span" v-text="from.website"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在城市:</label>
+            <span class="el-span" v-text="from.szcs"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">开户行:</label>
+            <span class="el-span" v-text="from.khyh"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">地址:</label>
+            <span class="el-span" v-text="from.address"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">账号:</label>
+            <span class="el-span" v-text="from.khzh"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">邮政编码:</label>
+            <span class="el-span" v-text="from.postcode"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">税号:</label>
+            <span class="el-span" v-text="from.sh"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">法定代表人:</label>
+            <span class="el-span" v-text="from.fddbr"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">委托受理人:</label>
+            <span class="el-span" v-text="from.wtdlr"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">对应客户:</label>
+            <span class="el-span" v-text="from.customerName"></span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">共享人:</label>
+            <span
+              class="el-span"
+            >{{from.gxrName == ''?'':from.gxrName.map(res => {return res.realname}).join(',')}}</span>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">附件:</label>
+            <a v-for="(item,index) in fileList" style="margin:0 5px;color:#409eff" :key="index" :href="item.filePath"  v-text="item.name"></a>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="经营范围">
+          <div class="input-box">
+            <label class="input-label">经营范围:</label>
+            <span class="el-span" v-text="from.jyfw"></span>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="备注">
+          <div class="input-box">
+            <label class="input-label">备注:</label>
+            <span class="el-span" v-text="from.remark"></span>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </div>
+</template>
+
+<script>
+import sections from "../../components/sections";
+import { crmCustomerQueryById } from "@/api/crm/ggkhc";
+import { crmGysFileAQueryByGysId } from "@/api/crm/gysxx";
+export default {
+  components: {
+    sections,
+  },
+  name: "",
+  watch: {
+    from: {
+      handler() {
+        this.fileData();
+      },
+    },
+  },
+  data() {
+    return {
+      data: {},
+      fileList:[]
+    };
+  },
+  props: ["from"],
+  methods: {
+    fileData() {
+      crmGysFileAQueryByGysId({
+        gysId: this.from.gysId,
+      })
+        .then((res) => {
+          this.fileList = res.data
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+</style>

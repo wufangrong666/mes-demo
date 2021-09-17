@@ -1,0 +1,594 @@
+<template>
+  <div>
+    <div class="create-flex">
+      <sections title="基本信息">
+        <div class="input-box">
+          <label class="input-label">客户</label>
+          <div style="float:left" v-text="customerName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">联系人</label>
+          <div style="float:left" v-text="contactName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">发票类型</label>
+          <div style="float:left" v-text="fplxName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">销售单编号</label>
+          <div style="float:left" v-text="from.xsddDh"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">收货地址</label>
+          <div style="float:left" v-text="from.shdz"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">联系人电话</label>
+          <div style="float:left" v-text="from.contactPhone"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">交货日期</label>
+          <div style="float:left" v-text="from.jhrq"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">操作员</label>
+          <div v-text="creator"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">备注</label>
+          <div style="float:left" v-text="from.remark"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">业务员:</label>
+          <div style="float:left" v-text="ywyName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">收款期限</label>
+          <div style="float:left" v-text="from.skqx"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">创建日期</label>
+          <div v-text="createDate"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">货期</label>
+          <div style="float:left" v-text="from.hq"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">单位抬头</label>
+          <div style="float:left" v-text="dwttName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">是否补单</label>
+          <div style="float:left" v-text="from.sfbd"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">整单折扣(%)</label>
+          <div style="float:left" v-text="from.zdzk"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">共享人</label>
+          <div style="float:left">{{gxrName == ''?gxrName:gxrName.join(',')}}</div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">仓库</label>
+          <div style="float:left" v-text="ckName"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">销售订单类型</label>
+          <div style="float:left" v-text="from.xsddlx"></div>
+        </div>
+        <div class="input-box">
+          <label class="input-label">跟单状态</label>
+          <div style="float:left" v-text="from.gdzt"></div>
+        </div>
+        <div class="input-box" style="width:100%">
+          <label class="input-label">上传附件</label>
+          <ul class="uploadStyle">
+            <li v-for="(item,index) in fileList" :key="index">
+              <a
+                style="color:#409eff"
+                :href="item.filePath"
+                :download="item.name"
+                v-text="item.name"
+              ></a>
+            </li>
+          </ul>
+        </div>
+        <el-table
+          max-height="340px"
+          :data="tableList"
+          style="width: 100%"
+          :summary-method="getSummaries"
+          show-summary
+        >
+          <el-table-column label="品牌">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.brandName"></div>
+            </template>
+          </el-table-column>
+          <el-table-column label="品名">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.comname"></div>
+            </template>
+          </el-table-column>
+          <el-table-column label="规格型号">
+            <template slot-scope="scopr">
+              <div
+                style="float:left;width:100%;text-align:center"
+                v-text="scopr.row.productModelnum"
+              ></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName1 != ''" :label="zdyName1">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd1"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName2 != ''" :label="zdyName2">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd2"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName3 != ''" :label="zdyName3">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd3"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName4 != ''" :label="zdyName4">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd4"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName5 != ''" :label="zdyName5">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd5"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName6 != ''" :label="zdyName6">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd6"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName7 != ''" :label="zdyName7">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd7"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName8 != ''" :label="zdyName8">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd8"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName9 != ''" :label="zdyName9">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd9"></div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="zdyName10 != ''" :label="zdyName10">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd10"></div>
+            </template>
+          </el-table-column>
+          <el-table-column label="计量单位">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.measureName"></div>
+            </template>
+          </el-table-column>
+          <el-table-column label="未税单价">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.wsdj"></div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="quantity" label="数量">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.quantity"></div>
+            </template>
+          </el-table-column>
+          <el-table-column label="税率(%)">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.productSl"></div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="hsdj" label="含税单价">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.hsdj"></div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="sj" label="税金">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.sj"></div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="hk" label="货款">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.hk"></div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="hj" label="合计">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.hj"></div>
+            </template>
+          </el-table-column>
+          <el-table-column label="摘要">
+            <template slot-scope="scopr">
+              <div style="float:left;width:100%;text-align:center" v-text="scopr.row.zy"></div>
+            </template>
+          </el-table-column>
+        </el-table>
+        <ul class="tableButton">
+          <li
+            :style="{'width':width}"
+            v-for="index of widthList"
+            :key="index"
+          >{{index == 1?'折扣后合计':index == widthList-1?from.cbzje:''}}</li>
+        </ul>
+      </sections>
+      <div class="conditions">
+        <div class="conditions-top">
+          <div>
+            <span>合同条款主题</span>
+          </div>
+          <div>合同条款内容</div>
+        </div>
+        <div class="conditions-center" style="height:120px">
+          <div v-for="(item,index) in jxcXsddHttkList" :key="index">
+            <div>
+              <span v-text="item.htzt"></span>
+            </div>
+            <div>
+              <span v-text="item.htnr"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="handle-bar">
+      <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import createView from "../../../components/createView";
+import sections from "../../../components/sections";
+import {
+  jxcXsddFileQueryByXsddId,
+  adminYszdGetYlzdSetByType,
+} from "@/api/crm/xbjTable";
+import { bjdQueryDwtt, httkQueryTypeOfContact } from "@/api/crm/xsbjd";
+import { jxcXsddQueryck, jxcXsddQueryForEditById } from "@/api/jxc/jxc";
+import { xbjQueryComname } from "@/api/crm/xbjTable";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  props: ["id"],
+  data() {
+    return {
+      loading: false,
+      jxcXsddHttkList: [],
+      tableList: [],
+      from: {
+        xsddId: "",
+        xsddDh: "",
+        xjdId: "",
+        bjdId: "",
+        customerId: "",
+        contactId: "",
+        dwtt: "",
+        hq: "",
+        fplx: 1,
+        zje: "",
+        zdzk: 100,
+        zkhZje: "",
+        cbzje: "",
+        pricelx: "",
+        typeofcontract: "",
+        remark: "",
+        jhrq: "",
+        skqx: "",
+        shdz: "",
+        ck: "",
+        contactPhone: "",
+        xsddlx: "",
+        gdzt: "",
+        sfbd: "是",
+      },
+      customerName: "",
+      contactName: "",
+      fplxName: "",
+      creator: "",
+      ywyName: "",
+      createDate: "",
+      dwttName: "",
+      gxrName: "",
+      ckName: "",
+      fplxName: "",
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      fileList: [],
+      widthList: 0,
+      width: '',
+      ylzdList: [],
+    };
+  },
+  watch: {
+    id: {
+      handler() {
+        this.queryData();
+      },
+    },
+  },
+  methods: {
+    hidenView() {},
+    getSummaries(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        const values = data.map((item) => Number(item[column.property]));
+        if (!values.every((value) => isNaN(value))) {
+          sums[index] = values
+            .reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0)
+            .toFixed(2);
+          sums[index];
+        } else {
+          sums[index] = "";
+        }
+      });
+      this.from.zje = sums[10];
+      return sums;
+    },
+    queryData() {
+      let self = this;
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          this.ylzdList = res.data;
+          for (var i in this.tableList) {
+            for (var k in res.data) {
+              this.$set(this.tableList[i], res.data[k].ylzdName, "");
+            }
+          }
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+      xbjQueryComname()
+        .then((res) => {
+          this.productList = res.data;
+        })
+        .catch((res) => {});
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      bjdQueryDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.from.dwtt = res.data[0].id;
+          this.tableList[0].productSl = res.data[0].saleZzsl;
+        })
+        .catch((res) => {});
+      httkQueryTypeOfContact({ lx: 2 })
+        .then((res) => {
+          this.typeofcontactList = res.data;
+          this.from.typeofcontract = res.data[0].id;
+        })
+        .catch((res) => {});
+      jxcXsddFileQueryByXsddId({
+        xsddId: this.id,
+      })
+        .then((res) => {
+          this.fileList = res.data;
+        })
+        .catch((res) => {});
+      jxcXsddQueryForEditById({
+        xsddId: this.id,
+      })
+        .then((res) => {
+          self.customerName = res.data.customerName;
+          self.from.xsddId = res.data.xsddId;
+          self.from.customerId = res.data.customerId;
+          self.from.contactId = res.data.contactId;
+          self.from.xsddDh = res.data.xsddDh;
+          self.from.hq = res.data.hq;
+          self.from.dwtt = res.data.dwtt;
+          self.from.fplx = Number(res.data.fplx);
+          self.from.jhrq = res.data.jhrq;
+          self.from.ck = Number(res.data.ck);
+          self.from.zdzk = res.data.zdzk;
+          self.from.remark = res.data.remark;
+          self.from.skqx = res.data.skqx;
+          self.from.shdz = res.data.shdz;
+          self.tableList = res.data.jxcXsddmxList;
+          self.from.typeofcontract = res.data.typeofcontract;
+          self.jxcXsddHttkList = res.data.jxcXsddHttkList;
+          self.from.xsddlx = res.data.xsddlx;
+          self.from.gdzt = res.data.gdzt;
+          self.from.sfbd = res.data.sfbd;
+          self.from.contactPhone = res.data.contactPhone;
+          self.contactName = res.data.contactName;
+          self.createDate = res.data.createDate;
+          self.ywyName = res.data.ywyName;
+          self.from.sgbd = res.data.sgbd;
+          self.gxrName = res.data.gxrName;
+          for (var i in this.ckList) {
+            if (this.ckList[i].ckId == res.data.ck) {
+              this.ckName = this.ckList[i].ckName;
+            }
+          }
+          for (var i in this.dwttList) {
+            if (this.dwttList[i].id == res.data.dwtt) {
+              this.dwttName = this.dwttList[i].nameCn;
+            }
+          }
+          for (var i in this.fplxList) {
+            if (this.fplxList[i].id == Number(res.data.fplx)) {
+              this.fplxName = this.fplxList[i].name;
+            }
+          }
+          if (res.data.pricelx == 1) {
+            this.wsdjCheckbox = true;
+            this.hsdjCheckbox = false;
+          } else {
+            this.hsdjCheckbox = true;
+            this.wsdjCheckbox = false;
+          }
+          crmCustomerqueryById({
+            customerId: res.data.customerId,
+          })
+            .then((res) => {
+              self.contactList = res.data.customerContact;
+            })
+            .catch((res) => {});
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    setTimeout(() => {
+      this.width = 100 / $(".el-table__row")[0].cells.length + "%";
+      this.widthList = $(".el-table__row")[0].cells.length;
+    }, 300);
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  height: 40px;
+  li {
+    float: left;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+  }
+}
+.conditions {
+  margin-left: 20px;
+  width: 98%;
+  margin-left: 1%;
+}
+.conditions-top {
+  float: left;
+  div {
+    text-align: center;
+    border: 1px solid #999;
+    background: #a3c7f1;
+  }
+  div:nth-child(1) {
+    width: 20%;
+    float: left;
+    border-right: 0;
+  }
+  div:nth-child(2) {
+    width: 80%;
+    float: left;
+    text-align: center;
+  }
+}
+.conditions-center {
+  div {
+    float: left;
+    width: 100%;
+    div {
+      line-height: 40px;
+      text-align: center;
+      border: 1px solid #999;
+      span {
+        margin-left: 10px;
+      }
+    }
+    div:nth-child(1) {
+      width: 20%;
+      float: left;
+      text-align: center;
+      border-right: 0;
+      border-top: 0;
+    }
+    div:nth-child(2) {
+      width: 80%;
+      float: left;
+      text-align: center;
+      text-align: center;
+      border-top: 0;
+    }
+  }
+}
+</style>

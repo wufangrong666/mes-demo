@@ -1,0 +1,1170 @@
+<template>
+  <div class="employee-dep-management">
+    <p class="title" v-text="title"></p>
+    <div class="system-content">
+      <!-- 左边导航栏 -->
+      <div class="system-view-nav" v-loading="depLoading">
+        <el-input clearable placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
+        <el-tree
+          :data="treeData"
+          ref="tree"
+          @node-click="changeDepClick"
+          :expand-on-click-node="false"
+          :props="treeProps"
+          default-expand-all
+          highlight-current
+          :filter-node-method="filterNode"
+        >
+          <flexbox class="node-data" slot-scope="{ node, data }">
+            <img
+              class="node-img"
+              @click="handleExpand('close',node, data)"
+              v-if="node.expanded"
+              src="@/assets/img/fold.png"
+            />
+            <img
+              class="node-img"
+              @click="handleExpand('open',node, data)"
+              v-if="!node.expanded"
+              src="@/assets/img/unfold.png"
+            />
+            <div class="node-label">{{ node.label }}</div>
+            <div class="node-label-set">
+              <el-button
+                v-if="strucDeleteAuth"
+                type="text"
+                size="mini"
+                @click.stop="() => remove(node, data)"
+              >
+                <i class="el-icon-close"></i>
+              </el-button>
+            </div>
+          </flexbox>
+        </el-tree>
+      </div>
+      <!-- 右边 -->
+      <div class="system-view-table flex-index">
+        <div class="table-top">
+          <el-button type="primary" class="rt" @click="addBrand">新建品牌</el-button>
+        </div>
+        <div class="flex-box">
+          <div class="input-box">
+            <label class="input-label">品牌名称</label>
+            <el-input placeholder="请输入" v-model="from.name"></el-input>
+          </div>
+          <div div class="input-box">
+            <label class="input-label">上级名称</label>
+            <el-input v-model="sjName" placeholder="请输入内容" :readonly="true">
+              <el-button @click="sjDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">价格生成规则</label>
+            <el-select
+              v-model="from.priceRuleType"
+              style="width:5%;float:left"
+              clearable
+              placeholder
+            >
+              <el-option
+                v-for="item in priceRuleTypeList"
+                :key="item.code"
+                :label="item.name"
+                :value="item.code"
+              ></el-option>
+            </el-select>
+            <el-input style="width:15%" placeholder="请输入" v-model="from.priceRuleNum"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">排序</label>
+            <el-input :readonly="true" placeholder="请输入" v-model="from.sort"></el-input>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label">供应商</label>
+            <el-button style="float:left" @click="ppGys" type="primary" :disabled="!ppgysAuth">匹配供应商</el-button>
+            <ul class="gysStyle">
+              <li v-for="(item,index) in gysDataList" :key="index">
+                <span :title="item.gysName" v-text="item.gysName"></span>
+                <el-button
+                  style="color:red"
+                  type="text"
+                  @click="deleteGys(index)"
+                  :disabled="!ppgysGxscAuth"
+                >删除</el-button>
+              </li>
+            </ul>
+          </div>
+          <div class="input-box">
+            <label class="input-label">产品查看范围</label>
+            <el-select
+              filterable
+              v-model="from.qxlx"
+              placeholder="可搜索"
+              collapse-tags
+              @change="toViewQx"
+            >
+              <el-option
+                v-for="item in qxlxList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box" v-if="qxStatus">
+            <label class="input-label">人员:</label>
+            <el-input :readonly="true" clearable placeholder="请选择销售负责人" v-model="userName">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" v-if="qxStatus">
+            <label class="input-label">部门:</label>
+            <el-input :readonly="true" clearable placeholder="请选择部门" v-model="bmName">
+              <el-button @click="bmDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" v-if="qxStatus">
+            <label class="input-label">角色:</label>
+            <el-input :readonly="true" clearable placeholder="请选择角色" v-model="jsName">
+              <el-button @click="jsDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <el-button v-show="btnS" @click="btnSuccess" type="success">保存</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 人员 -->
+    <el-dialog
+      title="选择人员"
+      :visible.sync="dialogYwy"
+      width="40%"
+      style="margin-top:-5vh"
+      :before-close="handleCloseYwy"
+      :modal-append-to-body="false"
+    >
+      <div>
+        <el-tabs v-model="activeName" @tab-click="tabsClick">
+          <el-tab-pane class="el-tab-department" label="按部门" name="department">
+            <el-tree
+              ref="treeB"
+              node-key="userId"
+              :props="defaultProps"
+              :data="treeDataB"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="按角色" name="role">
+            <el-tree
+              ref="treeR"
+              @check-change="handleTreeClickR"
+              @node-click="nodeClickR"
+              node-key="id"
+              :props="defaultPropsR"
+              :data="treeDataR"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="查询" name="search">
+            <div style="margin-top:5px">
+              <el-input style="width:30%" v-model="realname"></el-input>
+              <el-select style="width:10%" v-model="realStatus">
+                <el-option
+                  v-for="item in realStatusList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+              <el-button @click="realSearch" type="primary">查询</el-button>
+              <el-table
+                height="350px"
+                :show-header="false"
+                :data="realtableData"
+                style="width: 100%"
+              >
+                <el-table-column width="50">
+                  <template slot-scope="scope">
+                    <el-radio v-model="realRadio" :label="scope.row" @change="realRadioChange">
+                      <i></i>
+                    </el-radio>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="realname" label="姓名"></el-table-column>
+              </el-table>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="downYwy">取 消</el-button>
+        <el-button type="primary" @click="submitYwy">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 部门 -->
+    <el-dialog
+      title="部门选择"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :modal-append-to-body="false"
+      :before-close="handleCloseBm"
+    >
+      <span>
+        <el-tree :props="propsPm" :data="dataPm" show-checkbox node-key="id" ref="treeBm"></el-tree>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitBm">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 角色 -->
+    <el-dialog
+      title="角色选择"
+      :visible.sync="dialogVisibleJs"
+      width="30%"
+      :modal-append-to-body="false"
+      :before-close="handleCloseJs"
+    >
+      <span>
+        <el-tree :props="propsJs" :data="dataJs" show-checkbox node-key="id" ref="treeJs"></el-tree>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisibleJs = false">取 消</el-button>
+        <el-button type="primary" @click="submitJs">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 供应商 -->
+
+    <!-- 选择上级 -->
+    <el-dialog
+      title="选择上级"
+      :visible.sync="dialogVisibleSj"
+      width="30%"
+      :modal-append-to-body="false"
+      :before-close="handleCloseSj"
+    >
+      <span>
+        <el-tree
+          ref="treeSj"
+          node-key="brandId"
+          :props="defaultPropsSj"
+          :data="treeDataSj"
+          show-checkbox
+          default-expand-all
+          @check-change="handleClick"
+          :check-strictly="true"
+        ></el-tree>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleCloseSj">取 消</el-button>
+        <el-button type="primary" @click="submitSj">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <gysPpOr @gysData="gysData" @colse="gysPpOrVisble = false" :gysPpOrVisble="gysPpOrVisble"></gysPpOr>
+  </div>
+</template>
+
+<script>
+import { crmProductBrandQueryList } from "@/api/crm/cpxx";
+import {
+  crmProductBrandQueryGys,
+  crmProductComnameDelById,
+  crmProductComnameFindParent,
+  crmProductComnameFindBrandById,
+  crmProductBrandFindMaxSort,
+  crmProductBrandAddOrUpdate,
+  deptQueryDeptTree,
+  roleGetAllRole,
+} from "@/api/crm/ppgl";
+import { sgdFindGys } from "@/api/jxc/jxc";
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+} from "@/api/crm/ggkhc";
+import { mapGetters } from "vuex";
+import gysPpOr from "../../components/gysPpOr";
+export default {
+  name: "",
+  components: {
+    gysPpOr,
+  },
+  data() {
+    return {
+      dialogVisibleSj: false,
+      defaultPropsSj: {
+        label: "label",
+        children: "children",
+      },
+      sjName: "",
+      treeDataSj: [],
+      dialogVisibleGys: false,
+      gysName: "",
+      propsPm: {
+        label: "name",
+        children: "children",
+      },
+      dataPm: [],
+      dataJs: [],
+      propsJs: {
+        label: "roleName",
+        children: "children",
+      },
+      gysPpOrVisble: false,
+      dialogVisible: false,
+      dialogVisibleJs: false,
+      userName: "",
+      qxlxList: [
+        { name: "全体人员", id: "0" },
+        { name: "指定人员", id: "1" },
+      ],
+      optionProps: {
+        value: "brandId",
+        label: "name",
+        children: "children",
+        checkStrictly: true,
+      },
+      options: [],
+      btnS: false,
+      title: "",
+      depLoading: false, // 左侧部门loading效果
+      treeData: [],
+      importInput: "",
+      name: "",
+      from: {
+        gysId: "",
+        name: "",
+        parentId: [],
+        brandId: "",
+        supplier: [],
+        priceRuleType: 1,
+        priceRuleNum: "",
+        sort: "",
+        qxlx: "0", //查看范围(0：全体成员,1：指定范围)
+        gxry: "", //指定人员,多个人员用逗号分隔
+        gxbm: "", //指定部门,多个部门用逗号分隔
+        bxjs: "", //指定角色,多个角色用逗号分隔
+      },
+      priceRuleTypeList: [
+        { name: "+", code: 1 },
+        { name: "-", code: 2 },
+        { name: "*", code: 3 },
+        { name: "/", code: 4 },
+      ],
+      supplierList: [],
+      filterText: "",
+      dialogYwy: false,
+      treeDataB: [],
+      treeDataR: [],
+      realtableData: [],
+      realname: "",
+      realStatus: "",
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" },
+      ],
+      defaultProps: {
+        label: "name",
+        children: "children",
+      },
+      treeProps: {
+        label: "label",
+        children: "children",
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user",
+      },
+      activeName: "department",
+      bmName: "",
+      jsName: "",
+      qxStatus: false,
+      total: 0,
+      multipleSelection: [],
+      gysDataList: [],
+    };
+  },
+  watch: {
+    filterText(val) {
+      // this.treeListFun();
+      this.$refs.tree.filter(val);
+    },
+  },
+  computed: {
+    ...mapGetters(["operAuth"]),
+    // 部门编辑权限
+    strucDeleteAuth() {
+      return this.operAuth.crmqx && this.operAuth.crmqx.cpxxscqx;
+    },
+    ppgysAuth() {
+      return this.operAuth.crmqx && this.operAuth.crmqx.ppppgysqx;
+    },
+    ppgysGxscAuth() {
+      return this.operAuth.crmqx && this.operAuth.crmqx.ppgysgxscqx;
+    },
+  },
+  methods: {
+    filterNode(value, data) {
+      console.log(data.label.indexOf(value) !== -1)
+      if (!value) return true;
+      return data.label.indexOf(value) !== -1;
+    },
+    deleteGys(index) {
+      this.gysDataList.splice(index, 1);
+    },
+    gysData(list) {
+      this.gysDataList = list;
+    },
+    ppGys() {
+      this.gysPpOrVisble = true;
+    },
+    handleClick(data, checked, node) {
+      if (checked) {
+        this.$refs.treeSj.setCheckedNodes([data]);
+      }
+    },
+    submitSj() {
+      this.sjName = this.$refs.treeSj.getCheckedNodes()[0].name;
+      this.from.parentId = this.$refs.treeSj.getCheckedNodes()[0].brandId;
+      crmProductBrandFindMaxSort({
+        paretnId: this.$refs.treeSj.getCheckedNodes()[0].brandId,
+      })
+        .then((res) => {
+          this.from.sort = res.data.sort;
+        })
+        .catch((res) => {});
+      this.dialogVisibleSj = false;
+    },
+    handleCloseSj() {
+      this.dialogVisibleSj = false;
+    },
+    sjDialog() {
+      this.dialogVisibleSj = true;
+    },
+    gysDialog() {
+      this.dialogVisibleGys = true;
+    },
+    parentChange(val) {
+      crmProductBrandFindMaxSort({
+        paretnId: val[val.length - 1],
+      })
+        .then((res) => {
+          this.from.sort = res.data.sort;
+        })
+        .catch((res) => {});
+    },
+    toViewQx(val) {
+      this.from.gxry = "";
+      this.userName = "";
+      this.from.gxbm = "";
+      this.bmName = "";
+      this.from.bxjs = "";
+      this.jsName = "";
+      if (val == 0) {
+        this.qxStatus = false;
+      } else {
+        this.qxStatus = true;
+      }
+    },
+    handleCloseJs() {
+      this.dialogVisibleJs = false;
+    },
+    jsDialog() {
+      this.dialogVisibleJs = true;
+      roleGetAllRole()
+        .then((res) => {
+          this.dataJs = res.data;
+        })
+        .catch((res) => {});
+    },
+    submitJs() {
+      this.jsName = "";
+      let arr = [];
+      let str = [];
+      let data = this.$refs.treeJs.getCheckedNodes();
+      for (var i in data) {
+        str.push(data[i].roleName);
+        arr.push(data[i].roleId);
+      }
+      this.jsName = str.join(",");
+      this.from.bxjs = arr.join(",");
+      this.dialogVisibleJs = false;
+    },
+    handleCloseBm() {
+      this.dialogVisible = false;
+    },
+    bmDialog() {
+      this.dialogVisible = true;
+      deptQueryDeptTree()
+        .then((res) => {
+          this.dataPm = res.data;
+        })
+        .catch((res) => {});
+    },
+    submitBm() {
+      this.bmName = "";
+      let arr = [];
+      let str = [];
+      let data = this.$refs.treeBm.getCheckedNodes();
+      for (var i in data) {
+        str.push(data[i].name);
+        arr.push(data[i].id);
+      }
+      this.bmName = str.join(",");
+      this.from.gxbm = arr.join(",");
+      this.dialogVisible = false;
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    downYwy() {
+      this.dialogYwy = false;
+      this.from.ywy = "";
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      let arr = [];
+      if (this.activeName == "department") {
+        arr = this.$refs.treeB.getCheckedNodes();
+        let str = [];
+        let list = [];
+        for (var i in arr) {
+          str.push(arr[i].name);
+          list.push(arr[i].userId);
+        }
+        this.from.gxry = list.join(",");
+        this.userName = str.join(",");
+      } else if (this.activeName == "role") {
+        arr = this.$refs.treeR.getCheckedNodes();
+        let str = [];
+        let list = [];
+        for (var i in arr) {
+          str.push(arr[i].realname);
+          list.push(arr[i].userId);
+        }
+        this.from.gxry = list.join(",");
+        this.userName = str.join(",");
+      }
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    ywyDialog() {
+      this.dialogYwy = true;
+      this.activeName = "department";
+      this.dialogYwyTree();
+    },
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+      }
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then((res) => {
+          this.treeDataB = res.data;
+        })
+        .catch((res) => {});
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then((res) => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    duakigReal() {
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus,
+      })
+        .then((res) => {
+          this.realtableData = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    remove(node, data) {
+      this.$confirm("请确认你需要删除的品牌, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          crmProductComnameDelById({
+            brandId: data.brandId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.empty();
+              this.treeListFun();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消删除");
+        });
+    },
+    btnSuccess() {
+      if (this.from.name == "") {
+        this.msgInfo("产品名称不能为空!");
+        return;
+      }
+      let arr = [];
+      for (var i in this.gysDataList) {
+        arr.push(this.gysDataList[i].gysId);
+      }
+      this.from.gysId = arr.join(",");
+      crmProductBrandAddOrUpdate({
+        gysId: this.from.gysId,
+        data: {
+          brandId: this.from.brandId,
+          parentId: this.from.parentId == "" ? 0 : this.from.parentId,
+          name: this.from.name,
+          sort: this.from.sort,
+          priceRuleType: this.from.priceRuleType,
+          priceRuleNum: this.from.priceRuleNum,
+          qxlx: this.from.qxlx, //查看范围(0：全体成员,1：指定范围)
+          gxry: this.from.gxry, //指定人员,多个人员用逗号分隔
+          gxbm: this.from.gxbm, //指定部门,多个部门用逗号分隔
+          bxjs: this.from.bxjs, //指定角色,多个角色用逗号分隔
+        },
+      })
+        .then((res) => {
+          this.msgSuccess("修改成功");
+          this.empty();
+          this.treeListFun();
+          this.gysName = "";
+          this.sjName = "";
+          this.from.priceRuleType = 1;
+          this.from.qxlx = "0";
+          this.gysDataList = [];
+          this.qxStatus = false;
+        })
+        .catch((res) => {});
+    },
+    empty() {
+      Object.keys(this.from).forEach((key) => (this.from[key] = ""));
+    },
+    //新建品牌
+    addBrand() {
+      this.btnS = true;
+      crmProductBrandFindMaxSort({
+        paretnId: 0,
+      })
+        .then((res) => {
+          this.empty();
+          this.from.sort = res.data.sort;
+          this.from.priceRuleType = 1;
+          this.from.qxlx = "0";
+          this.from.gxry = "";
+          this.userName = "";
+          this.from.gxbm = "";
+          this.bmName = "";
+          this.from.bxjs = "";
+          this.jsName = "";
+          this.gysDataList = [];
+          this.sjName = "";
+          this.from.paretnId = "";
+        })
+        .catch((res) => {});
+    },
+    // 搜索框
+    searchClick() {
+      this.currentPage = 1;
+      this.usersListFun();
+    },
+    newBtn() {},
+    /**
+     * 展开闭合操作
+     */
+    handleExpand(type, node, data) {
+      if (type == "close") {
+        if (data.children) {
+          node.expanded = false;
+        }
+      } else if (type == "open") {
+        node.expanded = true;
+      }
+    },
+    handleClose() {
+      this.employeeDetailDialog = false;
+    },
+    // 单机点击事件
+    changeDepClick(data) {
+      this.from.brandId = [];
+      this.from.supplier = [];
+      this.btnS = true;
+      //根据品牌id查询详情
+      crmProductComnameFindParent({
+        brandId: data.brandId,
+      })
+        .then((res) => {
+          // this.from.parentId = this.getFathersById(
+          //   res.parent.brandId,
+          //   this.options,
+          //   "brandId"
+          // );
+          this.gysDataList = res.gys;
+          if (res.parent[0].brandId == 0) {
+            this.sjName = "无上级名称";
+            this.from.parentId = 0;
+            this.from.name = res.brandInfo.name;
+          } else {
+            this.sjName = res.parent[0].name;
+            this.from.parentId = res.brandInfo.parentId;
+            this.from.name = res.brandInfo.name;
+          }
+          this.from.gysId = res.gysIds;
+          this.gysName = res.gysNames;
+          this.from.brandId = res.brandInfo.brandId;
+          this.from.priceRuleType = res.brandInfo.priceRuleType;
+          this.from.sort = res.brandInfo.sort;
+          this.from.priceRuleNum = res.brandInfo.priceRuleNum;
+          this.from.qxlx = res.brandInfo.qxlx;
+          this.from.gxry = res.brandInfo.gxry;
+          this.userName = res.brandInfo.gxryName;
+          this.from.gxbm = res.brandInfo.gxbm;
+          this.bmName = res.brandInfo.gxbmName;
+          this.from.bxjs = res.brandInfo.bxjs;
+          this.jsName = res.brandInfo.gxjsName;
+          if (res.brandInfo.qxlx == "1") {
+            this.qxStatus = true;
+          } else {
+            this.qxStatus = false;
+          }
+        })
+        .catch((res) => {});
+      this.currentPage = 1;
+    },
+    // 获取树形列表
+    treeListFun() {
+      this.depLoading = true;
+      crmProductBrandQueryList({
+        data: {
+          name: this.filterText,
+          isPrecise: "",
+        },
+      })
+        .then((response) => {
+          this.treeData = response.data;
+          this.options = response.data;
+          this.treeDataSj = response.data;
+          this.depLoading = false;
+        })
+        .catch(() => {
+          this.depLoading = false;
+        });
+    },
+  },
+
+  created() {},
+  activated() {
+    this.treeListFun();
+    this.filterText = "";
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.gysStyle {
+  width: 400px;
+  min-height: 40px;
+  float: left;
+  margin-left: 20px;
+  li {
+    line-height: 30px;
+    width: 200px;
+    float: left;
+    span {
+      width: 150px;
+      line-height: 30px;
+      float: left;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+}
+.el-tab-department {
+  height: 500px;
+  overflow: auto;
+}
+.rt {
+  float: left;
+  margin-left: 10px;
+}
+.input-box {
+  margin: 10px 0 0 10px;
+  width: 99%;
+  height: 35px;
+  .input-label {
+    width: 90px;
+  }
+  .el-input,
+  .el-cascader,
+  .el-select {
+    width: 20%;
+  }
+}
+.input-boxA {
+  margin: 10px 0 0 10px;
+  width: 99%;
+  float: left;
+  .input-label {
+    float: left;
+    width: 90px;
+  }
+  .el-input,
+  .el-cascader,
+  .el-select {
+    width: 20%;
+    float: left;
+  }
+}
+.employee-dep-management {
+  /* padding: 0 20px 20px; */
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.system-content {
+  position: relative;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.system-view-nav {
+  width: 300px;
+  height: 100%;
+  overflow: auto;
+  margin-right: 10px;
+  background: #fff;
+  padding-top: 20px;
+  border: 1px solid #e6e6e6;
+  .el-input {
+    width: 84%;
+    margin: 0 23px;
+  }
+}
+.title {
+  font-size: 18px;
+  height: 40px;
+  line-height: 40px;
+  margin: 0;
+  color: #333;
+  padding: 0 20px;
+}
+.system-view-table {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  /* flex: 1; */
+  position: absolute;
+  top: 0;
+  left: 310px;
+  bottom: 0;
+  right: 0;
+}
+
+.table-top {
+  padding: 10px 0;
+}
+
+.status {
+  display: inline-block;
+  margin-left: 50px;
+}
+.status > span {
+  margin-right: 10px;
+}
+
+.status-name {
+  div {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+  }
+  color: $xr-color-primary;
+  cursor: pointer;
+}
+/* 详情 */
+.employee-dep-management /deep/ .el-dialog__wrapper {
+  margin-top: 60px !important;
+}
+.dialog-top > img {
+  vertical-align: middle;
+  margin-right: 10px;
+  height: 36px;
+}
+.dialog-btn-group {
+  float: right;
+}
+.dialog-remark {
+  font-size: 14px;
+  color: #999;
+  margin-top: 10px;
+}
+.dialog-content {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e6e6e6;
+}
+.dialog-content > div {
+  padding: 10px 0;
+}
+.dialog-content > div > label {
+  color: #777;
+  width: 30%;
+  display: inline-block;
+}
+/* 新建和编辑 */
+.new-dialog-title {
+  padding-left: 10px;
+  margin-bottom: 3px;
+  border-left: 2px solid #46cdcf;
+}
+.new-dialog-form {
+  height: 47vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+.new-dialog-form /deep/ .el-form-item {
+  width: 50%;
+  margin: 0;
+  padding-bottom: 10px;
+}
+.new-dialog-form /deep/ .el-form-item .el-form-item__label {
+  padding: 0;
+}
+.new-dialog-form /deep/ .el-form-item .el-form-item__content {
+  width: 70%;
+}
+.nav-dialog-div {
+  margin-bottom: 20px;
+}
+.nav-dialog-div /deep/ .el-input {
+  width: auto;
+}
+/** 树形结构 */
+.el-tree /deep/ .el-tree-node__expand-icon {
+  display: none;
+}
+.el-tree /deep/ .el-tree-node__content {
+  height: 30px;
+
+  .node-data {
+    .node-img {
+      width: 15px;
+      height: 15px;
+      display: block;
+      margin-right: 8px;
+      margin-left: 24px;
+    }
+    .node-label {
+      margin-right: 8px;
+    }
+    .node-label-set {
+      display: none;
+    }
+  }
+
+  .node-data:hover .node-label-set {
+    display: block;
+  }
+}
+.el-tree /deep/ .el-tree-node.is-current > .el-tree-node__content {
+  background-color: #ebf3ff;
+  border-right: 2px solid #46cdcf;
+  .node-label-set {
+    display: block;
+  }
+}
+.system-view-nav /deep/ .el-tree-node > .el-tree-node__children {
+  overflow: visible;
+}
+.system-view-nav /deep/ .el-tree > .el-tree-node {
+  min-width: 100%;
+  // display: inline-block !important;
+}
+/* 搜索框图标按钮 */
+.icon-search .el-icon-search {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 20px;
+  color: #ccc;
+}
+/* 设置flex布局 */
+.flex-index {
+  display: flex;
+  flex-direction: column;
+}
+/* 设置占位 */
+.flex-box {
+  flex: 1;
+  border-top: 1px solid #e6e6e6;
+}
+/* 搜索框 */
+.icon-search {
+  width: 280px;
+  position: relative;
+}
+.new-dialog-form /deep/ .el-select {
+  display: block;
+}
+
+/** 分页布局 */
+.p-contianer {
+  position: relative;
+  background-color: white;
+  height: 44px;
+  .p-bar {
+    float: right;
+    margin: 5px 100px 0 0;
+    font-size: 14px !important;
+  }
+}
+
+/** 勾选操作 */
+.selection-bar {
+  font-size: 12px;
+  height: 54px;
+  min-height: 54px;
+  padding: 0 20px;
+  color: #777;
+
+  .selected—title {
+    flex-shrink: 0;
+    padding-right: 20px;
+    border-right: 1px solid $--table-border-color;
+    .selected—count {
+      color: $xr-color-primary;
+    }
+  }
+}
+
+.selection-items-box {
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+.new-dialog-form
+  /deep/
+  .el-form-item
+  .el-form-item__content
+  .el-select-group__wrap:not(:last-of-type)::after {
+  display: none;
+}
+.new-dialog-form /deep/ .el-form-item .el-form-item__content .el-select-group {
+  padding-left: 10px;
+}
+.new-dialog-form
+  /deep/
+  .el-form-item
+  .el-form-item__content
+  .el-select-group__title {
+  border-bottom: 1px solid #e4e7ed;
+  padding: 0 0 7px;
+  margin: 0 20px 5px;
+}
+
+.status-des {
+  font-size: 12px;
+  color: #777777;
+  margin: 0 5px;
+  position: absolute;
+  left: 0;
+  top: 7px;
+  .status-des-item {
+    margin: 8px;
+    display: inline-block;
+    div {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 3px;
+      margin-right: 5px;
+    }
+  }
+}
+
+// 提示
+// 提示标志
+.wukong-help_tips {
+  color: #999;
+  font-size: 14px;
+  margin-left: 3px;
+  cursor: pointer;
+}
+
+.wukong-help_tips:hover {
+  color: $xr-color-primary;
+}
+
+// 修改密码和修改登录名的样式
+.el-password {
+  .el-form-item {
+    margin-bottom: 5px;
+  }
+}
+
+.el-dialog__wrapper /deep/.el-dialog__body {
+  padding: 20px;
+}
+
+.tips {
+  font-size: 13px;
+  color: #999;
+}
+</style>

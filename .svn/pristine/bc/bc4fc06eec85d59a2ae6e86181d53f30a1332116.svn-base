@@ -1,0 +1,388 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="header">
+        <div class="input-box">
+          <label class="input-label">创建日期:</label>
+          <el-date-picker
+            v-model="timeData"
+            value-format='yyyy-MM-dd'
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          ></el-date-picker>
+        </div>
+        <div class="input-box" v-if="from.djlx != 'cgdd' && from.djlx != 'cgsh'">
+          <label class="input-label">客户:</label>
+          <el-input clearable placeholder="请选择客户" v-model="khName">
+            <el-button @click="khClick" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box" v-if="from.djlx == 'cgdd' || from.djlx == 'cgsh'">
+          <label class="input-label">供应商:</label>
+          <el-input :readonly="true" clearable placeholder="请选择供应商" v-model="gysName">
+            <el-button @click="gysClick" slot="append" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+        <el-table :data="tableData" height="800px">
+          <el-table-column prop="dh" label="订单单号"></el-table-column>
+          <el-table-column prop="createDate" label="时间"></el-table-column>
+          <el-table-column prop="wsdj" label="未税单价"></el-table-column>
+          <el-table-column prop="quantity" label="数量"></el-table-column>
+          <el-table-column prop="sl" label="税率(%)"></el-table-column>
+          <el-table-column prop="hsdj" label="含税单价"></el-table-column>
+          <el-table-column prop="zdzk" label="整单折扣(%)"></el-table-column>
+          <el-table-column prop="customerName" label="客户名称"></el-table-column>
+          <el-table-column prop="checkStatus" label="订单状态"></el-table-column>
+        </el-table>
+        <div style="text-align:right">
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="from.page"
+            :page-sizes="[15, 30, 50, 100]"
+            :page-size="from.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totle"
+          ></el-pagination>
+        </div>
+        <div style="width:100%;text-align:center">
+          <el-button @click="hidenView" type="info">关闭</el-button>
+        </div>
+      </div>
+    </flexbox>
+
+    <!-- 客户 -->
+    <el-dialog
+      title="选择客户"
+      :visible.sync="dialogVisibleKh"
+      width="40%"
+      :before-close="handleCloseKh"
+      :modal-append-to-body="false"
+    >
+      <span>
+        <div class="input-dialog">
+          <label class="input-label">名称:</label>
+          <el-input v-model="dialogKh.data.name.value" placeholder="名称"></el-input>
+        </div>
+        <div class="input-dialog">
+          <label class="input-label">编码:</label>
+          <el-input v-model="dialogKh.data.code.value" placeholder="编码"></el-input>
+        </div>
+        <el-button type="primary" @click="searchKh">查询</el-button>
+        <el-button @click="resetKh">重置</el-button>
+        <el-table
+          :data="khTableData"
+          style="width: 100%"
+          height="400px"
+          @row-click="handleSelectionKhChange"
+        >
+          <el-table-column prop="name" label="客户名称">
+            <template slot-scope="scope">
+              <span style="color:#0000ff" v-text="scope.row.name"></span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div>
+          <el-pagination
+            @size-change="handleSizeChangeKh"
+            @current-change="handleCurrentChangeKh"
+            :current-page="dialogKh.page"
+            :page-sizes="[15, 30, 50, 100]"
+            :page-size="dialogKh.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totleKh"
+          ></el-pagination>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleCloseKh">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 供应商 -->
+    <el-dialog
+      title="选择供应商"
+      :visible.sync="dialogVisibleGys"
+      width="40%"
+      :before-close="handleCloseGys"
+      :modal-append-to-body="false"
+    >
+      <span>
+        <div class="input-dialog">
+          <label class="input-label">名称:</label>
+          <el-input v-model="dialogGys.name" placeholder="名称"></el-input>
+        </div>
+        <div class="input-dialog">
+          <label class="input-label">编码:</label>
+          <el-input v-model="dialogGys.gysBm" placeholder="编码"></el-input>
+        </div>
+        <el-button type="primary" @click="searchGys">查询</el-button>
+        <el-button @click="resetGys">重置</el-button>
+        <el-table
+          :data="gysTableData"
+          style="width: 100%"
+          height="400px"
+          @row-click="handleSelectionChange"
+        >
+          <el-table-column prop="gysName" label="供应商名称">
+            <template slot-scope="scope">
+              <span style="color:#0000ff" v-text="scope.row.gysName"></span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div>
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="dialogGys.page"
+            :page-sizes="[15, 30, 50, 100]"
+            :page-size="dialogGys.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totle"
+          ></el-pagination>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleCloseGys">取 消</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import { crmPriceFindDj, crmProductFindCustomer } from "@/api/crm/cpxx";
+import { sgdFindGys } from "@/api/jxc/jxc";
+
+export default {
+  components: {
+    createView,
+  },
+  name: "",
+  data() {
+    return {
+      khTableData: [],
+      gysTableData: [],
+      khName: "",
+      gysName: "",
+      timeData: [],
+      loading: false,
+      from: {
+        page: 1, //页码
+        limit: 15, //页大小
+        djlx: "", //单据类型(xsdd：销售订单,xskd：销售开单,cgdd：采购订单,bjd：报价单)
+        brandId: "", //品牌id
+        modelNum: "", //产品型号
+        condition: "",
+        endDate: "",
+        startDate: "",
+      },
+      dialogKh: {
+        search: "",
+        data: {
+          name: {
+            condition: "contains",
+            value: "",
+            formType: "text",
+            name: "name",
+          },
+          code: {
+            condition: "contains",
+            value: "",
+            formType: "text",
+            name: "code",
+          },
+        },
+        page: 1,
+        limit: 15,
+      },
+      dialogGys: {
+        gysBm: "",
+        name: "",
+        page: 1,
+        limit: 15,
+      },
+      totleKh: 0,
+      totle: 0,
+      dialogVisibleKh: false,
+      dialogVisibleGys: false,
+      tableData: [],
+    };
+  },
+
+  methods: {
+    handleCloseGys() {
+      this.dialogVisibleGys = false;
+      this.gysName = "";
+      this.from.gys = "";
+    },
+    gysClick() {
+      this.dialogVisibleGys = true;
+      this.resetGys();
+    },
+    hidenView() {
+      window.top.close();
+    },
+    handleSelectionKhChange(data) {
+      this.dialogVisibleKh = false;
+      this.from.brandId = data.customerId;
+      this.khName = data.name;
+      //   this.cgjgData()
+    },
+    handleSelectionChange(data) {
+      this.dialogVisibleGys = false;
+      this.from.brandId = data.gysId;
+      this.gysName = data.gysName;
+    },
+    khClick() {
+      this.dialogVisibleKh = true;
+      this.resetKh();
+    },
+    handleCloseKh() {
+      this.dialogVisibleKh = false;
+      this.khName = "";
+      this.khNameList = [];
+      this.from.customer = "";
+      this.khIdList = [];
+    },
+    search() {
+      this.cgjgData();
+    },
+    reset() {
+      this.from.brandId = "";
+      this.brandName = "";
+      this.khName = ''
+      this.gysName = ''
+      this.timeData = []
+      this.cgjgData();
+    },
+    searchKh() {
+      this.khTableDataQuery();
+    },
+    resetKh() {
+      this.dialogKh.page = 1;
+      this.dialogKh.limit = 15;
+      this.dialogKh.data.name.value = "";
+      this.dialogKh.data.code.value = "";
+      this.khTableDataQuery();
+    },
+    searchGys() {
+      this.gysTableDataQuery();
+    },
+    resetGys() {
+      this.dialogGys.page = 1;
+      this.dialogGys.limit = 15;
+      this.brandName = "";
+      this.from.brandId = "";
+      this.gysTableDataQuery();
+    },
+    gysTableDataQuery() {
+      sgdFindGys(this.dialogGys)
+        .then((res) => {
+          this.gysTableData = res.data;
+          this.totle = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    khTableDataQuery() {
+      crmProductFindCustomer(this.dialogKh)
+        .then((res) => {
+          this.khTableData = res.data.list;
+          this.totleKh = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    cgjgData() {
+      this.from.startDate = this.timeData.length > 0 ? this.timeData[0] : "";
+      this.from.endDate = this.timeData.length > 0 ? this.timeData[1] : "";
+      crmPriceFindDj(this.from)
+        .then((res) => {
+          // this.timeData.push(res.time.startDate);
+          // this.timeData.push(res.time.endDate);
+          this.tableData = res.data;
+          this.totle = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChangeKh(val) {
+      this.dialogKh.limit = val;
+      this.khTableDataQuery();
+    },
+    handleCurrentChangeKh(val) {
+      this.dialogKh.page = val;
+      console.log(val);
+      this.khTableDataQuery();
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.cgjgData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.cgjgData();
+    },
+    handleSizeChange(val) {
+      this.dialogGys.limit = val;
+      this.gysTableDataQuery();
+    },
+    handleCurrentChange(val) {
+      this.dialogGys.page = val;
+      this.gysTableDataQuery();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.from.brandId = this.widowData.id;
+    this.from.modelNum = this.widowData.modelNum;
+    this.from.djlx = this.widowData.type;
+    console.log(this.from.djlx);
+    if (!this.from.query) {
+      this.cgjgData();
+    }
+  },
+};
+</script>
+<style lang='scss' scoped>
+.header {
+  width: 99%;
+  height: 40px;
+  margin: 20px 0 0 10px;
+}
+.input-box {
+  width: 25%;
+  float: left;
+  .el-date-editor {
+    width: 380px;
+    float: left;
+  }
+  .input-label {
+    line-height: 40px;
+    width: 80px;
+    float: left;
+  }
+  .el-input {
+    float: left;
+    width: 60%;
+  }
+}
+.input-dialog {
+  width: 40%;
+  float: left;
+  .input-label {
+    width: 40px;
+    line-height: 30px;
+    display: inline-block;
+  }
+  .el-input {
+    width: 70%;
+  }
+}
+</style>

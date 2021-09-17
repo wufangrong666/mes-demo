@@ -1,0 +1,95 @@
+import request from '@/utils/request'
+//列表查询
+export function crmGysQueryPageList(data) {
+    return request({
+        url: 'crmGys/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增编辑
+export function crmGysAddOrUpdate(data) {
+    return request({
+        url: 'crmGys/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//供应商查询
+export function crmGysQueryGysJwjl(data) {
+    return request({
+        url: 'crmGys/queryGysJwjl',
+        method: 'post',
+        data: data
+    })
+}
+//供应商 ---交往记录新增
+export function crmGysAddContent(data) {
+    return request({
+        url: 'crmGys/addContent',
+        method: 'post',
+        data: data
+    })
+}
+//供应商 ---交往记录删除
+export function crmGysDeleteGysJwjl(data) {
+    return request({
+        url: 'crmGys/deleteGysJwjl',
+        method: 'post',
+        data: data,
+    })
+}
+//删除
+export function crmGysDeleteByIds(data) {
+    return request({
+        url: 'crmGys/deleteByIds',
+        method: 'post', 
+        data: data,
+    })
+}
+//供应商查询附件
+export function crmGysFileAQueryByGysId(data) {
+    return request({
+        url: 'crmGysFile/queryByGysId',
+        method: 'post', 
+        data: data,
+    })
+}
+//根据ID查询供应商信息
+export function crmGysQueryById(data) {
+    return request({
+        url: 'crmGys/queryById',
+        method: 'post',
+        data: data,
+    })
+}
+//根据ID查询供应商编辑信息
+export function crmGysQueryEditById(data) {
+    return request({
+        url: 'crmGys/queryEditById',
+        method: 'post',
+        data: data,
+    })
+}
+//根据ID查询供应商编辑信息
+export function crmGysCheckStatus(data) {
+    return request({
+        url: 'crmGys/checkStatus',
+        method: 'post',
+        data: data,
+    })
+}
+//供应商名称唯一校验
+export function crmGysValidateName(data) {
+    return request({
+        url: 'crmGys/validateName',
+        method: 'post',
+        data: data,
+    })
+}

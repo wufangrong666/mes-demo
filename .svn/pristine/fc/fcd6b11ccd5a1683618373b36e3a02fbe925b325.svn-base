@@ -1,0 +1,135 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">销售开单审核后是否自动出库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.xskdCk" :label="0">否</el-radio>
+          <el-radio v-model="from.xskdCk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">销售退货单审核后是否自动入库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.xsydRk" :label="0">否</el-radio>
+          <el-radio v-model="from.xsydRk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">采购收货单审核后是否自动入库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cgshRk" :label="0">否</el-radio>
+          <el-radio v-model="from.cgshRk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">采购退货单审核后是否自动出库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cgydCk" :label="0">否</el-radio>
+          <el-radio v-model="from.cgydCk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库领料单审核后是否自动出库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.ckllCk" :label="0">否</el-radio>
+          <el-radio v-model="from.ckllCk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库退料单审核后是否自动入库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cktlRk" :label="0">否</el-radio>
+          <el-radio v-model="from.cktlRk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">产品进仓单审核后是否自动入库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cpjcRk" :label="0">否</el-radio>
+          <el-radio v-model="from.cpjcRk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">产品盘点单审核后是否自动入出库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.pddRck" :label="0">否</el-radio>
+          <el-radio v-model="from.pddRck" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库调拨单审核后是否自动入出库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.dbdRck" :label="0">否</el-radio>
+          <el-radio v-model="from.dbdRck" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminCkszQueryCkszSet,
+  adminCkszUpdateCkszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    ckData() {
+      adminCkszQueryCkszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminCkszUpdateCkszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.ckData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.ckData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

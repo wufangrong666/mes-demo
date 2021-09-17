@@ -1,0 +1,172 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">销售管理：</div>
+        <div class="rightStatus">
+          <div style="width:100%">
+            <span>金额：</span>
+            <el-input style="width:120px" v-model="from.xsje" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">3</b>位系统自动从第
+              <b style="color:red">4</b>位做四舍五入到第
+              <b style="color:green">3</b>位）
+            </span>
+          </div>
+          <div style="width:100%">
+            <span>数量：</span>
+            <el-input style="width:120px" v-model="from.xssl" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">3</b>位系统自动从第
+              <b style="color:red">4</b>位做四舍五入到第
+              <b style="color:green">3</b>位）
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">采购管理：</div>
+        <div class="rightStatus">
+          <div style="width:100%">
+            <span>金额：</span>
+            <el-input style="width:120px" v-model="from.cgje" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">2</b>位系统自动从第
+              <b style="color:red">3</b>位做四舍五入到第
+              <b style="color:green">2</b>位）
+            </span>
+          </div>
+          <div style="width:100%">
+            <span>数量：</span>
+            <el-input style="width:120px" v-model="from.cgsl" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">2</b>位系统自动从第
+              <b style="color:red">3</b>位做四舍五入到第
+              <b style="color:green">2</b>位）
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库管理：</div>
+        <div class="rightStatus">
+          <div style="width:100%">
+            <span>金额：</span>
+            <el-input style="width:120px" v-model="from.ckje" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">2</b>位系统自动从第
+              <b style="color:red">3</b>位做四舍五入到第
+              <b style="color:green">2</b>位）
+            </span>
+          </div>
+          <div style="width:100%">
+            <span>数量：</span>
+            <el-input style="width:120px" v-model="from.cksl" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">2</b>位系统自动从第
+              <b style="color:red">3</b>位做四舍五入到第
+              <b style="color:green">2</b>位）
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库报表：</div>
+        <div class="rightStatus">
+          <div style="width:100%">
+            <span>金额：</span>
+            <el-input style="width:120px" v-model="from.ckbbje" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">2</b>位系统自动从第
+              <b style="color:red">3</b>位做四舍五入到第
+              <b style="color:green">2</b>位）
+            </span>
+          </div>
+          <div style="width:100%">
+            <span>数量：</span>
+            <el-input style="width:120px" v-model="from.ckbbsl" placeholder="请输入内容"></el-input>
+            <span>
+              （超过
+              <b style="color:red">2</b>位系统自动从第
+              <b style="color:red">3</b>位做四舍五入到第
+              <b style="color:green">2</b>位）
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminPointQueryPointSet,
+  adminSgdQpdateSgdSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    mrpData() {
+      adminPointQueryPointSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminSgdQpdateSgdSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.mrpData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.mrpData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 82px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

@@ -1,0 +1,154 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="上海思奉贸易有限公司">
+          <div class="input-box">
+            <label class="input-label">日期类别</label>
+            <el-select v-model="from.rqlb" placeholder="请选择">
+              <el-option
+                v-for="item in rqlbList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box" style="width:20%">
+            <label class="input-label">日期范围</label>
+            <el-date-picker
+              value-format="yyyy-MM-dd"
+              v-model="item"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <el-button @click="success" type="primary">查询</el-button>
+            <el-button @click="reset" type="info" plain>重置</el-button>
+          </div>
+          <div class="title">
+            <ul>
+              <li>供应商：</li>
+              <li>{{'【'+gysName+'】'}}</li>
+              <li>在</li>
+              <li v-text="item[0]"></li>
+              <li>至于</li>
+              <li v-text="item[1]"></li>
+              <li>日的对账明细如下：</li>
+            </ul>
+          </div>
+          <el-table :data="tableData" style="width: 100%" height="750px">
+            <el-table-column prop="createDate" label="单据日期" ></el-table-column>
+            <el-table-column prop="djlx" label="单据类型" ></el-table-column>
+            <el-table-column prop="dh" label="单号"></el-table-column>
+            <el-table-column prop="zj" label="应付总金额增加"></el-table-column>
+            <el-table-column prop="js" label="应付总金额减少"></el-table-column>
+            <el-table-column prop="yfye" label="应付余额"></el-table-column>
+            <el-table-column prop="zy" label="摘要"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px;text-align:center">
+            <el-button @click="hidenView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrGysdzbMx } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      item: [],
+      gysName: "",
+      tableData: [],
+      from: {
+        gysId: "",
+        rqlb: "1",
+        startDate: "",
+        endDate: "",
+      },
+      rqlbList: [
+        { name: "创建日期", id: "1" },
+        { name: "收货日期", id: "2" },
+      ],
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    success() {
+      this.gysMxData();
+    },
+    reset() {
+      this.item = [];
+      this.item.push(this.getCurrentMonthFirst());
+      this.item.push(this.getCurrentMonthLast());
+      this.from.rqlb = "1";
+      this.gysMxData();
+    },
+    gysMxData() {
+      if (this.item.length) {
+        this.from.startDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      cgbbGrGysdzbMx(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.from.gysId = this.decode(this.$route.query.id);
+    this.gysName = this.widowData.gys;
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.gysMxData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-date-editor .el-range-separator {
+  line-height: 20px;
+}
+.create-container .el-range-separator {
+  width: 10%;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../../../manage/styles/table.scss";
+@import "../../../../../styles/detail.scss";
+.input-box {
+  width: 20%;
+}
+.title {
+  float: left;
+  width: 100%;
+  ul {
+    width: 100%;
+    line-height: 40px;
+    li {
+      float: left;
+    }
+  }
+}
+</style>

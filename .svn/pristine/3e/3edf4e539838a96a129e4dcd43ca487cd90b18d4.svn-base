@@ -1,0 +1,63 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="进程追踪">
+          <el-tabs v-model="activeName">
+            <el-tab-pane label="订单信息" name="ddxx">
+              <ddxxVue :id="id"></ddxxVue>
+            </el-tab-pane>
+            <el-tab-pane label="销售开单" name="xskd">
+                <xskdVue :id="id"></xskdVue>
+            </el-tab-pane>
+            <el-tab-pane label="申购单" name="sgd">
+                <sgdVue :id="id"></sgdVue>
+            </el-tab-pane>
+            <el-tab-pane label="采购订单" name="cgdd">
+                <cgddVue :id="id"></cgddVue>
+            </el-tab-pane>
+            <el-tab-pane label="采购收货" name="cgsh"></el-tab-pane>
+          </el-tabs>
+        </sections>
+      </div>
+    </flexbox> 
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import ddxxVue from "./gjzz/ddxx";
+import xskdVue from "./gjzz/xskd"
+import sgdVue from "./gjzz/sgd"
+import cgddVue from "./gjzz/cgdd"
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    ddxxVue,
+    xskdVue,
+    sgdVue,
+    cgddVue
+  },
+  data() {
+    return {
+      activeName: "sgd",
+      loading: false,
+      id:''
+    };
+  },
+
+  methods: {},
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.id = this.decode(this.$route.query.id);
+  },
+};
+</script>
+<style lang='scss' scoped>
+</style>

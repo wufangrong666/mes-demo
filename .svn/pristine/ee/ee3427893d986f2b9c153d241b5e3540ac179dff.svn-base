@@ -1,0 +1,44 @@
+<template>
+  <div class="data-radio">
+    <el-radio-group v-model="label">
+      <el-radio :label="1">本人</el-radio>
+      <el-radio :label="2">本人及下属</el-radio>
+      <el-radio :label="3">本部门</el-radio>
+      <el-radio :label="4">本部门及下属部门</el-radio>
+      <el-radio :label="5">全部</el-radio>
+    </el-radio-group>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "",
+  props:{
+    buttonTbsType:{
+      type:Number
+    }
+  },
+  watch:{
+    buttonTbsType:{
+      handler(){
+        this.label = this.buttonTbsType
+      }
+    }
+  },
+  data() {
+    return {
+      label: ""
+    };
+  },
+
+  methods: {},
+
+  created() {},
+
+  mounted() {
+    this.label = this.buttonTbsType
+  }
+};
+</script>
+<style lang='scss' scoped>
+</style>

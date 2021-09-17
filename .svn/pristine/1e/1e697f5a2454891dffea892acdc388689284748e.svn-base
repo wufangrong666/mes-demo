@@ -1,0 +1,210 @@
+<template>
+  <div>
+    <div class="input-box">
+      <label class="input-label">日志类型</label>
+      <el-select v-model="from.type" placeholder="请选择">
+        <el-option v-for="item in selectList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">用户</label>
+      <el-select filterable v-model="from.user" placeholder="请选择">
+        <el-option
+          v-for="item in userList"
+          :key="item.userId"
+          :label="item.realname"
+          :value="item.userId"
+        ></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <el-button @click="sesucce" type="primary">查询</el-button>
+      <el-button @click="rest" type="info" plain>重置</el-button>
+    </div>
+    <el-table :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="realname" label="职员名称"></el-table-column>
+      <el-table-column prop="logtime" label="时间"></el-table-column>
+      <el-table-column prop="ip" label="IP地址"></el-table-column>
+      <el-table-column label="日志类型">
+        <template slot-scope="scope">
+          <span>{{scope.row.type | conversion}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="description" label="说明"></el-table-column>
+      <el-table-column label="删除">
+        <template slot-scope="scope">
+          <el-button @click="deleteClick(scope.row)" style="color:red" type="text">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15, 30, 50, 100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  systemlogQueryPageList,
+  systemlogDeleteByIds
+} from "@/api/manage/xtsz";
+import { queryDeptTreeAndUser } from "@/api/crm/ggkhc";
+import { usersList } from "@/api/common";
+
+export default {
+  name: "",
+  data() {
+    return {
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 350, // 表的高度
+      tableData: [],
+      userList: [],
+      from: {
+        page: 1,
+        limit: 15,
+        type: "",
+        user: ""
+      },
+      selectList: [{ name: "系统登录", id: 2 }]
+      // { name: "修改角色信息", id: 1 },
+      // { name: "增加部门", id: 3 },
+      // { name: "修改部门信息", id: 4 },
+      // { name: "增加用户", id: 5 },
+      // { name: "修改用户信息", id: 6 },
+      // { name: "用户在职状态改为离职", id: 7 },
+      // { name: "用户密码清除", id: 8 },
+      // { name: "增加群组", id: 9 },
+      // { name: "删除角色", id: 10 },
+      // { name: "修改用户角色信息", id: 11 }
+    };
+  },
+  filters: {
+    conversion(type) {
+      if (type == 1) {
+        return "修改角色信息";
+      } else if (type == 2) {
+        return "系统登录";
+      } else if (type == 3) {
+        return "增加部门";
+      } else if (type == 4) {
+        return "修改部门信息";
+      } else if (type == 5) {
+        return "增加用户";
+      } else if (type == 6) {
+        return "修改用户信息";
+      } else if (type == 7) {
+        return "用户在职状态改为离职";
+      } else if (type == 8) {
+        return "用户密码清除";
+      } else if (type == 9) {
+        return "增加群组";
+      } else if (type == 10) {
+        return "删除角色";
+      } else if (type == 11) {
+        return "修改用户角色信息";
+      }
+    }
+  },
+  methods: {
+    deleteClick(val) {
+      this.$confirm("请确认删除文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          systemlogDeleteByIds({
+            ids: val.id
+          })
+            .then(res => {
+              this.msgSuccess("删除成功");
+              this.logintableData();
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    sesucce() {
+      this.logintableData();
+    },
+    rest() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.type = "";
+      this.from.user = "";
+      this.idList = [];
+      this.logintableData();
+    },
+    cascader(data) {
+      for (var item in data) {
+        if (data[item].children === undefined) {
+          data[item].children = data[item].user;
+          for (var i in data[item].children) {
+            data[item].children[i].name = data[item].children[i].realname;
+            data[item].children[i].id = data[item].children[i].userId;
+          }
+        } else {
+          this.cascader(data[item].children);
+        }
+      }
+      return data;
+    },
+    logintableData() {
+      systemlogQueryPageList(this.from)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = Number(res.data.totalRow);
+        })
+        .catch(res => {});
+    },
+    loginData() {
+      queryDeptTreeAndUser()
+        .then(res => {
+          this.cascaderList = this.cascader(res.data);
+        })
+        .catch(() => {});
+      usersList({ pageType: 0 })
+        .then(res => {
+          this.userList = res.data;
+        })
+        .catch(() => {});
+    },
+    handleSizeChange(val) { 
+      this.from.limit = val;
+      this.logintableData()
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.logintableData()
+    }
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+    this.logintableData();
+  },
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px;
+}
+</style>

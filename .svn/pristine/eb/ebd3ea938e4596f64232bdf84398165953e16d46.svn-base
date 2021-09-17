@@ -1,0 +1,543 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <flexbox class="create-header">
+        <div
+          style="flex:1;font-size:24px;color:#333;font-weight: bold;text-align: center;"
+        >{{cpxxDetailTitle}}</div>
+        <img @click="hidenView" class="close" src="@/assets/img/task_close.png" />
+      </flexbox>
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>产品品牌
+            </label>
+            <el-input
+              :readonly="true"
+              placeholder="产品品牌"
+              v-model="from.brandName"
+              class="input-with-select"
+            >
+              <el-button @click="brandIdClick" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>产品品名
+            </label>
+            <el-input
+              :readonly="true"
+              placeholder="产品品名"
+              v-model="from.nameCn"
+              class="input-with-select"
+            >
+              <el-button @click="comnameIdClick" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">产品型号</label>
+            <el-input clearable placeholder="产品型号" v-model="from.productModelnum"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>计量单位
+            </label>
+            <el-select v-model="from.measureUnitid" placeholder="请选择">
+              <el-option
+                v-for="item in measure"
+                :key="item.measureUnitid"
+                :label="item.measureName"
+                :value="item.measureUnitid"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">参考成本价</label>
+            <el-input clearable placeholder="参考成本价" v-model="from.costPrice"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">参考出售价</label>
+            <el-input clearable placeholder="参考出售价" v-model="from.sellPrice"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">产品描述</label>
+            <el-input clearable placeholder="产品描述" v-model="from.description"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">产品备注</label>
+            <el-input clearable placeholder="产品备注" v-model="from.remark"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">产品状态</label>
+            <el-select v-model="from.status" placeholder="请选择">
+              <el-option
+                v-for="item in statusList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button type="success" @click="successClick">保存</el-button>
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+    </flexbox>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品牌"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
+        <div style="width:100%;height:400px;overflow: auto;margin-top:10px">
+          <el-tree
+            show-checkbox
+            class="filter-tree"
+            :data="data"
+            node-key="brandId"
+            :props="defaultProps"
+            default-expand-all
+            :filter-node-method="filterNode"
+            @check-change="handleClick"
+            ref="tree"
+          ></el-tree>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="changeTree">确 定</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品名"
+      :visible.sync="dialogComname"
+      width="50%"
+      :before-close="handleComname"
+    >
+      <div style="float:left;height:400px;width:100%">
+        <div style="width:30%;float:left;height:400px;">
+          <el-input style="width:70%;" placeholder="输入关键字进行过滤" v-model="comnameText"></el-input>
+          <div style="width:100%;height:356px;overflow: auto;margin-top:10px">
+            <el-tree
+              class="filter-tree"
+              :data="comnameData"
+              node-key="brandId"
+              :props="defaultPropscomname"
+              default-expand-all
+              :filter-node-method="comnameNode"
+              ref="trees"
+              @node-click="comnameClick"
+            ></el-tree>
+          </div>
+        </div>
+        <ul class="comnameRight">
+          <li>
+            <span>品名:</span>
+            <span v-text="comnameList.nameCn"></span>
+          </li>
+          <li>
+            <span>英文品名:</span>
+            <span v-text="comnameList.nameEn"></span>
+          </li>
+          <li>
+            <span>创建人:</span>
+            <span v-text="comnameList.creator"></span>
+          </li>
+          <li>
+            <span>创建日期:</span>
+            <span v-text="comnameList.createDate"></span>
+          </li>
+          <li>
+            <span>关税(%):</span>
+            <span v-text="comnameList.tariff"></span>
+          </li>
+          <li>
+            <span>海关编码:</span>
+            <span v-text="comnameList.hgbm"></span>
+          </li>
+          <li>
+            <span>最后修改日期:</span>
+            <span v-text="comnameList.lastEdittime"></span>
+          </li>
+          <li>
+            <span>功能:</span>
+            <span v-text="comnameList.function"></span>
+          </li>
+          <li>
+            <span>原理:</span>
+            <span v-text="comnameList.theory"></span>
+          </li>
+          <li>
+            <span>用途:</span>
+            <span v-text="comnameList.usage"></span>
+          </li>
+          <li>
+            <span>德国HS CODE:</span>
+            <span v-text="comnameList.hsCode"></span>
+          </li>
+        </ul>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleComname">关闭</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "./cpxxCreateView";
+import sections from "./cpxxSections";
+import Lockr from "lockr";
+import {
+  crmProductBrandQueryList,
+  crmProductQueryPageList,
+  crmProductFindMeasureList,
+  crmProductFileUpload,
+  crmProductSaveAndUpdate,
+  crmProductFindByProductId,
+  findAllComnameNameAndId,
+} from "@/api/crm/cpxx";
+import { crmProductComnameQueryById } from "@/api/crm/pmgl";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  props: {
+    cpxxDetailTitle: {
+      type: String,
+    },
+    cpxxDetailId: {
+      type: Object,
+    },
+  },
+  watch: {
+    filterText(val) {
+      this.$refs.tree.filter(val);
+    },
+    comnameText(val) {
+      this.$refs.trees.filter(val);
+    },
+  },
+  data() {
+    return {
+      measure: [],
+      filterText: "",
+      comnameText: "",
+      dialogVisible: false,
+      dialogComname: false,
+      fileList: [],
+      loading: false,
+      from: {
+        productId: "",
+        brandId: "",
+        comnameId: "",
+        productModelnum: "",
+        measureUnitid: "",
+        costPrice: "",
+        sellPrice: "",
+        description: "",
+        remark: "",
+        status: 1,
+        nameCn: "",
+        brandName: "",
+      },
+      statusList: [
+        { name: "启用", id: 1 },
+        { name: "停用", id: 0 },
+      ],
+      brandIdList: [],
+      data: [],
+      defaultProps: {
+        children: "children",
+        label: "name",
+      },
+      name: "",
+      comname: "",
+      comnameData: [],
+      defaultPropscomname: {
+        children: "children",
+        label: "name",
+      },
+      page: 1,
+      limit: 30,
+      comnameList: {},
+    };
+  },
+
+  methods: {
+    submit() {
+      this.dialogComname = false;
+    },
+    comnameClick(data) {
+      this.from.comnameId = data.id;
+      this.from.nameCn = data.name;
+      crmProductComnameQueryById({
+        id: data.id,
+      })
+        .then((res) => {
+          this.comnameList = res.data;
+        })
+        .catch((res) => {});
+    },
+    search() {
+      this.comnameTree();
+    },
+    reset() {
+      this.comnameText = "";
+      this.comnameTree();
+    },
+    handleClick(data, checked, node) {
+      if (checked) {
+        this.$refs.tree.setCheckedNodes([data]);
+      }
+    },
+    changeTree() {
+      this.from.brandName = this.$refs.tree.getCheckedNodes()[0].name;
+      this.from.brandId = this.$refs.tree.getCheckedNodes()[0].brandId;
+      this.dialogVisible = false;
+    },
+    filterNode(value, data) {
+      if (!value) return true;
+      return data.label.indexOf(value) !== -1;
+    },
+    comnameNode(value, data) {
+      if (!value) return true;
+      return data.name.indexOf(value) !== -1;
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handleComname() {
+      this.dialogComname = false;
+      this.from.comnameId = "";
+      this.comname = "";
+    },
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmProductFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    brandIdClick() {
+      this.dialogVisible = true;
+      this.loginData();
+    },
+    comnameIdClick() {
+      this.dialogComname = true;
+      this.comnameText = "";
+      this.comnameTree();
+    },
+    hidenView() {
+      window.top.close();
+    },
+    successClick() {
+      if (this.from.brandId == "") {
+        this.msgInfo("请选择品牌");
+        return;
+      }
+      if (this.from.comnameId == "") {
+        this.msgInfo("请选择品名");
+        return;
+      }
+      if (this.from.measureUnitid == "") {
+        this.msgInfo("请选择计量单位");
+        return;
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.productFile = arr.join(",");
+      crmProductSaveAndUpdate(this.from)
+        .then((res) => {
+          if (this.cpxxDetailId.productId != undefined) {
+            this.msgSuccess("编辑成功");
+            this.hidenView();
+            this.$emit("save-success");
+          } else {
+            this.msgSuccess("新增成功");
+            this.hidenView();
+            this.$emit("save-success");
+          }
+        })
+        .catch((res) => {});
+    },
+    comnameTree() {
+      findAllComnameNameAndId()
+        .then((res) => {
+          this.comnameData = res.data;
+        })
+        .catch((res) => {});
+    },
+    loginData() {
+      crmProductBrandQueryList({
+        data: {
+          name: "",
+          isPrecise: "",
+        },
+      })
+        .then((res) => {
+          this.data = res.data;
+        })
+        .catch((res) => {});
+    },
+    dwData() {
+      if (this.cpxxDetailId.productId != undefined) {
+        crmProductFindByProductId({
+          productId: this.cpxxDetailId.productId,
+        })
+          .then((res) => {
+            this.from = res.data;
+            this.fileList = res.file;
+          })
+          .catch((res) => {});
+      }
+      crmProductFindMeasureList()
+        .then((res) => {
+          this.measure = res.measure;
+          this.from.measureUnitid = res.measure[0].measureUnitid;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.dwData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.el-tree-node__expand-icon {
+  color: #999;
+}
+.input-box {
+  height: 30px;
+  width: 24%;
+  .el-select {
+    width: 70%;
+  }
+}
+.handle-bar {
+  text-align: center;
+  margin-top: 10px;
+}
+.a-upload {
+  padding: 4px 10px;
+  margin-top: 5px;
+  height: 30px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+.comnameRight {
+  width: 70%;
+  float: right;
+  height: 400px;
+  padding: 0 20px;
+  li {
+    width: 50%;
+    float: left;
+    line-height: 50px;
+    span:nth-child(1) {
+      width: 32%;
+      float: left;
+    }
+    span:nth-child(2) {
+      width: 68%;
+      float: right;
+    }
+  }
+}
+</style>

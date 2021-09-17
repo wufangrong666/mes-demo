@@ -1,0 +1,147 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">单价默认“未税/含税”设置：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.hswsSetting" :label="1">未税单价</el-radio>
+          <el-radio v-model="from.hswsSetting" :label="2">含税单价</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:23%">采购订单、采购询价单、采购收货、采购退货产品单价带：</div>
+        <div class="rightStatus" style="width:77%">
+          <el-radio v-model="from.cgmkdj" :label="1">产品信息中的参考成本价</el-radio>
+          <el-radio v-model="from.cgmkdj" :label="2">最近一次采购价格</el-radio>
+          <el-radio v-model="from.cgmkdj" :label="3">库存平均单价</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:23%">销售订单、销售报价单、销售开单、销售退货产品单价带：</div>
+        <div class="rightStatus" style="width:77%">
+          <el-radio v-model="from.xsmkdj" :label="1">产品信息中的参考出售价</el-radio>
+          <el-radio v-model="from.xsmkdj" :label="2">最近一次销售价格</el-radio>
+          <el-radio v-model="from.xsmkdj" :label="3">库存平均单价</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:44%">采购询价单：采购询价单保存或审批时，如果某产品单价高于该产品的 “参考成本价” 时，则可选择以下进行控制：</div>
+        <div class="rightStatus" style="width:56%">
+          <el-radio v-model="from.cgxjdControl" :label="1">无控制</el-radio>
+          <el-radio v-model="from.cgxjdControl" :label="2">添加报价单无法保存</el-radio>
+          <el-radio v-model="from.cgxjdControl" :label="3">审核时给予提示</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:44%">销售报价单：销售报价单审批时，如果某产品单价低于该产品的 “参考出售价” 时，则可选择以下进行控制：</div>
+        <div class="rightStatus" style="width:56%">
+          <el-radio v-model="from.xsbjdControl" :label="1">无控制</el-radio>
+          <el-radio v-model="from.xsbjdControl" :label="2">添加报价单无法保存</el-radio>
+          <el-radio v-model="from.xsbjdControl" :label="3">审核时给予提示</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:44%">采购订单    ：采购订单审批时，如果某产品单价高于该产品的 “参考成本价” 时，则可选择以下进行控制：</div>
+        <div class="rightStatus" style="width:56%">
+          <el-radio v-model="from.cgddControl" :label="1">无控制</el-radio>
+          <el-radio v-model="from.cgddControl" :label="2">审核时给予提示</el-radio>
+          <el-radio v-model="from.cgddControl" :label="3">增加一步价格审核</el-radio>
+          <el-radio v-model="from.cgddControl" :label="4">无法通过审核</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:44%">销售订单    ：销售订单审批时，如果某产品单价低于该产品的 “参考出售价” 时，则可选择以下进行控制：</div>
+        <div class="rightStatus" style="width:56%">
+          <el-radio v-model="from.xsddControl" :label="1">无控制</el-radio>
+          <el-radio v-model="from.xsddControl" :label="2">审核时给予提示</el-radio>
+          <el-radio v-model="from.xsddControl" :label="3">增加一步价格审核</el-radio>
+          <el-radio v-model="from.xsddControl" :label="4">无法通过审核</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:44%">采购收货单：采购收货单审批时，如果某产品单价高于该产品的 “参考成本价” 时，则可选择以下进行控制：</div>
+        <div class="rightStatus" style="width:56%">
+          <el-radio v-model="from.cgshControl" :label="1">无控制</el-radio>
+          <el-radio v-model="from.cgshControl" :label="2">审核时给予提示</el-radio>
+          <el-radio v-model="from.cgshControl" :label="3">增加一步价格审核</el-radio>
+          <el-radio v-model="from.cgshControl" :label="4">无法通过审核</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus" style="width:44%">销售开单    ：销售开单审批时，如果某产品单价低于该产品的 “参考出售价” 时，则可选择以下进行控制：</div>
+        <div class="rightStatus" style="width:56%">
+          <el-radio v-model="from.xskdControl" :label="1">无控制</el-radio>
+          <el-radio v-model="from.xskdControl" :label="2">审核时给予提示</el-radio>
+          <el-radio v-model="from.xskdControl" :label="3">增加一步价格审核</el-radio>
+          <el-radio v-model="from.xskdControl" :label="4">无法通过审核</el-radio>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminJgkztxQueryJgkztxSet,
+  adminJgkztxUpdateJgkztxSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    jgkzData() {
+      adminJgkztxQueryJgkztxSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminJgkztxUpdateJgkztxSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.jgkzData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.jgkzData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

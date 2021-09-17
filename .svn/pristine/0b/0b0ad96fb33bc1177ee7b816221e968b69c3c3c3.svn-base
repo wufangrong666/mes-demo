@@ -1,0 +1,45 @@
+<template>
+  <div class="tree">
+    <el-tree
+      :default-expand-all="true"
+      :data="dataList"
+      :props="defaultProps"
+      ref="tree"
+      node-key="menuId"
+      show-checkbox
+      :default-checked-keys="dataKeys"
+    ></el-tree>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "",
+  data() {
+    return {
+      defaultProps: {
+        children: "childMenu",
+        label: "opermenuName"
+      }
+    };
+  },
+  props: ["dataList", "dataKeys"],
+
+  methods: {
+    checkListId() {
+      return this.$refs.tree.getCheckedKeys().concat(this.$refs.tree.getHalfCheckedKeys())
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+.tree {
+  height: 600px;
+  overflow: auto;
+  margin-left: 20px;
+}
+</style>

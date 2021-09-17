@@ -1,0 +1,127 @@
+<template>
+  <div>
+    <div class="input-box">
+      <label class="input-label">订单单号</label>
+      <el-input placeholder="请输订单单号" clearable v-model="from.search"></el-input>
+    </div>
+    <div class="input-box">
+      <el-button @click="sesucce" type="primary">查询</el-button>
+      <el-button @click="rest" type="info" plain>重置</el-button>
+    </div>
+    <el-table :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="type" label="备注"></el-table-column>
+      <el-table-column prop="djh" label="订单编号"></el-table-column>
+      <el-table-column prop="khGysId" label="客户/供应商"></el-table-column>
+      <el-table-column prop="cjrq" label="创建日期"></el-table-column>
+      <el-table-column prop="cjr" label="创建人"></el-table-column>
+      <el-table-column prop="zje" label="总金额"></el-table-column>
+      <el-table-column prop="deletezy" label="删除人"></el-table-column>
+      <el-table-column prop="deleteTime" label="删除时间"></el-table-column>
+      <el-table-column label="删除">
+        <template slot-scope="scope">
+          <el-button @click="deleteClick(scope.row)" style="color:red" type="text">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15, 30, 50, 100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  systemlogdeleteQueryPageList,
+  systemlogdeleteDeleteByIds,
+} from "@/api/manage/xtsz";
+import { queryDeptTreeAndUser } from "@/api/crm/ggkhc";
+export default {
+  name: "",
+  data() {
+    return {
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 350, // 表的高度
+      tableData: [],
+      from: {
+        page: 1,
+        limit: 15,
+        search: "",
+      },
+      selectList: [{ name: "系统登录", id: 2 }],
+    };
+  },
+  filters: {},
+  methods: {
+    deleteClick(val) {
+      this.$confirm("请确认是否删除, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          systemlogdeleteDeleteByIds({
+            ids: val.id,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.logintableData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    sesucce() {
+      this.logintableData();
+    },
+    rest() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.search = "";
+      this.logintableData();
+    },
+    logintableData() {
+      systemlogdeleteQueryPageList(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = Number(res.data.totalRow);
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.logintableData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.logintableData();
+    },
+  },
+
+  created() {},
+  activated() {
+    this.logintableData();
+  },
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px;
+}
+</style>

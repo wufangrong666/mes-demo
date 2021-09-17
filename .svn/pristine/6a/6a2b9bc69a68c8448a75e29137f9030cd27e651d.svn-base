@@ -1,0 +1,210 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="供应商名称/采购收货单号" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border :data="tableData" id="table" :height="tableHeight" stripe style="width: 100%">
+      <el-table-column width="145" label="采购收货单号">
+        <template slot-scope="scope">
+          <span
+            @click="lookClick(scope.row)"
+            style="color: #3E84E9;cursor:pointer"
+            v-text="scope.row.cgshDh"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="ckName" label="入货仓库"></el-table-column>
+      <el-table-column prop="gysName" label="供应商名称"></el-table-column>
+      <el-table-column prop="createDate" label="创建日期"></el-table-column>
+      <el-table-column prop="jhrq" label="收货日期"></el-table-column>
+      <el-table-column prop="sjrksj" label="实际入库时间"></el-table-column>
+      <el-table-column prop="czyName" label="操作员"></el-table-column>
+      <el-table-column prop="fpStatus" label="发票状态"></el-table-column>
+      <el-table-column prop="status" label="状态"></el-table-column>
+      <el-table-column prop="dycs" label="打印次数"></el-table-column>
+      <el-table-column prop="address" width="250" label="操作">
+        <template slot-scope="scope">
+          <el-button @click="lookClick(scope.row)" type="text">查看</el-button>
+          <el-button @click="dyrkd(scope.row)" type="text">打印入库单</el-button>
+          <el-button
+            :disabled="scope.row.status !== '已审核'"
+            @click="shClick(scope.row)"
+            type="text"
+          >收货</el-button>
+          <el-button @click="wlgl(scope.row)" type="text">物流管理</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[10,30,50,100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ckrckCgshrk } from "@/api/jxc/jxc";
+import zdyListHeader from "../../../components/zdyListHeader";
+import zdyTableHeader from "../../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      yskdDetails: false,
+      yskdMx: false,
+      yskdDetailsId: "",
+      title: "",
+      from: {
+        page: 1,
+        limit: 15,
+        gysName: "",
+        gysCode: "",
+        beginDate: "",
+        endDate: "",
+        shDh: "",
+      },
+      item: "",
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      total: 0,
+      data: {},
+      yskdDetailsTitle: "新增",
+      listType: "jxc_ckgl_cgshrk",
+    };
+  },
+
+  methods: {
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.gysName = "";
+      this.from.gysCode = "";
+      this.from.shDh = "";
+      for (var i in list) {
+        if (list[i].name == "gysmc") {
+          this.$set(this.from, "gysName", list[i].value);
+        } else if (list[i].name == "gysbm") {
+          this.$set(this.from, "gysCode", list[i].value);
+        } else if (list[i].name == "shDh") {
+          this.$set(this.from, "shDh", list[i].value);
+        } else if (list[i].name == "itemData") {
+          this.item =  list[i].value
+        }
+      }
+      this.loginData();
+    },
+    shClick(row) {
+      this.windowOpen("/cgshDhmx", {
+        id: this.encode(row.cgshId),
+        type: "cgshrk",
+      });
+    },
+    wlgl(row) {
+      this.windowOpen("/cgshrkWlgl", {
+        id: this.encode(row.cgshId),
+        type: "htDy",
+      });
+    },
+    dyrkd(row) {
+      this.windowOpen("/cgshHtdy", {
+        id: this.encode(row.cgshId),
+        type: "htDy",
+      });
+    },
+    lookClick(row) {
+      this.windowOpen("/cgshDhmx", {
+        id: this.encode(row.cgshId),
+        type: "toView",
+      });
+    },
+    loginData() {
+      if (this.item.length > 0) {
+        this.from.beginDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      ckrckCgshrk(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+    receiveMessage(event) {
+      this.loginData();
+    },
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.updateTableHeight();
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 20px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+.c-container {
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 10px;
+    width: 15%;
+    height: 35px;
+    .input-label {
+      width: 90px;
+      line-height: 35px;
+    }
+    .el-date-editor {
+      width: 70%;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

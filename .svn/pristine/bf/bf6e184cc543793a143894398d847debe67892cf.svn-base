@@ -1,0 +1,115 @@
+<template>
+  <div>
+    <div v-for="(data,index) in listData" :key="index" class="topStyle">
+      <div class="description" v-text="data.description"></div>
+      <div class="radio">
+        <el-radio v-model="data.sjqx" :label="1">是</el-radio>
+        <el-radio v-model="data.sjqx" :label="0">否</el-radio>
+      </div>
+      <div
+        class="str"
+        v-if="data.flag == 1"
+      >否，则不受影响；是，销售订单新建编辑明细界面只可保存不可提交。 该订单下推的申购单提交后， 该销售订单状态也变已提交状态。 待该订单对应申购单被审核之后，该订单的状态同时变更为已审核</div>
+      <div class="str" v-else>否，销售订单不能重复申购，该按钮变成灰色且不允许点击；是，则不受影响，即：销售订单可以重复申购，该按钮变成灰色，但允许点击。</div>
+    </div>
+    <div v-for="(item,index) in numList" class="topStyle">
+      <div class="descriptionNum">
+        <span>{{item.description.replace("num","")}}</span>
+        <el-input v-model="item.num"></el-input>
+        <span>%时</span>
+      </div>
+      <div style="margin-left:30px;width:100%;float:left">
+        <el-radio v-model="item.sjqx" :label="0">没有控制</el-radio>
+        <el-radio v-model="item.sjqx" :label="1">审核时给予提示</el-radio>
+        <el-radio v-model="item.sjqx" :label="2">无法通过审核</el-radio>
+      </div>
+    </div>
+    <div style="float:left;width:100%;margin-top:30px;text-align:center">
+      <el-button @click="addClcik" type="success">保存成功</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import { jcszQueryJcsz, jcszAddAndUpdate } from "@/api/manage/jxcsz";
+
+export default {
+  name: "",
+  data() {
+    return {
+      listData: [],
+      radio: 1,
+      numList: []
+    };
+  },
+
+  methods: {
+    loginData() {
+      jcszQueryJcsz()
+        .then(res => {
+          for (var i in res.data) {
+            if (i == "jcsz") {
+              this.listData = res.data[i];
+            } else {
+              this.numList = res.data[i];
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    addClcik() {
+      jcszAddAndUpdate({
+        adminJcszList: this.listData,
+        adminJcszNumList: this.numList
+      })
+        .then(res => {
+          this.msgSuccess("修改成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+.topStyle {
+  margin: 20px 0 0 20px;
+  width: 48%;
+  min-height: 100px;
+  border: 1px solid rgb(225, 225, 232);
+  float: left;
+  .el-input {
+    width: 50px;
+  }
+}
+.description {
+  width: 50%;
+  float: left;
+  line-height: 40px;
+  text-indent: 30px;
+}
+.descriptionNum {
+  float: left;
+  line-height: 40px;
+  margin-left: 30px;
+  span {
+    display: inline-block;
+  }
+}
+.radio {
+  width: 50%;
+  line-height: 40px;
+  float: left;
+}
+.str {
+  text-indent: 30px;
+  float: left;
+  height: 60px;
+}
+</style>

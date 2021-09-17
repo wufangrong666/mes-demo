@@ -1,0 +1,168 @@
+<template>
+  <div style="position: relative;">
+    <el-table :height="tableHeight" :data="tableData" style="width: 100%">
+      <el-table-column prop="date" label="序号">
+        <template slot-scope="scope">
+          <el-input style="width:20%" v-model="scope.row.sort" placeholder="请输入序号"></el-input>
+        </template>
+      </el-table-column>
+      <el-table-column prop="content" label="内容">
+        <template slot-scope="scope">
+          <el-input v-model="scope.row.content" placeholder="请输入内容"></el-input>
+        </template>
+      </el-table-column>
+      <el-table-column prop="address" label="操作">
+        <template slot-scope="scope">
+          <el-button @click="editClick(scope.row)" type="text">确认</el-button>
+          <el-button @click="deleteClick(scope)" style="color:red" type="text">删除</el-button>
+          <!-- <el-button @click="deleteClick(scope)" style="color:red" type="text">删除</el-button> -->
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="page"
+        :page-sizes="[10,30,50,100]"
+        :page-size.sync="limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <div class="handle-bar">
+      <el-button icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  costInfoTipsQueryPageList,
+  costInfoTipsDeleteById,
+  costInfoTipsAddOrUpdate
+} from "@/api/crm/xbjTable";
+export default {
+  name: "",
+  data() {
+    return {
+      page: 1,
+      limit: 15,
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 270,
+      total: 0
+    };
+  },
+
+  methods: {
+    appendClick() {
+      this.tableData.push({
+        id: "",
+        content: "",
+        sort: ""
+      });
+    },
+    editClick(row) {
+      if (row.content == "") {
+        this.msgInfo("请输入内容");
+        return;
+      }
+      if (row.sort == "") {
+        this.msgInfo("请输入序号");
+        return;
+      }
+      costInfoTipsAddOrUpdate({
+        id: row.id,
+        content: row.content,
+        sort: row.sort
+      })
+        .then(res => {
+          if (row.id == "") {
+            this.msgSuccess("新增成功");
+            this.loginData();
+          } else {
+            this.msgSuccess("修改成功");
+            this.loginData();
+          }
+        })
+        .catch(res => {});
+    },
+    deleteClick(scope) {
+      if (scope.row.id == "") {
+        this.tableData.splice(scope.$index, 1);
+      } else {
+        this.$confirm("请确认删除信息, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            costInfoTipsDeleteById({
+              id: scope.row.id
+            })
+              .then(res => {
+                this.$message({
+                  type: "success",
+                  message: "删除成功!"
+                });
+                this.loginData();
+              })
+              .catch(res => {});
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消删除"
+            });
+          });
+      }
+    },
+    // 更改每页展示数量
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginData();
+    },
+    // 更改当前页数
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginData();
+    },
+    loginData() {
+      costInfoTipsQueryPageList({
+        page: this.page,
+        limit: this.limit
+      })
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.loginData();
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.handle-bar {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+</style>

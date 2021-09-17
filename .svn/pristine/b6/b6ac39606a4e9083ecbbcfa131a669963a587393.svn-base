@@ -1,0 +1,944 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>客户
+            </label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="customerName">
+              <el-button @click="dialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人</label>
+            <el-input placeholder="创建人" :readonly="true" v-model="creator"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <el-input placeholder="创建日期" :readonly="true" v-model="createDate"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单号</label>
+            <el-input placeholder="单号" :readonly="true" v-model="xjdDh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <el-select v-model="contactId" placeholder="请选择" @change="contactChange">
+              <el-option
+                v-for="item in contactList"
+                :key="item.contactId"
+                :label="item.contactName"
+                :value="item.contactId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系电话</label>
+            <el-input placeholder="请输入联系电话" :readonly="true" clearable v-model="from.contactPhone"></el-input>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <el-table height="550px" :data="tableList" style="width: 100%">
+            <el-table-column label="品牌">
+              <template slot="header" slot-scope="scope">
+                <span style="color:red">*</span>
+                <span>品牌</span>
+              </template>
+              <template slot-scope="scopr">
+                <el-input
+                  placeholder="请选择"
+                  :readonly="true"
+                  clearable
+                  v-model="scopr.row.brandName"
+                >
+                  <el-button
+                    @click="customerCliuck(scopr.$index)"
+                    slot="append"
+                    icon="el-icon-plus"
+                  ></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <el-input
+                  placeholder="请选择"
+                  :readonly="true"
+                  v-model="scopr.row.productName"
+                  clearable
+                >
+                  <el-button @click="comnameIdClick(scopr)" slot="append" icon="el-icon-plus"></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.productModelnum" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="产地">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.place" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量">
+              <template slot="header" slot-scope="scope">
+                <span style="color:red">*</span>
+                <span>数量</span>
+              </template>
+              <template slot-scope="scopr">
+                <el-input
+                  @keyup.native="scopr.row.quantity = scopr.row.quantity.replace(/[^\d.]/g,'')"
+                  v-model="scopr.row.quantity"
+                  clearable
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="备注">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.remark" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scopr">
+                <el-button style="color:#f56c6c" @click="deletClick(scopr.$index)" type="text">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+        <el-button type="success" @click="successClick">确认</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <!-- 客户选择 -->
+    <el-dialog
+      title="客户列表"
+      :visible.sync="dialogVisible"
+      width="60%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">客户名称</label>
+        <el-input placeholder="请输入客户名称" clearable v-model="dialogFrom.name"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">客户编码</label>
+        <el-input placeholder="请输入客户编码" clearable v-model="dialogFrom.code"></el-input>
+      </div>
+      <div class="dialog-box">
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+      <div class="table-box">
+        <el-table :data="tableData" style="width: 100%" height="500">
+          <el-table-column label="客户名称">
+            <template slot-scope="scope">
+              <span
+                @click="queryName(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.name"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="客户编码"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page.sync="dialogFrom.page"
+        :page-size="dialogFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+    <!-- 品牌选择 -->
+    <el-dialog
+      title="品牌列表"
+      :visible.sync="customerVisible"
+      width="70%"
+      :before-close="handleCloseVisible"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-cascader
+          v-model="cascaderIds"
+          :options="options"
+          :props="props"
+          :show-all-levels="false"
+          collapse-tags
+          clearable
+        ></el-cascader>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-input placeholder="请输入品牌" clearable v-model="customerFrom.brandName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品名</label>
+        <el-input placeholder="请输入品名" clearable v-model="customerFrom.productName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">规格型号</label>
+        <el-input placeholder="请输入规格型号" clearable v-model="customerFrom.productModelnum"></el-input>
+      </div>
+      <div style="width:100%;text-align: center;margin-bottom:20px">
+        <el-button type="primary" @click="customerSearch">查询</el-button>
+        <el-button @click="customerReset">重置</el-button>
+      </div>
+      <div class="customer-box">
+        <el-table
+          :data="customerList"
+          style="width: 100%"
+          height="400"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column label="品牌">
+            <template slot-scope="scope">
+              <span
+                @click="customerClick(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.brandName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="productName" label="品名"></el-table-column>
+          <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+          <el-table-column prop="measureName" label="单位"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChangeA"
+        @current-change="handleCurrentChangeA"
+        :current-page.sync="customerFrom.page"
+        :page-size="customerFrom.limit"
+        layout="total, prev, pager, next, jumper"
+        :total="customerFroTotal"
+      ></el-pagination>
+      <span
+        slot="footer"
+        class="dialog-footer"
+        style="width: 100%;
+    display: inline-block;
+    text-align: center;"
+      >
+        <el-button type="success" @click="customerAdd">确认</el-button>
+        <el-button @click="customerVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品名"
+      :visible.sync="dialogComname"
+      width="50%"
+      :before-close="handleComname"
+    >
+      <div style="float:left;height:400px;width:100%">
+        <div style="width:30%;float:left;height:400px;">
+          <el-input style="width:50%;" placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
+          <el-button @click="searchComname" type="primary">搜索</el-button>
+          <el-button @click="restComname" type="info" plain>重置</el-button>
+          <div style="width:100%;height:356px;overflow: auto;margin-top:10px">
+            <ul class="tree">
+              <li
+                :class="{'comnameStyle' : item.flag}"
+                @click="comnameClick(item)"
+                v-for="(item,index) in comnameData"
+                :key="index"
+              >{{item.name}}</li>
+            </ul>
+          </div>
+        </div>
+        <ul class="comnameRight">
+          <li>
+            <span>品名:</span>
+            <span v-text="comnameList.nameCn"></span>
+          </li>
+          <li>
+            <span>英文品名:</span>
+            <span v-text="comnameList.nameEn"></span>
+          </li>
+          <li>
+            <span>创建人:</span>
+            <span v-text="comnameList.creator"></span>
+          </li>
+          <li>
+            <span>创建日期:</span>
+            <span v-text="comnameList.createDate"></span>
+          </li>
+          <li>
+            <span>关税(%):</span>
+            <span v-text="comnameList.tariff"></span>
+          </li>
+          <li>
+            <span>海关编码:</span>
+            <span v-text="comnameList.hgbm"></span>
+          </li>
+          <li>
+            <span>最后修改日期:</span>
+            <span v-text="comnameList.lastEdittime"></span>
+          </li>
+          <li>
+            <span>功能:</span>
+            <span v-text="comnameList.function"></span>
+          </li>
+          <li>
+            <span>原理:</span>
+            <span v-text="comnameList.theory"></span>
+          </li>
+          <li>
+            <span>用途:</span>
+            <span v-text="comnameList.usage"></span>
+          </li>
+          <li>
+            <span>德国HS CODE:</span>
+            <span v-text="comnameList.hsCode"></span>
+          </li>
+        </ul>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleComname">关闭</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  xbjQueryForAdd,
+  xbjQueryCustomer,
+  xbjQueryProduct,
+  xbjQueryBrandTree,
+  xbjAddOrUpdate,
+  xbjQueryByXjdId,
+  xbjQueryComname,
+  xjdFileQueryByXjdId
+} from "@/api/crm/xbjTable";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import { findAllComnameNameAndId } from "@/api/crm/cpxx";
+import { crmProductComnameQueryById } from "@/api/crm/pmgl";
+import { xjdFileUpload } from "@/api/common";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  computed: {
+    ...mapGetters(["manage", "companyConfig"])
+  },
+  data() {
+    return {
+      comnameList: {},
+      comnameData: [],
+      dialogComname: false,
+      filterText: "",
+      productList: [],
+      options: [],
+      index: 0,
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true
+      },
+      cascaderIds: [],
+      tableData: [],
+      customerList: [],
+      contactList: [],
+      contactId: "",
+      tableList: [
+        {
+          brandName: "",
+          brandId: "",
+          comnameId: "",
+          comnameName: "",
+          place: "",
+          quantity: "",
+          remark: "",
+          productName: "",
+          productId: "",
+          productModelnum: ""
+        }
+      ],
+      loading: false,
+      creator: "",
+      createDate: "",
+      xjdDh: "",
+      xjdId: "",
+      from: {
+        name: "",
+        brandId: "",
+        contactPhone: "",
+        contactName: ""
+      },
+      brandName: "",
+      customerName: "",
+      customerId: "",
+      dialogVisible: false,
+      customerVisible: false,
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: ""
+      },
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: ""
+      },
+      total: 0,
+      customerFroTotal: 0,
+      selectionList: [],
+      customerIndex: "",
+      fileList: [],
+      scope: "",
+      submitList: {}
+    };
+  },
+
+  methods: {
+    submit() {
+      this.dialogComname = false;
+      this.scope.row.comnameId = this.submitList.id;
+      this.tableList[this.scope.$index].comnameId = this.submitList.id;
+      this.tableList[this.scope.$index].productName = this.submitList.name;
+    },
+    crmProductData(val) {
+      crmProductComnameQueryById({
+        id: val
+      })
+        .then(res => {
+          this.comnameList = res.data;
+        })
+        .catch(res => {});
+    },
+    comnameClick(data) {
+      this.submitList = data;
+      for (var i in this.comnameData) {
+        if (this.comnameData[i].id == data.id) {
+          this.comnameData[i].flag = true;
+        } else {
+          this.comnameData[i].flag = false;
+        }
+      }
+      this.crmProductData(data.id);
+    },
+    handleComname() {
+      this.dialogComname = false;
+    },
+    comnameIdClick(scope) {
+      this.scope = scope;
+      this.dialogComname = true;
+      this.comnameText = "";
+      this.comnameTree(scope.row.comnameId);
+      if (scope.row.comnameId != "") {
+        this.crmProductData(scope.row.comnameId);
+      }
+    },
+    searchComname() {
+      this.comnameTree();
+    },
+    restComname() {
+      this.filterText = "";
+      this.comnameTree();
+    },
+    comnameTree() {
+      findAllComnameNameAndId({
+        name: this.filterText
+      })
+        .then(res => {
+          this.comnameData = res.data;
+          for (var i in this.comnameData) {
+            if (this.scope.row.comnameId != "") {
+              if (this.comnameData[i].id == this.scope.row.comnameId) {
+                this.comnameData[i].flag = true;
+              } else {
+                this.comnameData[i].flag = false;
+              }
+            } else {
+              this.comnameData[i].flag = false;
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      xjdFileUpload(params)
+        .then(res => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    contactChange(val) {
+      for (var i in this.contactList) {
+        if (this.contactList[i].contactId == val) {
+          this.from.contactPhone = this.contactList[i].contactPhone;
+        }
+      }
+    },
+    successClick() {
+      if (!this.customerName) {
+        this.msgInfo("请选择客户");
+        return;
+      }
+      if (!this.contactId) {
+        this.msgInfo("请选择联系人");
+        return;
+      }
+
+      for (var i in this.tableList) {
+        if (this.tableList[i].brandId == "") {
+          this.msgInfo("请选择品牌");
+          return;
+        } else if (this.tableList[i].quantity < 0) {
+          this.msgInfo("数量不能小于0");
+          return;
+        } else {
+          if (
+            this.tableList[i].quantity == undefined ||
+            this.tableList[i].quantity == ""
+          ) {
+            this.msgInfo("请选择数量");
+            return;
+          }
+        }
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      xbjAddOrUpdate({
+        entity: {
+          xjdId: this.xjdId,
+          customerId: this.customerId,
+          contactId: this.contactId,
+          xjdDh: this.xjdDh,
+          contactName: this.from.contactName,
+          contactPhone: this.from.contactPhone,
+          crmXjdmxList: this.tableList,
+          fileIds: arr.join(",")
+        }
+      })
+        .then(res => {
+          if (this.widowData.type == "edit") {
+            this.loading = true;
+            this.message("编辑成功");
+          } else if (this.widowData.type == "add") {
+            this.loading = true;
+            this.message("新增成功");
+          }
+        })
+        .catch(res => {
+          this.loading = false;
+        });
+    },
+    message(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          this.resetGetList();
+          this.hidenView();
+          this.loading = false;
+        }
+      });
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    hidenView() {
+      window.top.close();
+    },
+    search() {
+      this.dialogData();
+    },
+    searchPm() {
+      this.comnameTree();
+    },
+    customerSearch() {
+      let arr = [];
+      if (this.cascaderIds.length) {
+        for (var i in this.cascaderIds) {
+          arr.push(this.cascaderIds[i][this.cascaderIds[i].length - 1]);
+        }
+        this.customerFrom.brandName = arr.join(",");
+      }
+      this.customerData();
+    },
+    customerReset() {
+      this.customerFrom.page = 1;
+      this.customerFrom.limit = 15;
+      this.cascaderIds = [];
+      this.customerFrom.brandName = "";
+      this.customerFrom.productModelnum = "";
+      this.customerFrom.productModelnum = "";
+      this.customerData();
+    },
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    resetPm() {
+      this.comnameText = "";
+      // this.comnameTree();
+    },
+    queryName(data) {
+      this.contactList = data.contactList;
+      this.dialogVisible = false;
+      this.customerName = data.name;
+      this.from.contactName = data.contactName;
+      this.from.contactPhone = data.contactList[0].contactPhone;
+      this.customerId = data.customerId;
+      this.contactId = data.contactList[0].contactId;
+    },
+    customerClick(data) {
+      this.customerVisible = false;
+      this.tableList[this.customerIndex] = Object.assign({}, data);
+      this.$set(this.tableList, this.customerIndex, data);
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handleCloseVisible() {
+      this.customerVisible = false;
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    dialog() {
+      this.dialogVisible = true;
+      this.dialogData();
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then(res => {
+          this.customerList = res.data.list;
+          this.customerFroTotal = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    customerCliuck(val) {
+      this.customerIndex = val;
+      this.customerVisible = true;
+      this.customerData();
+      xbjQueryBrandTree()
+        .then(res => {
+          this.options = res.data;
+        })
+        .catch(res => {});
+    },
+    queryData() {
+      xbjQueryComname()
+        .then(res => {
+          this.productList = res.data;
+        })
+        .catch(res => {});
+      if (this.widowData.type == "edit") {
+        xbjQueryByXjdId({
+          xjdId: this.widowData.id
+        })
+          .then(res => {
+            this.tableList = res.data.djmx;
+            this.xjdId = res.data.xjdId;
+            this.customerId = res.data.customerId;
+            this.customerName = res.data.customerName;
+            this.xjdDh = res.data.xjdDh;
+            this.createDate = res.data.createDate;
+            this.from.contactName = res.data.customerName;
+            this.from.contactPhone = res.data.contactPhone;
+            this.contactId = res.data.contactId;
+          })
+          .catch(res => {});
+        xjdFileQueryByXjdId({
+          xjdId: this.widowData.id
+        })
+          .then(res => {
+            this.fileList = res.data;
+          })
+          .catch(res => {});
+        crmCustomerqueryById({
+          customerId: this.customerId
+        })
+          .then(res => {
+            this.contactList = res.data.customerContact;
+            this.creator = res.data.creator;
+          })
+          .catch(res => {});
+      } else {
+        xbjQueryForAdd()
+          .then(res => {
+            this.xjdDh = res.data.xjdDh;
+            this.creator = res.data.creator;
+            this.createDate = res.data.createDate;
+          })
+          .catch(res => {});
+      }
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    handleSizeChangeA(val) {
+      this.customerFrom.limit = val;
+      this.customerData();
+    },
+    handleCurrentChangeA(val) {
+      this.customerFrom.page = val;
+      this.customerData();
+    },
+    handleSelectionChange(val) {
+      this.selectionList = val;
+    },
+    customerAdd() {
+      this.customerVisible = false;
+      for (var i in this.selectionList) {
+        this.tableList[Number(i) + this.customerIndex] = Object.assign(
+          {},
+          this.selectionList[i]
+        );
+        this.$set(this.tableList, i, this.tableList[i]);
+      }
+    },
+    deletClick(val) {
+      if (this.tableList.length == 1) {
+        this.msgInfo("无法删除最后一条");
+      } else {
+        this.tableList.splice(val, 1);
+      }
+    },
+    appendClick() {
+      this.tableList.push({
+        brandName: "",
+        brandId: "",
+        comnameId: "",
+        comnameName: "",
+        place: "",
+        quantity: "",
+        remark: "",
+        productName: "",
+        productId: "",
+        productModelnum: ""
+      });
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.customerId = this.$route.query.customerId;
+    this.queryData();
+  }
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  height: 25px;
+}
+.create-flex .el-input-group__append {
+  line-height: 23px;
+}
+.create-flex .el-input__icon {
+  line-height: 25px;
+}
+.el-dialog__body {
+  padding-top: 0;
+}
+.create-flex .el-button {
+  padding: 3px 12px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+
+.create-container {
+  position: relative;
+  height: 100%;
+}
+.handle-bar {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+}
+.input-box {
+  width: 31%;
+  .el-input {
+    height: 0;
+  }
+  .el-select {
+    width: 60%;
+  }
+}
+.dialog-box {
+  width: 300px;
+  display: inline-block;
+  margin-bottom: 20px;
+  .input-label {
+    display: inline-block;
+    line-height: 30px;
+    width: 60px;
+  }
+  .el-input {
+    width: 220px;
+  }
+}
+.table-box {
+  height: 500px;
+  overflow: auto;
+}
+.customer-box {
+  height: 400px;
+  overflow: auto;
+}
+
+.a-upload {
+  padding: 4px 10px;
+  height: 25px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+.comnameRight {
+  width: 70%;
+  float: right;
+  height: 400px;
+  padding: 0 20px;
+  li {
+    width: 50%;
+    float: left;
+    line-height: 50px;
+    span:nth-child(1) {
+      width: 32%;
+      float: left;
+    }
+    span:nth-child(2) {
+      width: 68%;
+      float: right;
+    }
+  }
+}
+.tree {
+  width: 100%;
+  li {
+    line-height: 30px;
+  }
+}
+.comnameStyle {
+  background: #3e84e9;
+  color: #fff;
+}
+</style>

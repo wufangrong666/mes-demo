@@ -1,0 +1,173 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="采购收货选择订单">
+          <div class="input-box">
+            <label class="input-label">供应商名称</label>
+            <el-input placeholder="供应商名称" clearable v-model="from.gysName"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购订单单号</label>
+            <el-input placeholder="采购订单单号" clearable v-model="from.dh"></el-input>
+          </div>
+          <div class="input-box" style="width:25%">
+            <label class="input-label">创建时间</label>
+            <el-date-picker
+              v-model="itemData"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="yyyy-MM-dd"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <el-button type="primary" @click="success">查询</el-button>
+            <el-button type="info" plain @click="reset">重置</el-button>
+          </div>
+          <el-table :data="tableData" style="width: 100%" height="750px">
+            <el-table-column width="55">
+              <template slot-scope="scope">
+                <el-radio v-model="radioId" :label="scope.row.cgddId">
+                  <span></span>
+                </el-radio>
+              </template>
+            </el-table-column>
+            <el-table-column prop="cgddDh" label="采购订单单号">
+              <template slot-scope="scope">
+                <span
+                  style="color: #3E84E9; cursor: pointer"
+                  v-text="scope.row.cgddDh"
+                  @click="cgddDhclick(scope)"
+                ></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="gysName" label="供应商"></el-table-column>
+            <el-table-column prop="zje" label="总价"></el-table-column>
+            <el-table-column prop="jhrq" label="交货日期"></el-table-column>
+            <el-table-column prop="zdr" label="制单人"></el-table-column>
+            <el-table-column prop="statusType" label="状态"></el-table-column>
+          </el-table>
+          <div class="p-contianer">
+            <el-pagination
+              class="p-bar"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="from.page"
+              :page-sizes="[15,30,50,100]"
+              :page-size.sync="from.limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+            ></el-pagination>
+          </div>
+          <div style="width:100%;text-align:center">
+            <el-button type="primary" @click="submit">确认</el-button>
+            <el-button type="info" plain @click="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { cgshChooseCgdd } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      from: {
+        gysName: "",
+        dh: "",
+        startDate: "",
+        endDate: "",
+        page: 1,
+        limit: 15,
+      },
+      total: 0,
+      itemData: "",
+      tableData: [],
+      radioId: "",
+    };
+  },
+
+  methods: {
+    success() {
+      this.xsddData();
+    },
+    reset() {
+      this.from.gysName = "";
+      this.from.dh = "";
+      this.itemData = "";
+      this.from.startDate = "";
+      this.from.endDate = "";
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.xsddData();
+    },
+    cgddDhclick(scope) {
+      this.windowOpen("/cgddDhmx", {
+        id: this.encode(scope.row.cgddId),
+        type: "toView",
+      });
+    },
+    xsddData() {
+      if (this.itemData.length > 0) {
+        this.from.startDate = this.itemData[0];
+        this.from.endDate = this.itemData[1];
+      }
+      cgshChooseCgdd(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    submit() {
+      window.opener.postMessage({type:'xzdd',id:this.radioId}, window.location);
+      this.hidenView()
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.xsddData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.xsddData();
+    },
+    hidenView() {
+      window.top.close();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.xsddData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-date-editor .el-range-separator {
+  line-height: 18px;
+  width: 24px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 20%;
+  .input-label {
+    width: 90px;
+  }
+}
+</style>

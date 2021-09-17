@@ -1,0 +1,120 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="退审">
+          <span>
+            <span class="shyy">退审原因：</span>
+            <el-input
+              class="tstj"
+              type="textarea"
+              :readonly="true"
+              :rows="6"
+              placeholder="请输入内容"
+              v-model="textarea"
+            ></el-input>
+          </span>
+          <span>
+            <span class="shyy">审核通过或不通过原因：</span>
+            <el-input
+              class="tstj"
+              type="textarea"
+              :rows="6"
+              placeholder="请输入内容"
+              v-model="tsshNopassReason"
+            ></el-input>
+          </span>
+          <span class="dialog-footer">
+            <el-button type="info" @click="tshshSubmit(-1)">审核不通过</el-button>
+            <el-button type="success" @click="tshshSubmit(1)">审核通过</el-button>
+            <el-button @click="hidenView">关 闭</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { cgddTshSubmit, cgddGetTshMessage, cgddTshAudit } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      textarea: "",
+      title: "",
+      tsshNopassReason: "",
+      loading: false,
+      cgddTstjSh: false
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    tshshSubmit(status) {
+      cgddTshAudit({
+        cgddId: this.widowData.id,
+        tsshNopassReason: this.tsshNopassReason,
+        tshStatus: status
+      })
+        .then(res => {
+          this.loading = true;
+          this.$message({
+            message: "提交成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              this.hidenView();
+              this.loading = false;
+            }
+          });
+        })
+        .catch(res => {});
+    },
+    handleClose() {
+      this.$emit("close");
+    },
+    tsyy() {
+      cgddGetTshMessage({
+        cgddId: this.widowData.id
+      })
+        .then(res => {
+          this.textarea = res.msg.tsshNopassReason;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.tsyy();
+  }
+};
+</script>
+<style lang='scss' scoped>
+.shyy {
+  display: inline-block;
+  width: 100%;
+  line-height: 40px;
+}
+.dialog-footer {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  margin-top: 40px;
+}
+.tstj {
+  width: 50%;
+  margin-left: 25%;
+}
+</style>

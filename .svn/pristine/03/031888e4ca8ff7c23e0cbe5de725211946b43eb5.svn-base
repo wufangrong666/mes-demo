@@ -1,0 +1,174 @@
+<template>
+  <div class="dataStatus">
+    <div class="topStatus">
+      <div class="leftStatus">是否启用产品批号 ：</div>
+      <div class="rightStatus">
+        <el-radio v-model="from.sfqycpph" :label="0">否</el-radio>
+        <el-radio v-model="from.sfqycpph" :label="1">是</el-radio>
+        <span>批号是否必填：</span>
+        <el-radio v-model="from.phsfbt" :label="0">否</el-radio>
+        <el-radio v-model="from.phsfbt" :label="1">是</el-radio>
+        <span>字段名称：</span>
+        <el-input style="width:130px" v-model="from.zdmc" placeholder="请输入字段名称"></el-input>
+      </div>
+    </div>
+    <div class="topStatus">
+      <div class="leftStatus">
+        <el-radio v-model="from.phscgz" @change="phscgzChange" :label="1">批号手工输入</el-radio>
+      </div>
+      <div class="rightStatus">
+        <span>（如需使用产品保质期提醒功能，则批号前8位的规则必须为 YYYYMMDD）</span>
+      </div>
+    </div>
+    <div class="topStatus">
+      <div class="leftStatus">
+        <el-radio v-model="from.phscgz" @change="phscgzChange" :label="2">批号自动生成</el-radio>
+      </div>
+      <div class="rightStatus">
+        <span>生成规则：年月日（YYYYMMDD）+</span>
+        <el-input :readonly="flag" style="width:100px" v-model="from.lsh" placeholder="请输入流水号"></el-input>
+        <span>位流水号，流水号按</span>
+        <el-radio :disabled="flag" v-model="from.lshFlag" :label="1">日</el-radio>
+        <el-radio :disabled="flag" v-model="from.lshFlag" :label="2">月</el-radio>
+        <el-radio :disabled="flag" v-model="from.lshFlag" :label="3">年</el-radio>
+      </div>
+    </div>
+    <div class="topStatus">
+      <el-checkbox
+        :value="from.bzqtxFlag == 1?true:false"
+        @change="val => $set(from,'bzqtxFlag',val ? 1 : 0)"
+      ></el-checkbox>
+      <span>弹出 "产品保质期" 到期提醒： 提前</span>
+      <el-input
+        :readonly="from.bzqtxFlag == 0"
+        style="width:100px"
+        v-model="from.bzqtxDay"
+        placeholder="请输入天数"
+      ></el-input>
+      <span>天提醒</span>
+    </div>
+    <div class="topStatus">
+      <el-checkbox
+        :disabled="from.bzqtxFlag == 0"
+        :value="from.txxgqx == 1?true:false"
+        @change="val => $set(from,'txxgqx',val ? 1 : 0)"
+      ></el-checkbox>
+      <span>提醒给相关权限人员</span>
+    </div>
+    <div class="topStatus">
+      <el-checkbox
+        :disabled="from.bzqtxFlag == 0"
+        :value="from.txzdry == 1?true:false"
+        @change="val => $set(from,'txzdry',val ? 1 : 0)"
+      ></el-checkbox>
+      <span>提醒给指定人员</span>
+      <el-input style="width:300px" :readonly="true" clearable v-model="gxrName">
+        <el-button
+          :disabled="from.bzqtxFlag == 0"
+          @click="gxrDialog"
+          slot="append"
+          icon="el-icon-plus"
+        ></el-button>
+      </el-input>
+    </div>
+    <div class="bottomStatus">
+      <el-button style="margin-left:25%;" type="primary" @click="submit">保存</el-button>
+    </div>
+    <gxrDialog
+      @gxrDialogTreeData="gxrdialog"
+      @close="gxrDialogVisible = false"
+      :gxrDialogStatus="gxrDialogVisible"
+    ></gxrDialog>
+  </div>
+</template>
+
+<script>
+import {
+  adminCpphQueryCpphSet,
+  adminCpphUpdateCpphSet,
+} from "@/api/manage/xtsz";
+import gxrDialog from "../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    gxrDialog,
+  },
+  data() {
+    return {
+      from: {},
+      flag: false,
+      gxrDialogVisible: false,
+      gxrName: "",
+    };
+  },
+
+  methods: {
+    gxrDialog() {
+      this.gxrDialogVisible = true;
+    },
+    gxrdialog(id, name) {
+      this.from.zdry = id;
+      this.gxrName = name;
+    },
+    phscgzChange(val) {
+      if (val == 1) {
+        this.flag = true;
+      } else {
+        this.flag = false;
+      }
+    },
+    phData() {
+      adminCpphQueryCpphSet()
+        .then((res) => {
+          this.from = res.data;
+          this.gxrName = res.data.zdryName.map(item =>{return item})
+          if (res.data.phscgz == 1) {
+            this.flag = true;
+          } else {
+            this.flag = false;
+          }
+        })
+        .catch((res) => {});
+    },
+    submit() {
+      adminCpphUpdateCpphSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.phData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.phData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    line-height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+    margin-top: 20px;
+  }
+}
+</style>

@@ -1,0 +1,112 @@
+<template>
+  <div>
+    <div class='showWarning' v-show="recordData.length ==  0">
+      <img src="../../../assets/img/empty.png"/>
+      <span>没找到数据</span>
+    </div>
+    <flexbox v-for="(item, index) in recordData"
+             :key="index"
+             class="ha-cont"
+             align="stretch"
+             justify="flex-start">
+      <div class="ha-week">{{item.operateTime}}</div>
+      <div class="ha-circle"></div>
+      <div v-photo="item"
+           v-lazy:background-image="$options.filters.filterUserLazyImg(item.img)"
+           class="div-photo ha-img"></div>
+      <div class="ha-name">{{item.realname}}</div>
+      <div class="ha-content">
+        <p v-for="(info, infoIndex) in item.content"
+           :key="infoIndex">{{info}}</p>
+      </div>
+      <div class="ha-line"></div>
+    </flexbox>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "",
+  props:['recordData'],
+  data() {
+    return {
+    
+    };
+  },
+
+  methods: {},
+
+  created() {
+  },
+
+  mounted() {
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import '../styles/relativecrm.scss';
+.showWarning{
+  width:100%;
+  margin: 25% 0 0 0 ;
+  text-align: center;
+  img{
+    height: 150px;
+  }
+  span{
+    display: block;
+  }
+}
+.ha-cont {
+  font-size: 12px;
+  position: relative;
+  line-height: 20px;
+  min-height: 40px;
+  padding-top: 3px;
+  .ha-week {
+    margin: 0 17px 0 10px;
+    flex-shrink: 0;
+    color: #777;
+    width: 120px;
+  }
+  .ha-time {
+    padding: 0 10px 0 24px;
+    flex-shrink: 0;
+    color: #aaa;
+  }
+  .ha-circle {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: white;
+    border: 5px solid #a5ecd7;
+  }
+  .ha-img {
+    flex-shrink: 0;
+    margin: -3px 10px 0 10px;
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+  }
+  .ha-name {
+    padding: 0 10px;
+    flex-shrink: 0;
+    color: #333;
+  }
+  .ha-content {
+    padding: 0px 10px 10px 10px;
+    flex: 1;
+    color: #333;
+  }
+  .ha-line {
+    position: absolute;
+    z-index: -1;
+    width: 1px;
+    top: 3px;
+    bottom: -3px;
+    left: 155px;
+    background-color: #e6e6e6;
+  }
+}
+</style>

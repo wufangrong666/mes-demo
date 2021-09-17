@@ -1,0 +1,42 @@
+<template>
+  <div>
+    <ul class="details">
+      <li v-for="(item,index) in dataList.arr" :key="index">
+        <span v-text="item.label"></span>
+        <span v-text="dataList.formData[item.value]"></span>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "",
+  props: ["dataList"],
+  data() {
+    return {};
+  },
+
+  methods: {},
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+.details {
+  width: 100%;
+  overflow: auto;
+  li {
+    width: 50%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span:nth-child(1) {
+      display: inline-block;
+      width: 150px;
+    }
+  }
+}
+</style>

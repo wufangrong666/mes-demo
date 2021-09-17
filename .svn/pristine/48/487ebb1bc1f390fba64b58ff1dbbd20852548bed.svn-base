@@ -1,0 +1,22 @@
+// CRM管理路由
+
+import Layout from '@/views/layout/crmLayout'
+import {
+  childrenMenu
+} from './crm'
+
+const crmRouter = {
+  path: '/crm',
+  name: 'crm',
+  component: Layout,
+  //redirect: '/crm/publiccp',
+  meta: {
+    title: '客户管理',
+    index: 0,
+    type: 'crm',
+    icon: 'customer',
+  },
+  children: childrenMenu
+}
+
+export default crmRouter

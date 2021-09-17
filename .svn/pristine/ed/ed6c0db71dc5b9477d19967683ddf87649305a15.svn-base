@@ -1,0 +1,54 @@
+<template>
+  <div>
+    <el-table :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="customerId" label="客户名称" ></el-table-column>
+      <el-table-column prop="jwr" label="客户联系人" width="180"></el-table-column>
+      <el-table-column prop="content" label="交往内容"></el-table-column>
+      <el-table-column prop="remake" label="点评内容"></el-table-column>
+      <el-table-column prop="jwtime" label="开始时间"></el-table-column>
+      <el-table-column prop="editTime" label="结束时间"></el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+import { crmContactRecordQueryPageList } from "@/api/crm/jwjl";
+import { filedGetTableField } from "@/api/manage/SystemConfig";
+export default {
+  name: "",
+  data() {
+    return {
+      tableData: [],
+      page: 1,
+      limit: 15
+    };
+  },
+
+  methods: {
+    listData() {
+      filedGetTableField({
+        label:4
+      })
+        .then(res => {})
+        .catch(res => {});
+      crmContactRecordQueryPageList({
+        page: this.page,
+        limit: this.limit,
+        search: ""
+      })
+        .then(res => {
+          this.tableData = res.data.list
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.listData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+</style>

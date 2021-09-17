@@ -1,0 +1,404 @@
+<template>
+  <el-container>
+    <el-header class="nav-container">
+      <manager-navbar></manager-navbar>
+    </el-header>
+    <el-container>
+      <el-aside width="auto" class="aside-container">
+        <sidebar :items="manageRouters.children" createButtonTitle="快速创建" mainRouter="manage">
+          <div slot="add" class="quick-add">
+            <div class="quick-add-content">
+              <p v-for="(item, index) in quickAddList" :key="index" @click="addSkip(item)">
+                <i class="wukong" :class="'wukong-' + item.icon"></i>
+                <span>{{item.label}}</span>
+              </p>
+            </div>
+          </div>
+        </sidebar>
+      </el-aside>
+      <el-main id="manager-main-container">
+        <app-main></app-main>
+      </el-main>
+    </el-container>
+
+    <!-- 新建和编辑 -->
+    <el-dialog
+      title="新增"
+      :visible.sync="employeeCreateDialog"
+      v-if="employeeCreateDialog"
+      width="60%"
+      :close-on-click-modal="false"
+      :modal-append-to-body="true"
+      v-loading="loading"
+      :append-to-body="true"
+      :before-close="newHandleClose"
+    >
+      <p class="new-dialog-title">基本信息</p>
+      <el-form
+        :inline="true"
+        :model="formInline"
+        ref="dialogRef"
+        class="new-dialog-form"
+        label-width="80px"
+        :rules="dialogRules"
+        label-position="top"
+      >
+        <el-form-item
+          :label="item.value"
+          :prop="item.field"
+          v-for="(item, index) in tableList"
+          :key="index"
+        >
+          <span v-if="item.field !== 'password'" slot="label">{{item.value}}</span>
+          <span v-else slot="label">{{item.value + '(默认手机号码6位)'}}</span>
+          <el-tooltip
+            v-if="item.tips"
+            slot="label"
+            effect="dark"
+            :content="item.tips"
+            placement="top"
+          >
+            <i class="wukong wukong-help_tips"></i>
+          </el-tooltip>
+          <template v-if="item.type == 'select'">
+            <el-select v-model="formInline[item.field]" filterable placeholder="请选择">
+              <el-option
+                v-for="optionItem in optionsList[item.field].list"
+                :key="optionItem.id"
+                :label="optionItem.name"
+                :value="optionItem.id"
+              ></el-option>
+            </el-select>
+          </template>
+          <template v-else-if="item.type == 'selectCheckout'">
+            <el-select
+              v-model="formInline[item.field]"
+              popper-class="select-popper-class"
+              :popper-append-to-body="false"
+              filterable
+              multiple
+              placeholder="请选择"
+            >
+              <el-option
+                v-for="group in groupsList"
+                :key="group.roleId"
+                :label="group.roleName"
+                :value="group.roleId"
+              ></el-option>
+            </el-select>
+          </template>
+          <el-input
+            v-else-if="item.field !== 'password' && item.field !== 'username'"
+            v-model="formInline[item.field]"
+          ></el-input>
+          <el-input
+            v-if="item.field == 'username'"
+            v-model="formInline[item.field]"
+            maxlength="11"
+          ></el-input>
+          <el-input
+            v-if="item.field == 'password'"
+            :readonly="true"
+            v-model="formInline[item.field]"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="newDialogSubmit">保 存</el-button>
+        <el-button @click="employeeCreateDialog = false">取 消</el-button>
+      </span>
+    </el-dialog>
+  </el-container>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import { ManagerNavbar, Sidebar, AppMain } from "./components";
+import { childrenMenu } from "@/router/modules/manage/manage";
+import { depList ,usersList } from "@/api/common"; // 直属上级接口
+import { roleList, usersAdd } from "@/api/manage/useranddept";
+export default {
+  name: "Layout",
+  components: {
+    ManagerNavbar,
+    Sidebar,
+    AppMain
+  },
+  computed: {
+    ...mapGetters(["manage", "manageRouters", "operAuth"]),
+    manageRoutersItems() {
+      for (let index = 0; index < childrenMenu.length; index++) {
+        const routerMenuItem = childrenMenu[index];
+        routerMenuItem.hidden = this.crm[routerMenuItem.meta.subType]
+          ? false
+          : true;
+      }
+      return childrenMenu;
+    },
+    // 快捷添加
+    quickAddList() {
+      var addItems = [];
+      if (this.manage.com.useranddept && this.operAuth.othersqx.xjygqx) {
+        addItems.push({
+          icon: "customer",
+          label: "员工"
+        });
+      }
+      return addItems;
+    },
+    quickAddOffset() {
+      return Math.round(this.quickAddList.length / 2) * 25;
+    }
+  },
+  watch: {
+    "formInline.username"() {
+      this.formInline.password = this.formInline.username.substring(
+        this.formInline.username.length - 6
+      );
+    }
+  },
+  data() {
+    return {
+      groupsList: [],
+      employeeCreateDialog: false,
+      loading: false, // 表的加载动画
+      formInline: {},
+      dialogRules: {
+        realname: [
+          { required: true, message: "姓名不能为空", trigger: "blur" }
+        ],
+        password: [
+          { required: true, message: "密码不能为空", trigger: "blur" },
+          { min: 6, max: 6, message: "长度为6个字符", trigger: "blur" }
+        ],
+        username: [
+          { required: true, message: "手机号码不能为空", trigger: "blur" },
+          {
+            pattern: /^1\d{10}/,
+            message: "目前只支持中国大陆的手机号码",
+            trigger: "blur"
+          }
+        ],
+        email: [
+          {
+            pattern: /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/,
+            message: "请输入正确的邮箱格式",
+            trigger: "blur"
+          }
+        ],
+        deptId: [
+          { required: true, message: "部门不能为空", trigger: "change" }
+        ],
+        roleId: [{ required: true, message: "角色不能为空", trigger: "change" }]
+      },
+      tableList: [
+        { field: "username", value: "手机号（登录名）" },
+        { field: "password", value: "登录密码" },
+        { field: "realname", value: "姓名" },
+        { field: "sex", value: "性别", type: "select" },
+        { field: "email", value: "邮箱" },
+        { field: "deptId", value: "部门", type: "select" },
+        { field: "post", value: "岗位" },
+        { field: "parentId", value: "直属上级", type: "select" },
+        { field: "roleId", value: "角色", type: "selectCheckout" }
+      ],
+      optionsList: {
+        deptId: {
+          field: "deptId",
+          list: []
+        },
+        parentId: {
+          field: "parentId",
+          list: [{ id: 0, name: "请选择" }]
+        },
+        sex: {
+          field: "sex",
+          list: [
+            { id: 0, name: "请选择" },
+            { id: 1, name: "男" },
+            { id: 2, name: "女" }
+          ]
+        }
+      }
+    };
+  },
+  mounted() {
+    this.getDepList();
+    this.getSelectUserList()
+    // 角色列表
+    roleList().then(res => {
+      this.groupsList = res.data;
+    });
+  },
+  methods: {
+    /** 获取选择直属上级列表 */
+    getSelectUserList() {
+      this.loading = true;
+      usersList({ pageType: 0 })
+        .then(res => {
+          this.optionsList["parentId"].list = [];
+          for (let i of res.data) {
+            this.optionsList["parentId"].list.push({
+              id: i.userId,
+              name: i.realname
+            });
+          }
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    },
+    // 用户新建
+    newDialogSubmit() {
+      this.$refs.dialogRef.validate(valid => {
+        if (valid) {
+          this.loading = true;
+          this.formInline.roleIds = this.formInline.roleId.join(",");
+          usersAdd(this.formInline)
+            .then(res => {
+              this.$message.success("新增成功");
+              this.employeeCreateDialog = false;
+              this.loading = false;
+              this.$router.push({
+                path: "/manage/orzStructure/employee-dep"
+              });
+            })
+            .catch(() => {
+              this.loading = false;
+            });
+        } else {
+          return false;
+        }
+      });
+    },
+    getDepList() {
+      depList().then(response => {
+        this.optionsList["deptId"].list = response.data;
+      });
+    },
+    newHandleClose() {
+      this.employeeCreateDialog = false;
+    },
+    addSkip() {
+      this.employeeCreateDialog = true;
+      this.formInline = {}
+      this.$refs['formInline'].resetFields();
+    },
+    filterAsyncRouter(routers, authInfo) {
+      const res = [];
+      routers.forEach(router => {
+        const tmp = {
+          ...router
+        };
+        if (this.checkAuth(tmp, authInfo)) {
+          if (tmp.children) {
+            tmp.children = this.filterAsyncRouter(tmp.children, authInfo);
+          }
+          res.push(tmp);
+        }
+      });
+      return res;
+    },
+
+    checkAuth(router, authInfo) {
+      if (router.meta) {
+        const metaInfo = router.meta;
+        if (!metaInfo.requiresAuth) {
+          return true;
+        } else {
+          if (metaInfo.index == 0) {
+            return authInfo[metaInfo.type] ? true : false;
+          } else if (metaInfo.index == 1) {
+            if (authInfo[metaInfo.type]) {
+              return authInfo[metaInfo.type][metaInfo.subType] ? true : false;
+            }
+            return false;
+          } else {
+            var typeAuth = authInfo[metaInfo.type];
+            for (let index = 0; index < metaInfo.subType.length; index++) {
+              const field = metaInfo.subType[index];
+              typeAuth = typeAuth[field];
+              if (typeAuth && metaInfo.subType.length - 1 == index) {
+                return true;
+              } else if (!typeAuth) {
+                return false;
+              }
+            }
+          }
+        }
+      }
+      return true;
+    },
+
+    navClick(index) {},
+
+    getAuthMenu() {
+      adminGroupsTypeListAPI()
+        .then(res => {
+          for (let index = 0; index < this.routerItems.length; index++) {
+            const menuItem = this.routerItems[index];
+            if (menuItem.meta.icon == "contacts" && !menuItem.hidden) {
+              menuItem.children = res.data.map(item => {
+                return {
+                  name: "role-auth",
+                  path: `role-auth/${item.roleType}/${encodeURI(item.name)}`,
+                  meta: {
+                    title: item.name
+                  }
+                };
+              });
+            }
+          }
+        })
+        .catch(err => {});
+    }
+  },
+  created() {}
+};
+</script>
+
+<style lang="scss" scoped>
+@import "./styles/common.scss";
+.el-container {
+  min-height: 0;
+}
+.aside-container {
+  position: relative;
+  background-color: #001529;
+  box-sizing: border-box;
+  border-right: solid 1px #e6e6e6;
+  overflow: visible;
+}
+
+.nav-container {
+  padding: 0;
+  // box-shadow: 0px 1px 2px #dbdbdb;
+  z-index: 100;
+  min-width: 1200px;
+}
+.quick-add {
+  height: 178px;
+}
+
+.new-dialog-form {
+  height: 47vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+.new-dialog-form /deep/ .el-form-item {
+  width: 50%;
+  margin: 0;
+  padding-bottom: 10px;
+}
+.new-dialog-form /deep/ .el-form-item .el-form-item__label {
+  padding: 0;
+}
+.new-dialog-form /deep/ .el-form-item .el-form-item__content {
+  width: 70%;
+}
+.new-dialog-form .el-select {
+  display: block;
+  width: 100%;
+}
+</style>

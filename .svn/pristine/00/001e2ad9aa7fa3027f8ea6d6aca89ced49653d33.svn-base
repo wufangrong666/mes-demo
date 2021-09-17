@@ -1,0 +1,71 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="供应商数据权限设置" name="gyssjqxsz">
+            <gyssjqxsz @refreshData="refreshData" :from="from"></gyssjqxsz>
+          </el-tab-pane>
+          <el-tab-pane label="供应商提示设置" name="gystssz">
+            <gystssz @refreshData="refreshData" :from="from"></gystssz>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import gyssjqxsz from "./gyssjqxsz";
+import gystssz from "./gystssz";
+import { adminGysszQueryGysszSet } from "@/api/manage/xtsz";
+export default {
+  name: "",
+  components: {
+    gyssjqxsz,
+    gystssz,
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "gyssjqxsz",
+      from: {},
+    };
+  },
+
+  methods: {
+    refreshData() {
+      this.gysData();
+    },
+    gysData() {
+      adminGysszQueryGysszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+  },
+
+  created() {},
+  activated() {
+    this.title = this.$route.meta.title;
+  },
+  mounted() {
+    this.gysData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  position: relative;
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+</style>

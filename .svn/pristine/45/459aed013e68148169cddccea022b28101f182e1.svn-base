@@ -1,0 +1,414 @@
+<template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <div class="input-box">
+      <label class="input-label">账户名称</label>
+      <el-input placeholder="请输入名称" clearable v-model="from.name"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">邮箱地址</label>
+      <el-input placeholder="请输入邮箱地址" clearable v-model="from.mailUsername"></el-input>
+    </div>
+    <div class="input-box">
+      <el-button @click="search" type="primary">查询</el-button>
+      <el-button @click="reset">重置</el-button>
+    </div>
+
+    <!-- 新增更多 -->
+    <div class="right-container">
+      <el-button @click="createClick" type="primary">新建邮箱</el-button>
+      <el-dropdown trigger="click" v-if="moreTypes.length > 0" @command="handleTypeDrop">
+        <flexbox class="right-more-item">
+          <div>更多</div>
+          <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+        </flexbox>
+        <el-dropdown-menu style="height:100px" slot="dropdown">
+          <el-dropdown-item
+            v-for="(item, index) in moreTypes"
+            :key="index"
+            :command="item.type"
+          >{{item.name}}</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+    <el-table id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="mailName" label="账户名称"></el-table-column>
+      <el-table-column prop="mailUsername" label="邮件地址"></el-table-column>
+      <el-table-column prop="popType" label="账户类型"></el-table-column>
+      <el-table-column prop="popHost" label="接收邮件服务器"></el-table-column>
+      <el-table-column prop="smtpHost" label="发送邮件服务器"></el-table-column>
+      <el-table-column prop="username" label="用户名"></el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button @click="editClick(scope.row)" type="text">编辑</el-button>
+          <el-button @click="deleteClick(scope.row)" style="color:#f56c6c" type="text">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <el-dialog
+      title="新建邮箱"
+      :visible.sync="dialogVisible"
+      width="40%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="input-dialog">
+        <label class="input-label">账户名称:</label>
+        <el-input placeholder="请输入名称" clearable v-model="newEmail.mailName"></el-input>
+      </div>
+      <div class="input-dialog">
+        <label class="input-label">电子邮件地址:</label>
+        <el-input
+          @change="usernameGet"
+          placeholder="请输入电子邮件地址"
+          clearable
+          v-model="newEmail.mailUsername"
+        ></el-input>
+      </div>
+      <div class="input-dialog">
+        <label class="input-label">帐户类型:</label>
+        <el-input placeholder="请输入帐户类型" :readonly="true" clearable v-model="newEmail.popProtocol"></el-input>
+      </div>
+      <div class="input-dialog">
+        <label class="input-label">接收邮件服务器(pop服务器):</label>
+        <el-input placeholder="请输入邮件服务器" clearable v-model="newEmail.popHost"></el-input>
+      </div>
+      <div class="input-dialog">
+        <label class="input-label">发送邮件服务器(smtp服务器):</label>
+        <el-input placeholder="请输入邮件服务器" clearable v-model="newEmail.smtpHost"></el-input>
+      </div>
+      <div class="input-dialog">
+        <label class="input-label">账号:</label>
+        <el-input placeholder="请输入邮件服务器" :readonly="true" clearable v-model="newEmail.name"></el-input>
+      </div>
+      <div class="input-dialog">
+        <label class="input-label">密码/授权码:</label>
+        <el-input placeholder="请输入密码" show-password clearable v-model="newEmail.mailPwd"></el-input>
+      </div>
+      <el-button type="primary" @click="testEmail">测试账号</el-button>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="newEmailClick" :disabled="disabled">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script type="text/javascript">
+import {
+  mailInfoQueryPageList,
+  mailInfoTestConnection,
+  mailInfoAddOrUpdate,
+  mailInfoDelMailInfoByMailId,
+  mailInfoMailNotSame
+} from "@/api/email/email";
+import Lockr from "lockr";
+export default {
+  name: "yxszIndex",
+  computed: {},
+  data() {
+    return {
+      disabled: true,
+      id: "",
+      value: "",
+      dialogVisible: false,
+      options: [
+        { name: "仅用户名", id: 1 },
+        { name: "用户名@主机明", id: 2 }
+      ],
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 194, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        mailUsername: "",
+        id: ""
+      },
+      newEmail: {
+        mailId: "", //	是	int	邮箱信息id
+        userId: "", //	是	int	当前登录用户id
+        mailName: "", //	是	string	账户名称
+        name: "",
+        smtpHost: "", //	是	string	发送邮件host
+        popHost: "", //	是	string	接收邮件host
+        mailUsername: "", //	是	string	邮箱地址
+        mailPwd: "", //	是	string	邮箱密码or邮箱授权码
+        popProtocol: "pop3" //
+      },
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      testEmailType: false
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.moreTypes.push({ type: "enter", name: "导入" });
+    this.moreTypes.push({ type: "out", name: "导出" });
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.id = Lockr.get("loginUserInfo").userId;
+  },
+  activated() {
+    this.loginData();
+  },
+  methods: {
+    usernameGet() {
+      this.newEmail.name = this.newEmail.mailUsername.split("@")[0];
+    },
+    deleteClick(val) {
+      mailInfoDelMailInfoByMailId({
+        mailId: val.mailId
+      })
+        .then(res => {
+          this.msgSuccess("删除成功");
+          this.dialogVisible = false;
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    editClick(val) {
+      this.dialogVisible = true;
+      this.newEmail.name = val.name;
+      this.newEmail.mailId = val.mailId;
+      this.newEmail.userId = this.id;
+      this.newEmail.mailName = val.mailName;
+      this.newEmail.smtpHost = val.smtpHost;
+      this.newEmail.popHost = val.popHost;
+      this.newEmail.mailUsername = val.mailUsername;
+      this.newEmail.mailPwd = val.mailPwd;
+      this.newEmail.popProtocol = val.popType;
+    },
+    testEmail() {
+      mailInfoTestConnection({
+        popHost: this.newEmail.popHost,
+        popProtocol: this.newEmail.popProtocol,
+        mailUsername: this.newEmail.mailUsername,
+        mailPwd: this.newEmail.mailPwd,
+        smtpHost: this.newEmail.smtpHost
+      })
+        .then(res => {
+          this.msgSuccess("测试成功");
+          this.testEmailType = true;
+          this.disabled = false;
+        })
+        .catch(res => {
+          this.testEmailType = false;
+          this.disabled = true;
+        });
+    },
+    newEmailClick() {
+      if (this.testEmailType) {
+        if (this.newEmail.mailName == "") {
+          this.msgInfo("账户名不能为空!");
+          return;
+        }
+        if (this.newEmail.mailUsername == "") {
+          this.msgInfo("邮箱地址!");
+          return;
+        }
+        if (this.newEmail.mailPwd == "") {
+          this.msgInfo("密码/授权码不能为空!");
+          return;
+        }
+        this.newEmail.userId = this.id;
+        mailInfoMailNotSame({
+          mailUsername: this.newEmail.mailUsername
+        })
+          .then(res => {
+            mailInfoAddOrUpdate(this.newEmail)
+              .then(res => {
+                if (this.newEmail.mailId == "") {
+                  this.msgSuccess("新增成功");
+                } else {
+                  this.msgSuccess("编辑成功");
+                }
+                this.dialogVisible = false;
+                this.loginData();
+              })
+              .catch(res => {});
+          })
+          .catch(res => {});
+      } else {
+        this.msgInfo("请先测试邮箱");
+      }
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    createClick() {
+      this.dialogVisible = true;
+      this.newEmail.mailId = "";
+      this.newEmail.mailName = "";
+      this.newEmail.smtpHost = "";
+      this.newEmail.popHost = "";
+      this.newEmail.mailUsername = "";
+      this.newEmail.mailPwd = "";
+    },
+    //查询
+    search() {
+      if (this.item.length) {
+        this.from.beginDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      this.loginData();
+    },
+    reset() {
+      this.from.name = "";
+      this.from.mailUsername = "";
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.loginData();
+    },
+    //获取列表数据
+    loginData() {
+      this.from.id = this.id;
+      mailInfoQueryPageList({
+        page: this.from.page,
+        limit: this.from.limit,
+        search: "",
+        data: {
+          userId: {
+            condition: "is",
+            value: this.id,
+            formType: "text",
+            name: "userId"
+          },
+          name: {
+            condition: "contains",
+            value: this.from.name,
+            formType: "text",
+            name: "mailName"
+          },
+          mailUsername: {
+            condition: "contains",
+            value: this.from.mailUsername,
+            formType: "text",
+            name: "mailUsername"
+          }
+        }
+      })
+        .then(res => {
+          this.tableData = res.data.list;
+          for (var i in this.tableData) {
+            this.tableData[i].popType = "pop3";
+            this.tableData[i].username = this.tableData[i].mailUsername.split(
+              "@"
+            )[0];
+          }
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    }
+  }
+};
+</script>
+<style lang="scss" scoped>
+@import "../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin: 20px 0 0 50px;
+    .el-date-editor {
+      width: 400px;
+    }
+  }
+  .input-dialog {
+    width: 100%;
+    .input-label {
+      float: left;
+      width: 30%;
+      line-height: 40px;
+    }
+    .el-input {
+      line-height: 40px;
+      width: 60%;
+    }
+    .el-select {
+      line-height: 40px;
+      width: 60%;
+    }
+  }
+  .right-container {
+    margin-right: -10px;
+    float: right;
+    margin: 12px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

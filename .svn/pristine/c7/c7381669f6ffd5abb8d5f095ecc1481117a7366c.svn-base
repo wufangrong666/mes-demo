@@ -1,0 +1,98 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="销售报价单">
+          <div class="input-box">
+            <label class="input-label">报价单类型</label>
+            <el-select v-model="mb" placeholder="请选择" @change="mbChagne">
+              <el-option v-for="item in mbList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+            </el-select>
+          </div>
+          <div>
+            <div id="printTest">
+              <span v-html="content"></span>
+            </div>
+          </div>
+        </sections>
+        <span class="dialog-footer">
+          <el-button @click="handleClose">取 消</el-button>
+          <el-button type="primary" v-print="'#printTest'">打印预览</el-button>
+        </span>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { htmbPrintByHtmb } from "@/api/crm/xsbjd";
+import { htmbGetHtmbByType } from "@/api/manage/xtsz";
+export default {
+  components: {
+    createView,
+    sections
+  },
+  name: "",
+  data() {
+    return {
+      mb: "",
+      mbList: [],
+      content: "",
+      loading: false
+    };
+  },
+
+  methods: {
+    mbChagne(val) {
+      this.logData();
+    },
+    handleClose() {
+      this.$emit("close");
+    },
+    mbType() {
+      htmbGetHtmbByType()
+        .then(res => {
+          this.xsbjdMblist = res.data;
+          this.mbList = res.data["xsbjd"];
+          this.mb = this.xsbjdMblist["xsbjd"][0].id;
+          this.content = res.data["xsbjd"][0].content;
+        })
+        .catch(res => {});
+    },
+    logData() {
+      htmbPrintByHtmb({
+        djid: this.widowData.id,
+        mbid: this.mb,
+        type: "xsbjd"
+      })
+        .then(res => {
+          this.content = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.mb = this.widowData.mb;
+    this.mbType();
+    this.logData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+.input-box {
+  height: 100px;
+}
+.dialog-footer{
+  display:inline-block;
+  width: 100%;
+  height: 50px;
+  margin: 15px 0;
+  text-align: center;
+}
+</style>

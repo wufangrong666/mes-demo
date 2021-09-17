@@ -1,0 +1,164 @@
+<template>
+  <khxxCreateView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <flexbox class="create-header">
+        <div
+          style="flex:1;font-size:24px;color:#333;font-weight: bold;text-align: center;"
+        >{{addTitle}}</div>
+        <img @click="hidenView" class="close" src="@/assets/img/task_close.png" />
+      </flexbox>
+      <div class="create-flex">
+        <khxxSections title="基本信息">
+          <ul class="title">
+            <li>
+              <span>客户名称:</span>
+              <span v-text="title.name"></span>
+            </li>
+            <li>
+              <span>客户编码:</span>
+              <span v-text="title.code"></span>
+            </li>
+            <li>
+              <span>客户手机:</span>
+              <span v-text="title.contactPhone"></span>
+            </li>
+            <li>
+              <span>电话:</span>
+              <span v-text="title.businessTele"></span>
+            </li>
+            <li>
+              <span>销售负责人:</span>
+              <span v-text="title.creator"></span>
+            </li>
+            <li>
+              <span>传真:</span>
+              <span v-text="title.fax"></span>
+            </li>
+          </ul>
+        </khxxSections>
+      </div>
+      <div>
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="详细信息" name="first">
+            <khDetail :dataList="dataList"></khDetail>
+          </el-tab-pane>
+          <el-tab-pane label="分配转移记录" name="fpzy">分配转移记录</el-tab-pane>
+          <el-tab-pane label="交往记录" name="jwjl">
+            <trackRecord></trackRecord>
+          </el-tab-pane>
+          <el-tab-pane label="报价单" name="bjd">报价单</el-tab-pane>
+          <el-tab-pane label="销售订单" name="xsdd">销售订单</el-tab-pane>
+          <el-tab-pane label="销售开单" name="xskd">销售开单</el-tab-pane>
+          <el-tab-pane label="销售收款" name="xssk">销售收款</el-tab-pane>
+          <el-tab-pane label="销售退货" name="xsth">销售退货</el-tab-pane>
+          <el-tab-pane label="应收查询" name="yscx">应收查询</el-tab-pane>
+          <el-tab-pane label="已开发票" name="ykfp">已开发票</el-tab-pane>
+          <el-tab-pane label="代开发票列表" name="dkfplb">代开发票列表</el-tab-pane>
+          <el-tab-pane label="销开已开发票列表" name="xkfp">销开已开发票列表</el-tab-pane>
+          <el-tab-pane label="欠款初始化" name="qkcsh">欠款初始化</el-tab-pane>
+          <el-tab-pane label="收件箱" name="sjx">收件箱</el-tab-pane>
+          <el-tab-pane label="外部有建议发送" name="yj">外部有建议发送</el-tab-pane>
+        </el-tabs>
+      </div>
+      <div class="handle-bar">
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+  </khxxCreateView>
+</template>
+
+<script>
+import khxxCreateView from "./khxxCreateView";
+import khxxSections from "./khxxSections";
+import khDetail from "./khDetail";
+import trackRecord from "./trackRecord";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import dataList from "../../../components/Json";
+
+export default {
+  components: {
+    khxxCreateView,
+    khxxSections,
+    khDetail,
+    trackRecord
+  },
+  name: "",
+  props: {
+    khxxId: {
+      type: Number,
+      default: ""
+    }
+  },
+  data() {
+    return {
+      loading: false,
+      addTitle: "",
+      title: [],
+      activeName: "first",
+      dataList: {},
+      trackRecordListL: []
+    };
+  },
+
+  methods: {
+    saveField() {},
+    hidenView() {
+      this.$emit("hiden-Khxxview");
+    },
+    loginData() {
+      let self = this;
+      crmCustomerqueryById({
+        customerId: this.khxxId
+      })
+        .then(res => {
+          this.addTitle = res.data.name;
+          self.title = res.data;
+          dataList.crm_customer.formData = res.data;
+          this.dataList = dataList.crm_customer;
+        })
+        .catch(res => {});
+    },
+    handleClick() {}
+  },
+
+  created() {},
+
+  mounted() {
+    this.loginData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+.create-header {
+  height: 40px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  .close {
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin-right: -10px;
+    padding: 10px;
+    cursor: pointer;
+  }
+}
+.title {
+  width: 100%;
+  li {
+    width: 240px;
+    float: left;
+    line-height: 30px;
+  }
+}
+.handle-bar {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  .handle-button {
+    margin-top: 5px;
+    margin-right: 20px;
+  }
+}
+</style>

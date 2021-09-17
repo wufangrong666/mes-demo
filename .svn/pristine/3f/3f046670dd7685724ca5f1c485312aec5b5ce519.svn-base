@@ -1,0 +1,260 @@
+@import './detailview.scss';
+
+.container {
+  background-color: white;
+  border: 1px solid #E6E6E6;
+  border-radius: 2px;
+}
+
+/**
+  .el-table /deep/ thead th {
+    border-right: 1px solid #ebeef5;
+  }
+  
+  .el-table /deep/ tbody tr td:nth-child(2){
+    border-right: 1px solid #ebeef5;
+  }
+  
+  .b-bottom {
+    border-bottom: 1px solid #ebeef5;
+  }
+  */
+.el-table /deep/ thead th {
+  background-color: #fafdff;
+  font-weight: 400;
+  border-color: #E6E6E6;
+  color: #475059;
+}
+
+.table-set {
+  width: 15px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+.table-head-name {
+  font-size: 14px;
+  color: #475059;
+  line-height: 23px;
+  padding: 0;
+}
+
+.el-table /deep/ thead .cell {
+  height: 23px;
+  text-align: center;
+  font-weight: 900;
+  color: black;
+}
+
+.el-table /deep/ .el-table__row.current-row {
+  td:first-child::before {
+    content: ' ';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #5383ED;
+  }
+}
+
+.el-table /deep/ tbody tr td {
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: #E6E6E6;
+  font-size: 13px;
+}
+
+// .el-table /deep/ tbody tr td:nth-child(2) {
+//   border-right: 1px solid #E6E6E6;
+// }
+
+.n-table--border {
+  border-color: #E6E6E6;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+.n-table--border::after {
+  display: none;
+}
+
+.p-contianer {
+  position: relative;
+  background-color: white;
+  height: 44px;
+
+  .p-bar {
+    float: right;
+    margin: 5px 100px 0 0;
+    font-size: 14px !important;
+  }
+}
+
+// 列表状态
+.status_button {
+  padding: 1px 6px;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 12px;
+  margin: 0 auto;
+}
+
+.el-table /deep/ .sort-caret.ascending {
+  top: -6px;
+}
+
+.el-table /deep/ .caret-wrapper {
+  height: 24px;
+}
+
+.input-box {
+  width: 25%;
+  height: 25px;
+  float: left;
+  margin-bottom: 5px;
+
+  div {
+    line-height: 25px;
+    width: 60%;
+  }
+
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .el-input {
+    width: 60%;
+    height: 25px;
+    float: left;
+
+    .el-input__inner {
+      height: 25px;
+    }
+  }
+}
+
+.diaInput {
+  width: 100%;
+
+  .input-label {
+    width: 130px;
+    line-height: 40px;
+    display: inline-block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .el-input {
+    width: 55%;
+    height: 40px;
+  }
+}
+
+.customer-lock {
+  color: #f15e64;
+}
+
+.el-table /deep/ tbody tr td:nth-child(2) {
+  border-right-width: 0;
+}
+
+// .el-table /deep/ tbody tr td:nth-child(3) {
+//   border-right: 1px solid #e6e6e6;
+// }
+.el-dropdown-menu {
+  height: 300px;
+  overflow: auto;
+}
+
+.ul-popover {
+  height: 300px;
+  overflow: auto;
+  margin-bottom: 10px;
+
+  li {
+    margin: 5px 0;
+  }
+}
+
+#proper {
+  width: 200px;
+  height: 330px;
+  background: #fff;
+  padding: 5px;
+  position: absolute;
+  margin: 20px 10px 0 0;
+  right: 0;
+  z-index: 999;
+
+  ul {
+    height: 280px;
+    overflow: auto;
+
+    li {
+      margin: 5px 0;
+    }
+  }
+}
+
+.system-customer {
+  /* padding: 0 20px 20px; */
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 18px;
+  height: 40px;
+  padding: 0 20px;
+  line-height: 40px;
+  margin: 10px 0;
+  color: #333;
+}
+
+.customer-content {
+  flex: 1;
+  position: relative;
+  display: flex;
+  overflow: hidden;
+}
+
+.system-view-table {
+  flex: 1;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+}
+
+.tabs-bar {
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.el-tabs /deep/ .el-tabs__nav-wrap::after {
+  display: none !important;
+}
+
+.el-tabs /deep/ .el-tabs__header {
+  padding-left: 17px;
+  height: 57px;
+  margin-bottom: 0;
+}
+
+.el-tabs /deep/ .el-tabs__item {
+  font-size: 13px;
+  height: 57px;
+  line-height: 57px;
+}

@@ -1,0 +1,12 @@
+import request from '@/utils/request'
+// 供应商生日
+export function crmGysBirthday(data) {
+    return request({
+        url: 'crmGys/getGysByBirthday',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}

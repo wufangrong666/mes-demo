@@ -1,0 +1,187 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="上海思奉贸易有限公司">
+          <div class="input-box" style="width:25%">
+            <label class="input-label">日期范围</label>
+            <el-date-picker
+              value-format="yyyy-MM-dd"
+              v-model="item"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <el-button @click="success" type="primary">查询</el-button>
+            <el-button @click="reset" type="info" plain>重置</el-button>
+          </div>
+          <div class="title">
+            <ul>
+              <li>从</li>
+              <li v-text="item[0]"></li>
+              <li>到</li>
+              <li v-text="item[1]"></li>
+              <li v-text="gysName" style="color:red"></li>
+              <li>的往来单据如下：</li>
+            </ul>
+          </div>
+          <div style="width:100%;line-height:40px">前期欠款余额：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="dqcge" label="当前采购额"></el-table-column>
+            <el-table-column prop="qqyfk" label="前期已付款"></el-table-column>
+            <el-table-column prop="qqytk" label="前期已退款"></el-table-column>
+            <el-table-column prop="qqthcdje" label="前期退货冲抵金额"></el-table-column>
+            <el-table-column prop="qqyfe" label="前期应付额"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px">采购收货/采购退货单据如下：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="dqcge" label="类型/日期"></el-table-column>
+            <el-table-column prop="qqyfk" label="仓库"></el-table-column>
+            <el-table-column prop="brandName" label="品牌"></el-table-column>
+            <el-table-column prop="nameCn" label="品名"></el-table-column>
+            <el-table-column prop="modelNum" label="规格型号"></el-table-column>
+            <el-table-column prop="qqyfe" label="批号"></el-table-column>
+            <el-table-column prop="measureName" label="单位"></el-table-column>
+            <el-table-column prop="qqyfe" label="未税单价"></el-table-column>
+            <el-table-column prop="num" label="数量"></el-table-column>
+            <el-table-column prop="qqyfe" label="税率"></el-table-column>
+            <el-table-column prop="qqyfe" label="含税单价"></el-table-column>
+            <el-table-column prop="qqyfe" label="折扣"></el-table-column>
+            <el-table-column prop="qqyfe" label="合计"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px">应付单据如下：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="dh" label="单号"></el-table-column>
+            <el-table-column prop="createDate" label="创建日期"></el-table-column>
+            <el-table-column prop="qqytk" label="金额"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px">应付款增加、减少单据如下：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="gysName" label="供应商"></el-table-column>
+            <el-table-column prop="createDate" label="创建日期"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px">已付单据如下：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="dh" label="单号"></el-table-column>
+            <el-table-column prop="createDate" label="创建日期"></el-table-column>
+            <el-table-column prop="fkfs" label="付款方式"></el-table-column>
+            <el-table-column prop="fkzh" label="付款账户"></el-table-column>
+            <el-table-column prop="qqytk" label="金额"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px">已退单据如下：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="dh" label="单号"></el-table-column>
+            <el-table-column prop="createDate" label="创建日期"></el-table-column>
+            <el-table-column prop="thfs" label="退货方式"></el-table-column>
+            <el-table-column prop="qqytk" label="金额"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px">应结款项余额如下：</div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="yfze" label="应付总额"></el-table-column>
+            <el-table-column prop="yfze" label="已付总额"></el-table-column>
+            <el-table-column prop="ytze" label="已退总额(不含换货)"></el-table-column>
+            <el-table-column prop="cdze" label="冲抵总额"></el-table-column>
+            <el-table-column prop="yfye" label="应付余额"></el-table-column>
+          </el-table>
+          <div style="width:100%;line-height:40px;text-align:center">
+            <el-button @click="hidenView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrGysdzbMx } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      item: [],
+      gysName: "",
+      tableData: [],
+      from: {
+        gysId: "",
+        rqlb: "",
+        startDate: "",
+        endDate: "",
+      },
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    success() {
+      this.gysMxData();
+    },
+    reset() {
+      this.item = [];
+      this.item.push(this.getCurrentMonthFirst());
+      this.item.push(this.getCurrentMonthLast());
+      this.from.rqlb = "1";
+      this.gysMxData();
+    },
+    gysMxData() {
+      if (this.item.length) {
+        this.from.startDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      cgbbGrGysdzbMx(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.from.gysId = this.decode(this.$route.query.id);
+    this.gysName = this.widowData.gys;
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.gysMxData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-date-editor .el-range-separator {
+  line-height: 20px;
+}
+.create-container .el-range-separator {
+  width: 10%;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../../../manage/styles/table.scss";
+@import "../../../../../styles/detail.scss";
+.input-box {
+  width: 20%;
+}
+.title {
+  float: left;
+  width: 100%;
+  ul {
+    width: 100%;
+    line-height: 40px;
+    li {
+      float: left;
+    }
+  }
+}
+</style>

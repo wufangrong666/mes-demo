@@ -1,0 +1,369 @@
+<template>
+  <div style="float:left">
+    <div class="input-box" style="margin:0 0 0 20px">
+      <label class="input-label">账户</label>
+      <el-select clearable v-model="mail" placeholder="请选择">
+        <el-option
+          v-for="item in mailUserList"
+          :key="item.mailId"
+          :label="item.mailUsername"
+          :value="item.mailUsername"
+        ></el-option>
+      </el-select>
+    </div>
+    <el-button @click="accept" type="primary">接收邮件</el-button>
+
+    <div class="c-container">
+      <!-- 标题查询 -->
+      <div class="title">{{title}}</div>
+      <div class="input-box">
+        <label class="input-label">账户</label>
+        <el-select v-model="from.receiveMail" placeholder="请选择">
+          <el-option
+            v-for="item in mailUserList"
+            :key="item.mailId"
+            :label="item.mailUsername"
+            :value="item.mailUsername"
+          ></el-option>
+        </el-select>
+      </div>
+      <div class="input-box">
+        <label class="input-label">发件人</label>
+        <el-input placeholder="请输入收件人" clearable v-model="from.sendMail"></el-input>
+      </div>
+      <div class="input-box">
+        <label class="input-label">邮件主题</label>
+        <el-input placeholder="请输入邮件主题" clearable v-model="from.title"></el-input>
+      </div>
+      <div class="input-box" style="width:440px">
+        <label class="input-label">接收时间</label>
+        <el-date-picker
+          value-format="yyyy-MM-dd"
+          v-model="item"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </div>
+      <div class="input-box" style="width:120px">
+        <el-button @click="search" type="primary">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+
+      <!-- 新增更多 -->
+      <div class="right-container">
+        <el-dropdown trigger="click" v-if="moreTypes.length > 0" @command="handleTypeDrop">
+          <flexbox class="right-more-item">
+            <div>更多</div>
+            <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+          </flexbox>
+          <el-dropdown-menu style="height:100px" slot="dropdown">
+            <el-dropdown-item
+              v-for="(item, index) in moreTypes"
+              :key="index"
+              :command="item.type"
+            >{{item.name}}</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </div>
+      <el-table id="table" :height="tableHeight" :data="tableData" stripe style="width: 99.5%">
+        <el-table-column label="状态">
+          <template slot-scope="scopr">
+            <div @click="statusClick(scopr.row)">
+              <span v-if="scopr.row.status == 1" style="color:#67c23a; cursor: pointer ">已读</span>
+              <span v-else style="color:red; cursor: pointer ">未读</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="receiveMail" label="收件人"></el-table-column>
+        <el-table-column prop="sendMail" label="发件人"></el-table-column>
+        <el-table-column label="邮箱主题">
+          <template slot-scope="scopr">
+            <span
+              @click="detailsClick(scopr.row)"
+              style="color:#3E84E9; cursor: pointer "
+              v-text="scopr.row.mailTitle"
+            ></span>
+          </template>
+        </el-table-column>
+        <el-table-column label="附件">
+          <template slot-scope="scopr">
+            <span v-text="scopr.row.isfile == 1?'有附件':'无附件'"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="receiveTime" label="时间"></el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button style="color:#f56c6c" @click="deleteClick(scope.row)" type="text">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="from.page"
+          :page-sizes="pageSizes"
+          :page-size.sync="from.limit"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import {
+  mailReceiveFindReceiveMail,
+  mailSendFindAccount,
+  mailReceiveuUpdateReceiveStatus,
+  mailReceiveDelReceiveMailByReceiveIds,
+  mailReceiveReceiveMail,
+  mailReceiveFindReceiveMailInfo,
+} from "@/api/email/email";
+import Lockr from "lockr";
+
+export default {
+  name: "yxszIndex",
+  computed: {},
+  data() {
+    return {
+      mail: "",
+      mailUserList: [],
+      value: "",
+      options: [
+        { name: "仅用户名", id: 1 },
+        { name: "用户名@主机明", id: 2 },
+      ],
+      details: {
+        mailTitle: "",
+        sendMail: "",
+        receiveTime: "",
+        receiveMail: "",
+        isfile: "",
+        mailContent: "",
+      },
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        sendMail: "", //	否	string	发件人邮箱
+        title: "", //否	string	主题
+        startTime: "", //	否	string	开始时间
+        endTime: "", //否	string	结束时间
+        status: "", //	否	string	状态(0 未读,1 已读)
+        receiveMail: "", //	否	string	收件人邮箱
+        pageNum: 1, //	否	string	页码
+        pageSize: 15,
+      },
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+    };
+  },
+  activated() {
+    this.loginData();
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.moreTypes.push({ type: "enter", name: "导入" });
+    this.moreTypes.push({ type: "out", name: "导出" });
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+  },
+  methods: {
+    detailsClick(val) {
+      this.windowOpen("/sjxMx", {
+        id: this.encode(val.receiveId),
+        type: "sjxMx",
+      });
+      // mailReceiveFindReceiveMailInfo({
+      //   receiveId: val.receiveId
+      // })
+      //   .then(res => {
+      //     this.details.mailTitle = res.receiveMail.mailTitle;
+      //     this.details.sendMail = res.receiveMail.sendMail;
+      //     this.details.receiveTime = res.receiveMail.receiveTime;
+      //     this.details.receiveMail = res.receiveMail.receiveMail;
+      //     this.details.isfile = res.receiveMail.isfile == 1 ? "有附件" : "无附件";
+      //     this.details.mailContent = res.receiveMail.mailTitle;
+      //   })
+      //   .catch(res => {});
+    },
+    accept() {
+      if (this.mail == "") {
+        this.msgInfo("请选择账户");
+        return;
+      }
+      mailReceiveReceiveMail({
+        mail: this.mail,
+      })
+        .then((res) => {
+          this.msgSuccess("接收成功");
+          this.loginData();
+        })
+        .catch((res) => {});
+    },
+    deleteClick(val) {
+      mailReceiveDelReceiveMailByReceiveIds({
+        receiveIds: val.receiveId,
+      })
+        .then((res) => {
+          this.msgSuccess("删除成功");
+          this.loginData();
+        })
+        .catch((res) => {});
+    },
+    statusClick(val) {
+      mailReceiveuUpdateReceiveStatus({
+        receiveId: val.receiveId,
+      })
+        .then((res) => {
+          this.msgSuccess("修改成功");
+          this.loginData();
+        })
+        .catch((res) => {});
+    },
+    //查询
+    search() {
+      if (this.item.length) {
+        this.from.startTime = this.item[0];
+        this.from.endTime = this.item[1];
+      }
+      this.loginData();
+    },
+    reset() {
+      this.from.sendMail = "";
+      this.from.title = "";
+      this.from.startTime = "";
+      this.from.endTime = "";
+      this.from.status = "";
+      this.from.receiveMail = "";
+      this.from.pageNum = 1;
+      this.from.pageSize = 15;
+      this.item = [];
+      this.loginData();
+    },
+    //获取列表数据
+    loginData() {
+      mailReceiveFindReceiveMail(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.count;
+        })
+        .catch((res) => {});
+      mailSendFindAccount({
+        userId: Lockr.get("loginUserInfo").userId,
+      })
+        .then((res) => {
+          this.mailUserList = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+@import "../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  float: left;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    width: 275px;
+    height:35px;
+    margin: 20px 0 0 15px;
+    .el-date-editor {
+      width: 375px;
+    }
+    .input-label {
+      width: 65px;
+      line-height: 35px;
+    }
+  }
+  .input-dialog {
+    width: 100%;
+    .input-label {
+      float: left;
+      width: 30%;
+      line-height: 40px;
+    }
+    .el-input {
+      line-height: 40px;
+      width: 60%;
+    }
+    .el-select {
+      line-height: 40px;
+      width: 60%;
+    }
+  }
+  .right-container {
+    margin-right: -10px;
+    float: right;
+    margin: 20px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

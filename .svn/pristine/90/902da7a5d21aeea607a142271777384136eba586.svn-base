@@ -1,0 +1,213 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="交往记录">
+          <div class="input-box" style="width:100%">
+            <label class="input-label">订单单号</label>
+            <div v-text="dddh"></div>
+          </div>
+          <div class="input-box" style="width:400px">
+            <label class="input-label">交往人</label>
+            <el-input :readonly="true" clearable placeholder="请选择交往人" v-model="jwrName">
+              <el-button @click="jwrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" style="width:30%">
+            <label class="input-label">创建日期</label>
+            <el-date-picker
+              v-model="date"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="yyyy-MM-dd"
+            ></el-date-picker>
+          </div>
+          <div class="input-box" style="width:30%">
+            <el-button @click="search" type="primary">查询</el-button>
+            <el-button @click="reste" type="info" plain>重置</el-button>
+            <el-button @click="addJwjl" type="primary">新增交往记录</el-button>
+          </div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="jwr" label="交往人"></el-table-column>
+            <el-table-column prop="time" label="交往时间"></el-table-column>
+            <el-table-column prop="content" label="交往内容"></el-table-column>
+            <el-table-column prop="address" label="操作">
+              <template slot-scope="scope">
+                <el-button type="text" @click="toViewJwjl(scope.row)">查看</el-button>
+                <el-button type="text" @click="editJwjl(scope.row)">编辑</el-button>
+                <el-button type="text" @click="deteleJwjl(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <span class="dialog-footer">
+            <el-button @click="hidenView">关 闭</el-button>
+          </span>
+        </sections>
+      </div>
+
+      <gxrDialog
+        @gxrDialogTreeData="gxrDialogTreeData"
+        @close="gxrDialogStatus = false"
+        :gxrDialogStatus="gxrDialogStatus"
+      ></gxrDialog>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { cgddJwjlQueryList, cgddJwjlDelDjJwjl } from "@/api/jxc/jxc";
+import gxrDialog from "../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    gxrDialog
+  },
+  data() {
+    return {
+      loading: false,
+      gxrDialogStatus: false,
+      jwrName: "",
+      jwr: "",
+      date: "",
+      tableData: [],
+      dddh: ""
+    };
+  },
+
+  methods: {
+    deteleJwjl(row) {
+      this.$confirm("请确认删除此条记录, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          cgddJwjlDelDjJwjl({
+            id: row.id
+          })
+            .then(res => {
+              this.$message({
+                type: "success",
+                message: "删除成功!"
+              });
+              this.queryJwjl();
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    editJwjl(row) {
+      this.windowOpen("/cgddJwjlAdd", {
+        id: row.id,
+        djId: this.widowData.id,
+        dh: row.dh,
+        time: row.time,
+        content: row.content,
+        type: "edit"
+      });
+    },
+    toViewJwjl(row) {
+      this.windowOpen("/cgddJwjlAdd", {
+        id: row.id,
+        djId: this.widowData.id,
+        dh: row.dh,
+        time: row.time,
+        content: row.content,
+        type: "toViewJwjl"
+      });
+    },
+    addJwjl() {
+      this.windowOpen("/cgddJwjlAdd", {
+        id: "",
+        djId: this.widowData.id,
+        dh: this.widowData.dh,
+        dh: "",
+        time: "",
+        content: "",
+        type: "jwjlAdd"
+      });
+    },
+    search() {
+      this.queryJwjl();
+    },
+    reste() {
+      this.jwr = "";
+      this.jwrName = "";
+      this.date = "";
+      this.queryJwjl();
+    },
+    gxrDialogTreeData(id, name) {
+      this.jwr = id;
+      this.jwrName = name;
+    },
+    jwrDialog() {
+      this.gxrDialogStatus = true;
+    },
+    hidenView() {
+      window.top.close();
+      window.opener.postMessage("child", window.location);
+    },
+    queryJwjl() {
+      cgddJwjlQueryList({
+        djId: this.widowData.id,
+        jwr: this.jwr,
+        startDate: this.date.length != 0 ? this.date[0] : "",
+        endDate: this.date.length != 0 ? this.date[1] : ""
+      })
+        .then(res => {
+          this.tableData = res.data;
+        })
+        .catch(res => {});
+    },
+    receiveMessage(event) {
+      this.queryJwjl();
+    }
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.dddh = this.widowData.dh;
+    window.addEventListener("message", this.receiveMessage, false);
+    this.queryJwjl();
+  }
+};
+</script>
+<style >
+.el-date-editor .el-range-separator,
+.create-flex .el-input__icon {
+  line-height: 20px;
+}
+</style>
+<style lang='scss' scoped>
+.input-box {
+  float: left;
+  line-height: 25px;
+  .input-label {
+    float: left;
+    width: 60px;
+  }
+  .el-input {
+    float: left;
+    width: 300px;
+  }
+}
+.dialog-footer {
+  text-align: center;
+  display: inline-block;
+  width: 100%;
+  margin-top: 40px;
+}
+</style>

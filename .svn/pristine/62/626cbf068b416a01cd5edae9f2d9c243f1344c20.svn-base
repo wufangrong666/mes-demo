@@ -1,0 +1,88 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="上海思奉贸易有限公司">
+          <div class="title">
+            <ul>
+              <li>供应商：</li>
+              <li>{{'【'+gysName+'】'}}</li>
+              <li>在</li>
+              <li v-text="item[0]"></li>
+              <li>至于</li>
+              <li v-text="item[1]"></li>
+              <li>日的对账明细如下：</li>
+            </ul>
+          </div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="createDate" label="单据日期" ></el-table-column>
+            <el-table-column prop="djlx" label="单据类型" ></el-table-column>
+            <el-table-column prop="dh" label="单号"></el-table-column>
+            <el-table-column prop="zj" label="应付总金额增加"></el-table-column>
+            <el-table-column prop="js" label="应付总金额减少"></el-table-column>
+            <el-table-column prop="yfye" label="应付余额"></el-table-column>
+            <el-table-column prop="zy" label="摘要"></el-table-column>
+          </el-table>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrGysdzbMx } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      item: [],
+      gysName: "",
+      tableData:[]
+    };
+  },
+
+  methods: {
+    gysMxData() {
+      cgbbGrGysdzbMx({
+        gysId: this.widowData.id,
+        rqlb: "",
+        startDate: this.item[0],
+        endDate: this.item[1],
+      })
+        .then((res) => {
+          this.tableData = res.data
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.gysName = this.widowData.gys;
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.gysMxData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.title {
+  ul {
+    width: 100%;
+    line-height: 40px;
+    li {
+      float: left;
+    }
+  }
+}
+</style>

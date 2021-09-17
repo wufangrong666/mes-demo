@@ -1,0 +1,149 @@
+<template>
+  <div class="gysDialog">
+    <el-dialog title="供应商" :visible.sync="gysPpOrVisble" width="60%" :before-close="handleClose">
+      <span>
+        <div class="input-box">
+          <label class="input-label">供应商:</label>
+          <el-input v-model="list.name" placeholder="请输入内容"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">供应商编码:</label>
+          <el-input v-model="list.gysBm" placeholder="请输入内容"></el-input>
+        </div>
+        <div class="input-box">
+          <el-button type="primary" @click="success">查询</el-button>
+          <el-button type="info" @click="reset" plain>重置</el-button>
+        </div>
+        <el-table
+          height="500px"
+          :data="tableData"
+          style="width: 100%;"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column prop="gysName" label="供应商名称"></el-table-column>
+          <el-table-column prop="gysCode" label="供应编码"></el-table-column>
+        </el-table>
+        <div class="p-contianer">
+          <el-pagination
+            class="p-bar"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="list.page"
+            :page-sizes="[15,30,50,100]"
+            :page-size.sync="list.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+          ></el-pagination>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleClose">取 消</el-button>
+        <el-button type="primary" @click="submitGys">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { sgdFindGys } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  props: ["gysPpOrVisble"],
+  data() {
+    return {
+      tableData: [],
+      list: {
+        name: "",
+        gysBm: "",
+        page: 1,
+        limit: 15,
+      },
+      total: 0,
+      listData: [],
+    };
+  },
+  watch: {
+    gysPpOrVisble: {
+      handler() {
+        if (this.gysPpOrVisble) {
+          this.list.name = "";
+          this.list.gysBm = "";
+          this.list.page = 1;
+          this.list.limit = 15;
+          this.listData = [];
+          this.gysData();
+        }
+      },
+    },
+  },
+  methods: {
+    success() {
+      this.gysData();
+    },
+    reset() {
+      this.list.name = "";
+      this.list.gysBm = "";
+      this.list.page = 1;
+      this.list.limit = 15;
+      this.gysData();
+    },
+    handleSizeChange(val) {
+      this.list.limit = val;
+      this.gysData();
+    },
+    handleCurrentChange(val) {
+      console.log(val);
+      this.list.page = val;
+      this.gysData();
+    },
+    submitGys() {
+      this.$emit("gysData", this.listData);
+      this.handleClose();
+    },
+    handleSelectionChange(val) {
+      this.listData = val;
+    },
+    handleClose() {
+      this.$emit("colse");
+    },
+    gysData() {
+      sgdFindGys(this.list)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss'>
+.gysDialog .el-dialog {
+  margin-top: 8vh !important ;
+}
+</style>
+<style lang='scss' scoped>
+.p-contianer {
+  width: 100%;
+  text-align: right;
+  margin-top: 10px;
+}
+.input-box {
+  width: 25%;
+  height: 35px;
+  display: inline-block;
+  .input-label {
+    width: 80px;
+    display: inline-block;
+  }
+  .el-input {
+    width: 60%;
+    display: inline-block;
+  }
+}
+</style>

@@ -1,0 +1,143 @@
+import request from '@/utils/request'
+// 单号规则查询
+export function dhgzQueryDhgz(data) {
+    return request({
+        url: 'dhgz/queryDhgz',
+        method: 'post',
+        data: data
+    })
+}
+// 单号规则删除
+export function dhgzDeleteById(data) {
+    return request({
+        url: 'dhgz/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+// 单号规则新增
+export function dhgzAddAndUpdate(data) {
+    return request({
+        url: 'dhgz/addAndUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 打印设置查询
+export function printQuerySetting(data) {
+    return request({
+        url: 'print/querySetting',
+        method: 'post',
+        data: data
+    })
+}
+//打印设置保存
+export function printSetting(data) {
+    return request({
+        url: 'print/setting',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 业务单据提醒设置查询
+export function noticeSettingQueryNoticeSetting(data) {
+    return request({
+        url: 'noticeSetting/queryNoticeSetting',
+        method: 'post',
+        data: data
+    })
+}
+// 业务单据提醒设置修改
+export function noticeSettingUpdateNoticeSetting(data) {
+    return request({
+        url: 'noticeSetting/updateNoticeSetting',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 条款类型查询
+export function httkQueryTypeOfContact(data) {
+    return request({
+        url: 'httk/queryTypeOfContact',
+        method: 'post',
+        data: data
+    })
+}
+// 查询条款预设
+export function httkQueryPageList(data) {
+    return request({
+        url: 'httk/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 删除条款预设
+export function httkDeleteById(data) {
+    return request({
+        url: 'httk/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+// 条款预设状态修改
+export function httkCheckStatusById(data) {
+    return request({
+        url: 'httk/checkStatusById',
+        method: 'post',
+        data: data
+    })
+}
+// 条款预设状态修改
+export function httkAddAndUpdateType(data) {
+    return request({
+        url: 'httk/addAndUpdateType',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 条款预设添加和修改
+export function httkAddAndUpdate(data) {
+    return request({
+        url: 'httk/addAndUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
+// 基础规则设置查询
+export function jcszQueryJcsz(data) {
+    return request({
+        url: 'jcsz/queryJcsz',
+        method: 'post',
+        data: data
+    })
+}
+// 基础规则设置
+export function jcszAddAndUpdate(data) {
+    return request({
+        url: 'jcsz/addAndUpdate',
+        method: 'post',
+        data: data,
+         headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}

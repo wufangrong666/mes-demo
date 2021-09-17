@@ -1,0 +1,228 @@
+<template>
+  <div>
+    <el-dialog
+      title="选择人员"
+      :visible.sync="dialogStatus"
+      width="40%"
+      style="margin-top:-10vh"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div>
+        <el-tabs v-model="activeName" @tab-click="tabsClick">
+          <el-tab-pane class="el-tab-department" label="按部门" name="department">
+            <el-tree
+              ref="tree"
+              node-key="userId"
+              @check-change="handleTreeClick"
+              @node-click="nodeClick"
+              :props="defaultProps"
+              :data="treeData"
+              show-checkbox
+              :check-strictly='true'
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="按角色" name="role">
+            <el-tree
+              ref="treeR"
+              @check-change="handleTreeClickR"
+              @node-click="nodeClickR"
+              node-key="id"
+              :props="defaultPropsR"
+              :data="treeDataR"
+              show-checkbox
+              :check-strictly='true'
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="查询" name="search">
+            <div style="margin-top:5px">
+              <el-input style="width:30%" v-model="realname"></el-input>
+              <el-select style="width:10%" v-model="realStatus">
+                <el-option
+                  v-for="item in realStatusList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+              <el-button @click="realSearch" type="primary">查询</el-button>
+              <el-table
+                height="350px"
+                :show-header="false"
+                :data="realtableData"
+                style="width: 100%"
+              >
+                <el-table-column width="50">
+                  <template slot-scope="scope">
+                    <el-radio v-model="realRadio" :label="scope.row" @change="realRadioChange">
+                      <i></i>
+                    </el-radio>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="realname" label="姓名"></el-table-column>
+              </el-table>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleClose">取 消</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser
+} from "@/api/crm/ggkhc";
+import { usersList } from "@/api/common";
+
+export default {
+  name: "",
+  props: ["dialogStatus", "treeId"],
+  watch: {
+    dialogStatus: {
+      handler() {
+        if (this.dialogStatus) {
+          this.dialogYwyTree();
+        }
+      }
+    }
+  },
+  data() {
+    return {
+      activeName: "department",
+      defaultProps: {
+        label: "name",
+        children: "children"
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user"
+      },
+      treeDataR: [],
+      treeData: [],
+      realtableData: [],
+      realname: "",
+      realStatus: "",
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" }
+      ],
+      realRadio: ""
+    };
+  },
+
+  methods: {
+    submit() {
+      this.handleClose();
+      if (this.activeName == "department") {
+        if (this.$refs.tree.getCheckedKeys().length == 0) {
+          this.$emit("dialogTreeData", "", "");
+        } else {
+          this.$emit(
+            "dialogTreeData",
+            this.$refs.tree.getCheckedKeys().join(""),
+            this.$refs.tree.getCheckedNodes()[0].name
+          );
+        }
+      } else if (this.activeName == "role") {
+        if (this.$refs.treeR.getCheckedNodes().length == 0) {
+          this.$emit("dialogTreeData", "", "");
+        } else {
+          this.$emit(
+            "dialogTreeData",
+            this.$refs.treeR.getCheckedNodes()[0].userId,
+            this.$refs.treeR.getCheckedNodes()[0].realname
+          );
+        }
+      }
+    },
+    handleClose() {
+      this.$emit("close");
+    },
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+        if (this.treeId != "") {
+          this.$refs.tree.setCheckedKeys([this.treeId]);
+        }
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+        if (this.treeId != "") {
+          this.$refs.treeR.setCheckedKeys([this.treeId]);
+        }
+      } else {
+      }
+    },
+    submitYwy() {},
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    duakigReal() {
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus
+      })
+        .then(res => {
+          this.realtableData = res.data.list;
+        })
+        .catch(res => {});
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then(res => {
+          this.treeData = res.data;
+        })
+        .catch(res => {});
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then(res => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            this.treeDataR[i].disabled = true
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    realRadioChange(val) {
+      this.$emit("dialogTreeData", val.userId, val.realname);
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+.el-tab-pane {
+  height: 500px;
+  overflow: auto;
+}
+</style>

@@ -1,0 +1,215 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="品名/英文品名/海关编码"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title="新建品名信息"
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        border
+        :height="tableHeight"
+        id="table"
+        :data="tableData"
+        stripe
+        style="width: 100%"
+        :ket="Math.round()"
+      >
+        <el-table-column label="品名">
+          <template slot-scope="scope">
+            <span
+              style="color:#3E84E9;cursor:pointer"
+              @click="pmClick(scope.row,true)"
+            >{{scope.row.nameCn}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="nameEn" label="英文品名"></el-table-column>
+        <el-table-column prop="tariff" label="关税"></el-table-column>
+        <el-table-column prop="realname" label="创建人"></el-table-column>
+        <el-table-column prop="createDate" label="创建日期"></el-table-column>
+        <el-table-column prop="lastEdittime" label="最后修改日期"></el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button
+              @click="editClick(scope.row)"
+              :disabled="operAuth.crmqx != undefined && !operAuth.crmqx.pmxjyczqx"
+              type="text"
+              size="small"
+            >编辑</el-button>
+            <el-button
+              :title="scope.row.flag == 1?'已有产品引用此品名，无法删除！':''"
+              :disabled="operAuth.crmqx == undefined?true:scope.row.flag == 1? true:!operAuth.crmqx.pmxjyczqx"
+              @click="deleteClick(scope.row)"
+              type="text"
+              size="small"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="pageSizes"
+          :page-size.sync="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import table from "../../manage/mixins/table";
+import draggable from "vuedraggable";
+import {
+  crmProductComnameQueryPageList,
+  crmProductComnameDelById,
+  crmProductComnameAddOrUpdate,
+  crmProductComnameQueryById,
+} from "@/api/crm/pmgl";
+import { mapGetters } from "vuex";
+
+export default {
+  name: "",
+  components: {
+    draggable,
+  },
+  computed: {
+    ...mapGetters(["operAuth"]),
+    // 部门编辑权限
+    pmxjyczAuth() {
+      return this.operAuth.crmqx != undefined && this.operAuth.crmqx.pmxjyczqx;
+    },
+  },
+  mixins: [table],
+  data() {
+    return {
+      flag: "",
+      title: "",
+      listType: "crm_comname",
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 240, // 表的高度
+      page: 1,
+      limit: 15,
+    };
+  },
+
+  methods: {
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginDataPm('','');
+    },
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginDataPm('','');
+    },
+    //删除
+    deleteClick(row) {
+      this.$confirm("此操作将删除该品名, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          crmProductComnameDelById({
+            id: row.productComnameId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功!");
+              this.loginDataPm("",'');
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    pmClick(row) {
+      this.windowOpen("/pmglAddEdit", {
+        id: this.encode(row.productComnameId),
+        type: "lookCard",
+      });
+    },
+    editClick(row) {
+      this.windowOpen("/pmglAddEdit", {
+        id: this.encode(row.productComnameId),
+        type: "edit",
+      });
+    },
+    /** 通过回调控制style */
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      if (column.property === "name") {
+        return { color: "#3E84E9", cursor: "pointer" };
+      } else {
+        return "";
+      }
+    },
+    companySearch(val) {
+      this.loginDataPm(val,'');
+    },
+    loginDataPm(val,data) {
+      crmProductComnameQueryPageList({
+        page: this.page,
+        limit: this.limit,
+        search: val,
+        data:data
+      })
+        .then((res) => {
+          this.tableData = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+    handleFilter(data) {
+      this.loginDataPm("",data);
+    },
+  },
+
+  created() {},
+  activated() {
+    this.loginDataPm("");
+  },
+  mounted() {
+    this.updateTableHeight();
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 10px 0 0 10px;
+  width: 99%;
+  .input-label {
+    width: 100px;
+  }
+  .el-input,
+  .el-cascader,
+  .el-select {
+    width: 60%;
+  }
+}
+</style>

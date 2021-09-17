@@ -1,0 +1,61 @@
+<template>
+  <div id="app">
+      <router-view class="router-view" />
+    <vue-picture-viewer
+      :imgData="previewImgs"
+      :select-index="previewIndex"
+      v-if="showPreviewImg"
+      @close-viewer="showPreviewImg=false"
+    ></vue-picture-viewer>
+  </div>
+</template>
+
+<script>
+/** 常用图片预览创建组件 */
+import VuePictureViewer from "@/components/vuePictureViewer/index";
+import { mapGetters } from "vuex";
+
+export default {
+  name: "App",
+  components: {
+    VuePictureViewer
+  },
+  data() {
+    return {
+      showPreviewImg: false,
+      previewIndex: 0,
+      previewImgs: []
+    };
+  },
+  computed: {
+    ...mapGetters(["activeIndex"])
+  },
+  watch: {
+    $route(to, from) {
+      this.showPreviewImg = false; //切换页面隐藏图片预览
+      if (to.meta.menuIndex) {
+        this.$store.commit("SET_ACTIVEINDEX", to.meta.menuIndex);
+      } else {
+        this.$store.commit("SET_ACTIVEINDEX", to.path);
+      }
+    }
+  },
+  mounted() {
+    this.addBus();
+  },
+  methods: {
+    addBus() {}
+  }
+};
+</script>
+
+<style>
+#app {
+  width: 100%;
+  position: relative;
+  height: 100%;
+}
+header {
+  height: 60px !important;
+}
+</style>

@@ -1,0 +1,518 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <ul class="tableHeader">
+            <li>品牌</li>
+            <li>供应商名称</li>
+            <li>联系人</li>
+            <li>邮箱</li>
+            <li>评价</li>
+            <li>操作</li>
+          </ul>
+          <div v-for="(item,index) in tableData" :key="index + '_ac'">
+            <el-table
+              :span-method="objectSpanMethod"
+              :data="item.gysList"
+              stripe
+              style="width: 100%"
+              id="table"
+              :show-header="false"
+            >
+              <el-table-column prop="brandName" label="品牌">
+                <template slot-scope="scope">
+                  <span v-text="scope.row.brandName" style="display: block;"></span>
+                  <!-- <el-button>默认按钮</el-button> -->
+                  <el-button type="primary" @click="glGys(item.brandId)">匹配供应商</el-button>
+                </template>
+              </el-table-column>
+              <el-table-column prop="gysName" label="供应商名称"></el-table-column>
+              <el-table-column label="联系人">
+                <template slot-scope="scope">
+                  <el-select
+                    v-model="scope.row.contactId"
+                    placeholder="请选择"
+                    @change="emailChange(scope.row)"
+                  >
+                    <el-option
+                      v-for="(data,index) in scope.row.contact"
+                      :key="index+'_abc'"
+                      :label="data.contactName"
+                      :value="data.contactId"
+                    ></el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column prop="email" label="邮箱"></el-table-column>
+              <el-table-column prop="pj" label="评价">
+                <template slot-scope="scope">
+                  <p
+                    @click="pjAdd(scope.row)"
+                    style="color: #3E84E9;cursor:pointer"
+                    v-for="(item,index) in scope.row.pj"
+                    :key="item.id +'_ao'"
+                  >{{(index + 1) +'：'+item.content}}</p>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作">
+                <template slot-scope="scope">
+                  <el-button @click="addPj(scope.row)" type="text">添加评价</el-button>
+                  <el-button
+                    :style="{'color':scope.row.cbjStatus?'#3E84E9':'red'}"
+                    @click="sendEmail(scope.row)"
+                    type="text"
+                  >发送邮件</el-button>
+                  <el-button
+                    :style="{'color':scope.row.cbjStatus?'':'red'}"
+                    :disabled="scope.row.cbjStatus"
+                    @click="cbjEmail(scope.row)"
+                    type="text"
+                  >崔报价</el-button>
+                  <el-button
+                    @click="deleteCllick(scope.row)"
+                    v-show="scope.row.flag"
+                    style="color:red"
+                    type="text"
+                  >删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+    <xbjSendEmail
+      :toaskRow="toaskRow"
+      :mblx="mblx"
+      :sendRow="sendRow"
+      @close="sendEmailStatus = false"
+      v-if="sendEmailStatus"
+    ></xbjSendEmail>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="添加评价"
+      :visible.sync="dialog"
+      width="50%"
+      :before-close="handleDialog"
+    >
+      <span>
+        <el-button @click="dialogAddPj" type="primary">添加评价</el-button>
+        <el-table :data="dialogData" height="500" style="width: 100%">
+          <el-table-column prop="realname" label="创建人"></el-table-column>
+          <el-table-column prop="jwtime" label="评价时间"></el-table-column>
+          <el-table-column prop="content" label="评价类容"></el-table-column>
+          <el-table-column label="操作">
+            <template slot-scope="scope">
+              <el-button @click="deletePj(scope.row)" style="color:red" type="text">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialog = false">关闭</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+      :modal-append-to-body="false"
+      title="添加评价"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input v-model="content" type="textarea" :rows="2" placeholder="请输入内容"></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUpdate">确 定</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="匹配供应商"
+      :visible.sync="dialogGys"
+      width="50%"
+      :before-close="handleDialogGys"
+    >
+      <span>
+        <div class="input-box">
+          <label class="input-label">供应商名称</label>
+          <el-input placeholder="供应商名称" v-model="from.name"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">供应商编码</label>
+          <el-input placeholder="供应商编码" v-model="from.gysBm"></el-input>
+        </div>
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+        <el-table
+          :data="gysList"
+          height="500"
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column prop="gysName" label="供应商名称"></el-table-column>
+          <el-table-column prop="gysCode" label="供应商编码"></el-table-column>
+        </el-table>
+        <div class="p-contianer">
+          <el-pagination
+            class="p-bar"
+            @size-change="handleSizeChangeGys"
+            @current-change="handleCurrentChangeGys"
+            :current-page="from.page"
+            :page-sizes="[15, 30, 50, 100]"
+            :page-size.sync="from.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+          ></el-pagination>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="success" @click="gysChange">保 存</el-button>
+        <el-button @click="dialogGys = false">取 消</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import xbjSendEmail from "./xbjSendEmail";
+import { sgdFindGys, toXjChooseGys } from "@/api/jxc/jxc";
+import {
+  toXjToXj,
+  toXjPjGys,
+  toXjDelGysWithBrand,
+  toXjDelPj,
+} from "@/api/crm/xbjTable";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    xbjSendEmail,
+  },
+  computed: {
+    ...mapGetters(["manage", "companyConfig"]),
+  },
+  data() {
+    return {
+      toaskRow: "",
+      dialogGys: false,
+      loading: false,
+      tableData: [],
+      sendEmailStatus: false,
+      sendRow: {},
+      dialogVisible: false,
+      dialog: false,
+      content: "",
+      pjList: {},
+      dialogData: [],
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        gysBm: "",
+      },
+      gysList: [],
+      total: 0,
+      brandId: "",
+      spanArr: [],
+      mblx: "",
+      multipleSelection: [],
+    };
+  },
+
+  methods: {
+    contactid(val) {
+      console.log(val);
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    emailChange(row) {
+      row.flag = false;
+      for (var i in row.contact) {
+        if (row.contact[i].contactId == row.contactId) {
+          row.email = row.contact[i].contactEmail;
+        }
+        if (row.contact[i].count == 0) {
+          row.cbjStatus = true;
+        } else {
+          row.cbjStatus = false;
+        }
+      }
+    },
+    gysChange() {
+      toXjChooseGys({
+        brandId: this.brandId,
+        gysId: this.multipleSelection
+          .map(function (item) {
+            return item.gysId;
+          })
+          .join(","),
+      })
+        .then((res) => {
+          this.dialogGys = false;
+          this.queryData();
+        })
+        .catch((res) => {});
+    },
+    search() {
+      this.gysTable();
+    },
+    handleSizeChangeGys(val) {
+      this.from.limit = val;
+      this.gysTable();
+    },
+    handleCurrentChangeGys(val) {
+      this.from.page = val;
+      this.gysTable();
+    },
+    reset() {
+      this.from.name = "";
+      this.from.gysBm = "";
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.gysTable();
+    },
+    gysTable() {
+      sgdFindGys({
+        name: this.from.name,
+        gysBm: this.from.gysBm,
+        page: this.from.page,
+        limit: this.from.limit,
+      })
+        .then((res) => {
+          this.gysList = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    glGys(val) {
+      this.dialogGys = true;
+      this.brandId = val;
+      this.gysTable();
+    },
+    handleDialogGys() {
+      this.dialogGys = false;
+    },
+    pjAdd(val) {
+      this.dialog = true;
+      this.dialogData = val.pj;
+      this.pjList = val;
+    },
+    deletePj(val) {
+      toXjDelPj({
+        id: val.id,
+      })
+        .then((res) => {
+          this.msgSuccess("删除成功");
+          for (var i in this.dialogData) {
+            if (this.dialogData[i].id == val.id) {
+              this.dialogData.splice(i, 1);
+            }
+          }
+          this.queryData();
+        })
+        .catch((res) => {});
+    },
+    addUpdate() {
+      toXjPjGys({
+        gysId: this.pjList.gysId,
+        contactId: this.pjList.contact[0].contactId,
+        content: this.content,
+        remark: this.content,
+      })
+        .then((res) => {
+          this.msgSuccess("添加成功");
+          this.dialogVisible = false;
+          this.dialog = false;
+          this.queryData();
+        })
+        .catch((res) => {});
+    },
+    deleteCllick(val) {
+      this.$confirm("请确认删除信息, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          toXjDelGysWithBrand({
+            gysId: val.gysId,
+            brandId: val.brandId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.queryData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    addPj(val) {
+      this.dialogVisible = true;
+      this.content = "";
+      this.pjList = val;
+    },
+    dialogAddPj() {
+      this.dialogVisible = true;
+      this.content = "";
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handleDialog() {
+      this.dialog = false;
+    },
+    sendEmail(val) {
+      if (val.contactId == '') {
+        this.msgInfo("请选择联系人");
+        return;
+      }
+      this.windowOpen("/xbjSendEmail", {
+        id: this.encode(this.toaskRow),
+        brandId: val.brandId,
+        gysId: val.gysId,
+        contactId: val.contactId,
+        type: "1",
+        djlx: "xjd",
+      });
+    },
+    cbjEmail(val) {
+      this.windowOpen("/xbjSendEmail", {
+        id: this.encode(this.toaskRow),
+        brandId: val.brandId,
+        gysId: val.gysId,
+        contactId: val.contactId,
+        type: "3",
+        djlx: "xjd",
+      });
+    },
+    hidenView() {
+      window.top.close();
+    },
+    queryData() {
+      toXjToXj({
+        xjdId: this.widowData.id,
+      })
+        .then((res) => {
+          this.tableData = res.data;
+          this.getSpanArr(res.data);
+          for (var i in this.tableData) {
+            for (var k in this.tableData[i].gysList) {
+              this.tableData[i].gysList[k].flag = true;
+              this.tableData[i].gysList[k].cbjStatus = true;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+      columnIndex === 0; //找到第一列，实现合并随机出现的行数
+      if (columnIndex === 0) {
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {
+          rowspan: _row,
+          colspan: _col,
+        };
+      }
+    },
+    getSpanArr(data) {
+      this.spanArr = [];
+      for (var i = 0; i < data.length; i++) {
+        for (var k = 0; k < data[i].gysList.length; k++) {
+          if (k === 0) {
+            // 如果是第一条记录（即索引是0的时候），向数组中加入１
+            this.spanArr.push(1);
+            this.pos = 0;
+          } else {
+            if (data[i].gysList[k].brandId === data[i].gysList[k - 1].brandId) {
+              // 如果xjdId相等就累加，并且push 0
+              this.spanArr[this.pos] += 1;
+              this.spanArr.push(0);
+            } else {
+              // 不相等push 1
+              this.spanArr.push(1);
+              this.pos = i;
+            }
+          }
+        }
+      }
+    },
+    receiveMessage(event) {
+      if (event.data == "email") {
+        this.queryData();
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.toaskRow = this.$route.query.toaskRow;
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  width: 40%;
+  height: 40px;
+}
+.handle-bar {
+  text-align: center;
+  margin-top: 40px;
+}
+.create-container {
+  position: relative;
+  height: 100%;
+}
+.handle-bar {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+.create-flex {
+  height: 100%;
+}
+.tableHeader {
+  width: 100%;
+  line-height: 40px;
+  li {
+    float: left;
+    border-bottom: 1px solid #e6e6e6;
+    text-align: center;
+    width: 300px;
+  }
+}
+</style>

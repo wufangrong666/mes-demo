@@ -1,0 +1,98 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="客户区分信息">
+          <div class="input-boxB">
+            <label class="input-label">最后一次销售负责人:</label>
+            <div v-text="from.lastYwy"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">返回公共客户池时间:</label>
+            <div v-text="from.backtime"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">返回原因:</label>
+            <div v-text="from.backReason"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">上次成单时间:</label>
+            <div v-text="from.sccdSj"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">上次成单单号:</label>
+            <div v-text="from.sccdDh"></div>
+          </div>
+          <div class="handle-bar">
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { crmCustomerPoolQueryKhqf } from "@/api/crm/ggkhc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      loading: false,
+      from: {}
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    loadingHkqf() {
+      crmCustomerPoolQueryKhqf({
+        customerId: this.widowData.id
+      })
+        .then(res => {
+          this.from = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.loadingHkqf();
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  height: 40px;
+  .input-label {
+    width: 140px;
+    line-height: 40px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  div {
+    width: 30%;
+    line-height: 40px;
+    float: left;
+  }
+}
+</style>

@@ -1,0 +1,19 @@
+import Layout from '@/views/layout/financeLayout'
+import {
+  childrenMenu
+} from './finance'
+
+const financeRouter = {
+  path: '/finance',
+  component: Layout,
+  name:'finance',
+  redirect: '/finance/purchaseDeal/accountQuery',
+  meta: {
+    title: '财务管理',
+    icon: 'workbench',
+    type:'finance'
+  },
+  children: childrenMenu
+}
+
+export default financeRouter

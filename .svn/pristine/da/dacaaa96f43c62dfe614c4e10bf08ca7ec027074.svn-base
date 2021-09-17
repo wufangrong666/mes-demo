@@ -1,0 +1,50 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="业务员销售明细表">
+            
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { reportQueryXskdByYwy } from "@/api/jxc/jxc";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+    };
+  },
+
+  methods: {
+    tjData() {
+      reportQueryXskdByYwy({
+        ywy: this.widowData.id,
+      })
+        .then((res) => {})
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.tjData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+</style>

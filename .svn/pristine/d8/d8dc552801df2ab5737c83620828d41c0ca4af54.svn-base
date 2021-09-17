@@ -1,0 +1,397 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">所属客户</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.customerName">
+              <el-button @click="dialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <el-select v-model="from.fylb" placeholder="请选择">
+              <el-option
+                v-for="item in fylbList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人</label>
+            <div v-text="creator"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div v-text="createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <el-input placeholder="备注" v-model="from.remark"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款方式</label>
+            <el-select v-model="from.skfs" placeholder="请选择">
+              <el-option
+                v-for="item in skfsList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <el-radio v-model="from.sfbd" label="是">是</el-radio>
+            <el-radio v-model="from.sfbd" label="否">否</el-radio>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款日期</label>
+            <el-date-picker
+              v-model="from.skrq"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <el-select v-model="from.dwtt" placeholder="请选择">
+              <el-option
+                v-for="item in dwttList"
+                :key="item.id"
+                :label="item.nameCn"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款账户</label>
+            <el-select v-model="from.bankaccount" placeholder="请选择">
+              <el-option
+                v-for="item in bankaccountList"
+                :key="item.accountId"
+                :label="item.accountName"
+                :value="item.accountId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款单号</label>
+            <div v-text="from.yskdDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:#f00">*</span>本次收款
+            </label>
+            <el-input placeholder="本次收款" v-model="from.je"></el-input>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">是否无需核销</label>
+            <el-select style="width:15%" v-model="from.hx" placeholder="请选择">
+              <el-option
+                v-for="item in hxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">客户编码</label>
+            <div style="float:left" v-text="from.code"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">初始欠款</label>
+            <div style="float:left" v-text="fyData.csqk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">总金额</label>
+            <div style="float:left" v-text="fyData.zkhZje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已收金额</label>
+            <div style="float:left" v-text="fyData.ysk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已退总额(除换货)</label>
+            <div style="float:left" v-text="fyData.ytze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货冲抵总额</label>
+            <div style="float:left" v-text="fyData.thcdze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">未收金额</label>
+            <div style="float:left" v-text="fyData.wsje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label" style="width:140px">未收金额(扣除未审核)</label>
+            <div style="float:left" v-text="fyData.wsjekcwsh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本次收款</label>
+            <div style="float:left" v-text="from.je"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已核销金额</label>
+            <div style="float:left" v-text="from.yhxje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">剩余金额</label>
+            <div style="float:left" v-text="from.syje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本单可核销余额</label>
+            <div style="float:left" v-text="from.bdkhxye"></div>
+          </div>
+          <div class="bottom">
+            <el-button @click="submitYskd(-1)" type="primary">保存</el-button>
+            <el-button @click="submitYskd(0)" type="success">提交</el-button>
+            <el-button @click="hidenView" type="info">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+      <khDialog @hkDialog="hkDialog" @colse="dialogVisible = false" :dialogVisible="dialogVisible"></khDialog>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../components/createView";
+import sections from "../../../components/sections";
+import {
+  yskdQueryForAdd,
+  yskdQuerySkfs,
+  yskdQueryAccount,
+  yskdAddOrUpdate,
+  yskdQueryJeByCustomerId,
+  yskdQueryById,
+} from "@/api/finance/finance";
+import { bjdQueryDwtt } from "@/api/crm/xsbjd";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import khDialog from "../../../components/khDialog";
+import Lockr from "lockr";
+
+export default {
+  components: {
+    createView,
+    sections,
+    khDialog,
+  },
+  name: "",
+  watch: {},
+  computed: {},
+  props: {
+    data: {
+      type: Object,
+    },
+    yskdDetailsTitle: {
+      type: String,
+    },
+  },
+  data() {
+    return {
+      hxList: [{ name: "是" }, { name: "否" }],
+      dialogVisible: false,
+      loading: false,
+      dwttList: [],
+      skfsList: [],
+      bankaccountList: [],
+      tableData: [],
+      fylbList: [
+        { name: "银行汇款", id: 1 },
+        { name: "现金", id: 2 },
+      ],
+      createDate: "",
+      fyData:{},
+      from: {
+        yskdId: "",
+        yskdDh: "",
+        customerId: "",
+        customerName: "",
+        skfs: "",
+        bankaccount: "",
+        je: "",
+        syje: "",
+        dwtt: "",
+        fylb: 1,
+        skrq: "",
+        status: "",
+        remark: "",
+        sfbd: "否",
+      },
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: "",
+      },
+      total: 0,
+      creator: "",
+      userCode: "",
+    };
+  },
+
+  methods: {
+    hkDialog(name, id, code) {
+      this.from.customerName = name;
+      this.from.customerId = id;
+      this.from.code = code;
+      yskdQueryJeByCustomerId({
+        customerId: id,
+      })
+        .then((res) => {
+          this.fyData = res.data;
+        })
+        .catch((res) => {});
+    },
+    submitYskd(val) {
+      if (this.from.customerId == "") {
+        this.msgInfo("请选择客户");
+        return;
+      }
+      if (this.from.je == "") {
+        this.msgInfo("收款金额不能为空");
+        return;
+      }
+      if (this.from.skrq == "") {
+        this.msgInfo("请选择日期");
+        return;
+      }
+      this.from.status = val;
+      this.from.syje = this.from.je;
+      yskdAddOrUpdate(this.from)
+        .then((res) => {
+          this.loading = true;
+          if (this.widowData.type == "add") {
+            this.$message({
+              message: "新增成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage("child", window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          } else {
+            this.$message({
+              message: "编辑成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage("child", window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          }
+        })
+        .catch((res) => {});
+    },
+    hidenView() {
+      window.top.close();
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    dialog() {
+      this.dialogVisible = true;
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    queryData() {
+      if (this.widowData.type == "add") {
+        yskdQueryForAdd()
+          .then((res) => {
+            this.from.yskdDh = res.data.yskdDh;
+            this.from.skrq = this.getTime();
+            this.createDate = res.data.createDate;
+          })
+          .catch((res) => {});
+      } else {
+        yskdQueryById({
+          yskdId: this.widowData.id,
+        })
+          .then((res) => {
+            this.from = res.data;
+            this.createDate = res.data.createDate.substring(0, 10);
+            this.from.skrq = res.data.skrq.substring(0, 10);
+            this.from.hx = res.data.fswxhx
+            yskdQueryJeByCustomerId({
+              customerId: res.data.customerId,
+            })
+              .then((res) => {
+                this.fyData = res.data;
+              })
+              .catch((res) => {});
+          })
+          .catch((res) => {});
+      }
+      bjdQueryDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.from.dwtt = res.data[0].id;
+        })
+        .catch((res) => {});
+      yskdQuerySkfs()
+        .then((res) => {
+          this.skfsList = res.data;
+          this.from.skfs = res.data[0].id;
+        })
+        .catch((res) => {});
+      yskdQueryAccount()
+        .then((res) => {
+          this.bankaccountList = res.data;
+          this.from.bankaccount = res.data[0].accountId;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.creator = Lockr.get("loginUserInfo").realname;
+
+    this.queryData();
+    if (this.widowData.type == "add") {
+      this.from.yskdId = "";
+      this.from.customerId = "";
+      this.from.customerName = "";
+      this.from.skfs = "";
+      this.from.bankaccount = "";
+      this.from.je = "";
+      this.from.dwtt = "";
+      this.from.fylb = 1;
+      this.from.skrq = "";
+    }
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+.bottom {
+  float: left;
+  width: 100%;
+  text-align: center;
+  margin-top: 40px;
+}
+</style>

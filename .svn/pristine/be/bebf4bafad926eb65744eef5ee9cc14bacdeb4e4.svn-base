@@ -1,0 +1,1041 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">申购单单号</label>
+            <div v-text="from.sgdDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人</label>
+            <div v-text="from.cjrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建时间</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">申请事由</label>
+            <el-input placeholder="申请事由" v-model="from.sqyy"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">申请人</label>
+            <el-input :readonly="true" clearable placeholder="请选择申请人" v-model="from.sqrName">
+              <el-button @click="sqrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购期限</label>
+            <el-date-picker
+              v-model="from.cgqx"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购人</label>
+            <el-input :readonly="true" clearable placeholder="请选择共享人" v-model="from.cgrName">
+              <el-button @click="cgrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" style="width:100%;height:35px">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item.fileId)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <el-input placeholder="备注" clearable v-model="from.remark"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">申购总金额</label>
+            <div v-text="from.sgzje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">认领金额</label>
+            <div
+              style="width:250px;float:left;overflow: hidden;white-space: nowrap;"
+              :title="from.rlzje == ''?0:from.rlzje"
+              v-text="from.rlzje == ''?0:from.rlzje"
+            ></div>
+            <el-button @click="rlkClick" type="primary">认领款</el-button>
+          </div>
+          <el-table
+            max-height="600px"
+            :data="tableList"
+            style="width: 100%"
+            :summary-method="getSummaries"
+            show-summary
+          >
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <el-input
+                  placeholder="请选择"
+                  :readonly="true"
+                  clearable
+                  v-model="scopr.row.brandName"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.nameCn" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.productModelnum" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName1 != ''" :label="zdyName1">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType1 == '1'" v-model="scopr.row.ylzd1" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName2 != ''" :label="zdyName2">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType2 ==1" v-model="scopr.row.ylzd2" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName3 != ''" :label="zdyName3">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType3 ==1" v-model="scopr.row.ylzd3" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName4 != ''" :label="zdyName4">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType4 ==1" v-model="scopr.row.ylzd4" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName5 != ''" :label="zdyName5">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType5 ==1" v-model="scopr.row.ylzd5" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName6 != ''" :label="zdyName6">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType6 ==1" v-model="scopr.row.ylzd6" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName7 != ''" :label="zdyName7">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType7 ==1" v-model="scopr.row.ylzd7" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName8 != ''" :label="zdyName8">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType8 ==1" v-model="scopr.row.ylzd8" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName9 != ''" :label="zdyName9">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType9 == 1" v-model="scopr.row.ylzd9" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName10 != ''" :label="zdyName10">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType10 == 1" v-model="scopr.row.ylzd10" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="计量单位">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.measureName" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="quantity" label="订单数量">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.orderQuantity" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hsdj" label="申购数量">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.sgQuantity" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.zy" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scopr">
+                <el-button style="color:#f56c6c" @click="deletClick(scopr.$index)" type="text">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </sections>
+      </div>
+      <div class="handle-bar" style="margin:20px 0">
+        <el-button type="primary" @click="successClick(-1)">保存</el-button>
+        <el-button type="success" @click="successClick(0)">提交</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+    <!-- 品牌选择 -->
+    <el-dialog
+      title="产品列表"
+      :visible.sync="customerVisible"
+      width="70%"
+      :before-close="handleCloseVisible"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-cascader
+          v-model="cascaderIds"
+          :options="options"
+          :props="props"
+          :show-all-levels="false"
+          collapse-tags
+          clearable
+        ></el-cascader>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-input placeholder="请输入品牌" clearable v-model="customerFrom.brandName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品名</label>
+        <el-input placeholder="请输入品名" clearable v-model="customerFrom.productName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">规格型号</label>
+        <el-input placeholder="请输入规格型号" clearable v-model="customerFrom.productModelnum"></el-input>
+      </div>
+      <div style="width:100%;text-align: center;margin-bottom:20px">
+        <el-button type="primary" @click="customerSearch">查询</el-button>
+        <el-button @click="customerReset">重置</el-button>
+      </div>
+      <div class="customer-box">
+        <el-table
+          :data="customerList"
+          style="width: 100%"
+          height="400"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column label="品牌">
+            <template slot-scope="scope">
+              <span
+                @click="customerClick(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.brandName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="productName" label="品名"></el-table-column>
+          <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+          <el-table-column prop="measureName" label="单位"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChangeA"
+        @current-change="handleCurrentChangeA"
+        :current-page.sync="customerFrom.page"
+        :page-size="customerFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span
+        slot="footer"
+        class="dialog-footer"
+        style="width: 100%;
+    display: inline-block;
+    text-align: center;"
+      >
+        <el-button type="success" @click="customerAdd">确认</el-button>
+        <el-button @click="customerVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <treeDlalog
+      @dialogTreeData="dialogTreeData"
+      :trddId="treeId"
+      @close="dialogStatus = false"
+      :dialogStatus="dialogStatus"
+    ></treeDlalog>
+
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  jxcXsddQueryForAdd,
+  jxcXsddQueryck,
+  jxcXsddAddOrUpdate,
+  jxcXsddQueryForEditById,
+  sgdSxddToSgd,
+  sgdAddOrUpdate,
+  sgdFindAllUser,
+  sgdFileRemoveById,
+  sgdDeleteFakerRlkData,
+} from "@/api/jxc/jxc";
+import { bjdQueryDwtt } from "@/api/crm/xsbjd";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import {
+  xbjQueryCustomer,
+  xbjQueryProduct,
+  xbjQueryBrandTree,
+  adminYszdGetYlzdSetByType,
+} from "@/api/crm/xbjTable";
+import { sgdFileUpload } from "@/api/common";
+import treeDlalog from "../../components/treeDlalog";
+import gxrDialog from "../../components/gxrDialog";
+import Lockr from "lockr";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    treeDlalog,
+    gxrDialog,
+  },
+  watch: {
+    "from.zje": {
+      handler() {
+        this.from.cbzje = (
+          Number(this.from.zje) *
+          (Number(this.from.zdzk) * 0.01)
+        ).toFixed(2);
+      },
+    },
+    "from.zdzk": {
+      handler() {
+        this.from.cbzje = (
+          Number(this.from.zje) *
+          (Number(this.from.zdzk) * 0.01)
+        ).toFixed(2);
+      },
+    },
+  },
+  computed: {
+    wsdjComputed() {
+      return (data) => {
+        if (!this.wsdjCheckbox) {
+          let num = 0;
+          if (
+            this.tableList[data.$index].hsdj != "" &&
+            this.tableList[data.$index].productSl != ""
+          ) {
+            num = (
+              this.tableList[data.$index].hsdj /
+              (1 + this.tableList[data.$index].productSl * 0.01)
+            ).toFixed(2);
+          } else {
+            num = 0;
+          }
+          this.tableList[data.$index].wsdj = num;
+        }
+      };
+    },
+    hsdjComputed() {
+      return (data) => {
+        if (!this.hsdjCheckbox) {
+          let num = 0;
+          if (
+            this.tableList[data.$index].wsdj != "" &&
+            this.tableList[data.$index].productSl != ""
+          ) {
+            num = (
+              this.tableList[data.$index].wsdj *
+              (1 + this.tableList[data.$index].productSl * 0.01)
+            ).toFixed(2);
+          } else {
+            num = 0;
+          }
+          this.tableList[data.$index].hsdj = num;
+        }
+      };
+    },
+    sjComputed() {
+      return (data) => {
+        if (
+          this.tableList[data.$index].wsdj != "" &&
+          this.tableList[data.$index].hsdj != ""
+        ) {
+          this.tableList[data.$index].sj = (
+            this.tableList[data.$index].hsdj - this.tableList[data.$index].wsdj
+          ).toFixed(2);
+        } else {
+          this.tableList[data.$index].sj = 0;
+        }
+      };
+    },
+    hkComputed() {
+      return (data) => {
+        if (this.tableList[data.$index].wsdj != "") {
+          this.tableList[data.$index].hk = this.tableList[data.$index].wsdj;
+        } else {
+          this.tableList[data.$index].hk = 0;
+        }
+      };
+    },
+    hjComputed() {
+      return (data) => {
+        if (this.tableList[data.$index].hsdj != "") {
+          this.tableList[data.$index].hj = this.tableList[data.$index].hsdj;
+        } else {
+          this.tableList[data.$index].hj = 0;
+        }
+      };
+    },
+  },
+  data() {
+    return {
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      fileList: [],
+      fileIds: [],
+      cgrList: [],
+      rlkId: "",
+      typeofcontactList: [],
+      dialogVisible: false,
+      customerVisible: false,
+      jxcXsddHttkList: [],
+      options: [],
+      customerList: [],
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },
+      cascaderIds: [],
+      dwttList: [],
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: "",
+      },
+      loading: false,
+      customerName: "",
+      dialogVisible: false,
+      customerId: "",
+      from: {
+        sgdDh: "",
+        sgdId: "",
+        xsddId: "",
+        customerId: "",
+        contactId: "",
+        sqyy: "",
+        cjrName: "",
+        cjr: "",
+        sqr: "",
+        sqrName: "",
+        cgr: "",
+        cgrName: "",
+        remark: "",
+        createDate: "",
+        cjr: "",
+        cgqx: "",
+        sgzje: "",
+        rlzje: "",
+        dwtt: "",
+        rlkId: "",
+      },
+      tableList: [
+        {
+          orderQuantity: "",
+          sgdmxId: "",
+          sgdId: "",
+          xsddmxId: "",
+          productId: "",
+          brandId: "",
+          commnameId: "",
+          measureUnitid: "",
+          orderQuantity: "",
+          sgQuantity: "",
+          zy: "",
+        },
+      ],
+      ckList: [],
+      tableData: [],
+      contactList: [],
+      total: 0,
+      fplxList: [
+        {
+          name: "增值税发票",
+          id: 1,
+        },
+        {
+          name: "普通发票",
+          id: 2,
+        },
+        {
+          name: "收据",
+          id: 3,
+        },
+      ],
+      dialogStatus: false,
+      treeId: "",
+      gxrDialogStatus: false,
+    };
+  },
+
+  methods: {
+    rlkClick() {
+      this.windowOpen("/rlje", {
+        id: this.encode(this.tableList[0].customerId),
+        type: "rlje",
+        dwtt: this.from.dwtt,
+        ddId: this.from.xsddId,
+      });
+    },
+    gxrDialogTreeData(id, name) {
+      this.from.cgrName = name;
+      this.from.cgr = id;
+    },
+    cgrDialog() {
+      this.gxrDialogStatus = true;
+    },
+    dialogTreeData(id, name) {
+      this.from.sqrName = name;
+      this.from.sqr = id;
+    },
+    sqrDialog() {
+      this.dialogStatus = true;
+    },
+    deleteUpload(index, id) {
+      this.fileList.splice(index, 1);
+      sgdFileRemoveById({
+        id: id,
+      })
+        .then((res) => {})
+        .catch((res) => {});
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      sgdFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+          this.fileIds.push({
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    customerCliuck(val) {
+      this.customerIndex = val;
+      this.customerVisible = true;
+      this.customerData();
+      xbjQueryBrandTree()
+        .then((res) => {
+          this.options = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handleCloseVisible() {
+      this.customerVisible = false;
+    },
+    search() {
+      this.dialogData();
+    },
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    hidenView() {
+      window.top.close();
+      sgdDeleteFakerRlkData({
+        rlkIds: this.from.rlkId,
+      })
+        .then((res) => {})
+        .catch((res) => {});
+      localStorage.removeItem("rlzje");
+      if (this.fileIds.length > 0) {
+        for (var i in this.fileIds) {
+          sgdFileRemoveById({
+            id: this.fileIds[i].fileId,
+          })
+            .then((res) => {})
+            .catch((res) => {});
+        }
+      }
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    successClick(status) {
+      if(Number(this.from.rlzje) > Number(this.from.sgzje)){
+        this.msgInfo("认领金额不能大于申购金额")
+        return 
+      }
+      if (this.from.cgr == "") {
+        this.msgInfo("请输入采购人");
+        return;
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.status = status;
+      for (var i in this.ylzdList) {
+        let num = this.ylzdList[i].ylzdName.substring(
+          this.ylzdList[i].ylzdName.indexOf("d") + 1,
+          this.ylzdList[i].ylzdName.length
+        );
+        if (this.ylzdList[i].from == 1) {
+          if (num == 1) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd1;
+            }
+          } else if (num == 2) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd2;
+            }
+          } else if (num == 3) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd3;
+            }
+          } else if (num == 4) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd4;
+            }
+          } else if (num == 5) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd5;
+            }
+          } else if (num == 6) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd6;
+            }
+          } else if (num == 7) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd7;
+            }
+          } else if (num == 8) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd8;
+            }
+          } else if (num == 9) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd9;
+            }
+          } else if (num == 10) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd10;
+            }
+          }
+        }
+      }
+      sgdAddOrUpdate({
+        sgd: this.from,
+        sgdmx: this.tableList,
+        sgdFile: arr.join(","),
+      })
+        .then((res) => {
+          if (this.xxddType == "add") {
+          } else if (this.xxddType == "xxddEdit") {
+            this.loading = true;
+            this.msgPrompt("编辑成功");
+          } else {
+            this.loading = true;
+            this.msgPrompt("下推成功");
+          }
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+    msgPrompt(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          localStorage.removeItem("rlzje");
+          window.opener.postMessage("child", window.location);
+          window.top.close();
+          this.loading = false;
+        },
+      });
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    queryName(data) {
+      this.contactList = data.contactList;
+      this.from.contactId = data.contactList[0].contactId;
+      this.dialogVisible = false;
+      this.customerName = data.name;
+      this.from.customerId = data.customerId;
+      this.ywyName = data.ywyName;
+      this.from.bjr = data.ywyId;
+      this.customerId = data.customerId;
+      this.from.contactName = data.contactName;
+    },
+    customerAdd() {
+      this.customerVisible = false;
+      for (var i in this.selectionList) {
+        this.tableList[Number(i) + this.customerIndex] = Object.assign(
+          {},
+          this.selectionList[i]
+        );
+        this.$set(this.tableList, i, this.tableList[i]);
+      }
+    },
+    customerSearch() {
+      let arr = [];
+      if (this.cascaderIds.length) {
+        for (var i in this.cascaderIds) {
+          arr.push(this.cascaderIds[i][this.cascaderIds[i].length - 1]);
+        }
+        this.customerFrom.brandName = arr.join("|");
+      }
+      this.customerData();
+    },
+    queryData() {
+      let self = this;
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      adminYszdGetYlzdSetByType({
+        type: 2,
+      })
+        .then((res) => {
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+      sgdFindAllUser()
+        .then((res) => {
+          this.cgrList = res.data;
+          this.from.cgr = res.data[0].userId;
+        })
+        .catch((res) => {});
+      sgdSxddToSgd({
+        xsddId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from.xsddId = this.widowData.id;
+          this.from.dwtt = res.sgd.dwtt;
+          this.from.sgdDh = res.sgd.sgdDh;
+          this.from.sqr = res.sgd.sqr.userId;
+          this.from.sqrName = res.sgd.sqr.realname;
+          this.from.cjr = res.sgd.cjr.userId;
+          this.from.cjrName = res.sgd.cjr.realname;
+          this.from.cgr = res.sgd.cjr.userId;
+          this.from.cgrName = res.sgd.cjr.realname;
+          this.from.createDate = res.sgd.createDate;
+          this.from.sgzje = res.sgd.sgzje;
+          this.from.rlzje = res.sgd.rlkDefault
+          this.tableList = res.sgdmx;
+          for (var i in res.sgdmx) {
+            this.tableList[i].orderQuantity = res.sgdmx[i].quantity;
+            this.tableList[i].sgQuantity = res.sgdmx[i].quantity;
+            this.tableList[i].sgdmxId = "";
+          }
+          this.from.contactId = res.sgdmx[0].contactId;
+          this.from.customerId = res.sgdmx[0].customerId;
+        })
+        .catch((res) => {});
+    },
+    appendClick() {
+      this.tableList.push({
+        xsddmxId: "",
+        xjdmxId: "",
+        bjdmxId: "",
+        productId: "",
+        commnameId: "",
+        brandId: "",
+        quantity: "",
+        measureUnitid: "",
+        wsdj: "",
+        measureName: "",
+        commnameName: "",
+        brandName: "",
+        productName: "",
+        hsdj: "",
+        productSl: "",
+        productModelnum: "",
+        sj: "",
+        hk: "",
+        hj: "",
+        zy: "",
+      });
+    },
+    customerClick(data) {
+      this.customerVisible = false;
+      this.tableList[this.customerIndex].brandName = data.brandName;
+      this.tableList[this.customerIndex].brandId = data.brandId;
+      this.tableList[this.customerIndex].commnameId = data.comnameId;
+      this.tableList[this.customerIndex].commnameName = data.commnameName;
+      this.tableList[this.customerIndex].measureName = data.measureName;
+      this.tableList[this.customerIndex].measureUnitid = data.measureUnitid;
+      this.tableList[this.customerIndex].productName = data.productName;
+      this.tableList[this.customerIndex].productId = data.productId;
+      this.tableList[this.customerIndex].productModelnum = data.productModelnum;
+    },
+    getSummaries(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        const values = data.map((item) => Number(item[column.property]));
+        if (!values.every((value) => isNaN(value))) {
+          sums[index] = values
+            .reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0)
+            .toFixed(2);
+          sums[index];
+        } else {
+          sums[index] = "";
+        }
+      });
+      this.from.zje = sums[10];
+      return sums;
+    },
+    customerReset() {
+      this.customerFrom.page = 1;
+      this.customerFrom.limit = 15;
+      this.cascaderIds = [];
+      this.customerFrom.brandName = "";
+      this.customerFrom.productModelnum = "";
+      this.customerFrom.productModelnum = "";
+      this.customerData();
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    handleSizeChangeA(val) {
+      this.customerFrom.limit = val;
+      this.customerData();
+    },
+    handleCurrentChangeA(val) {
+      this.customerFrom.page = val;
+      this.customerData();
+    },
+    handleSelectionChange(val) {
+      this.selectionList = val;
+    },
+    typeofcontactChange(val) {
+      this.jxcXsddHttkList = this.termsetting[val];
+    },
+    quantity(row) {
+      if (row.brandName == "") {
+        this.msgInfo("请选择商品");
+      }
+    },
+    deletClick(val) {
+      if (this.tableList.length == 1) {
+        this.msgInfo("最后一条无法删除");
+      } else {
+        this.tableList.splice(val, 1);
+      }
+    },
+    receiveMessage(event) {
+      this.from.rlkId = event.data.rlkId;
+      this.from.rlzje = event.data.rlje;
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    window.addEventListener("message", this.receiveMessage, false);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 30%;
+}
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

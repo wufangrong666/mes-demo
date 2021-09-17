@@ -1,0 +1,19 @@
+import Layout from '@/views/layout/jxcLayout'
+import {
+  childrenMenu
+} from './jxc'
+
+const jxcRouter = {
+  path: '/jxc',
+  component: Layout,
+  // redirect: '/buyandsale/saleorder',
+  name: 'jxc',
+  meta: {
+    icon: 'workbench',
+    title: '进销存',
+    type: 'jxc'
+  },
+  children: childrenMenu
+}
+// buyandsaleRouter
+export default jxcRouter

@@ -1,0 +1,47 @@
+const getters = {
+  userInfo: state => state.user.userInfo,
+  lang: state => state.app.lang,
+  logo: state => {
+    if (state.app.logo) {
+      return state.app.logo
+    }
+    return require('@/assets/img/logo.jpg')
+  },
+  name: state => {
+    if (state.app.name) {
+      return state.app.name
+    }
+    return '思奉工业ERP系统'
+  },
+  activeIndex: state => state.app.sidebar.activeIndex,
+  navActiveIndex: state => state.app.navbar.activeIndex,
+  //权限
+  allAuth: state => state.user.allAuth,
+  operAuth: state => state.user.operAuth,
+  crm: state => state.user.crm,
+  jxc: state => state.user.jxc,
+  finance: state => state.user.finance,
+  oa: state => state.user.oa,
+  email: state => state.user.email,
+  manage: state => state.user.manage,
+  // 路由
+  addRouters: state => state.permission.addRouters,
+  crmRouters: state => state.permission.crmRouters,
+  jxcRouters: state => state.permission.jxcRouters, 
+  financeRouters: state => state.permission.financeRouters,
+  oaRouters: state => state.permission.oaRouters,
+  emailRouters: state => state.permission.emailRouters,
+  manageRouters: state => state.permission.manageRouters
+}
+/**
+ * 使用说明
+ * import { 
+ *  } from 'vuex'
+ * computed: {
+    ...mapGetters([
+      'userInfo'
+    ])
+  }
+ */
+
+export default getters

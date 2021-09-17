@@ -1,0 +1,215 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="任务名称" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <!-- <div class="input-box">
+      <label class="input-label">紧急程度</label>
+      <el-select v-model="from.degree" placeholder="请选择">
+        <el-option
+          v-for="item in degreeList"
+          :key="item.code"
+          :label="item.name"
+          :value="item.code"
+        ></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">名称关键字</label>
+      <el-input placeholder="任务名称关键字" clearable v-model="from.taskName"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">创建人</label>
+      <el-input :readonly="true" clearable placeholder="请选择创建人" v-model="cjrName">
+        <el-button @click="cjrDialog" slot="append" icon="el-icon-plus"></el-button>
+      </el-input>
+    </div>-->
+    <div class="center">
+      <el-tabs v-model="activeName" @tab-click="handleClick">
+        <el-tab-pane label="未开始任务" name="1"></el-tab-pane>
+        <el-tab-pane label="进行中任务" name="2"></el-tab-pane>
+        <el-tab-pane label="完成待评价任务" name="3"></el-tab-pane>
+        <el-tab-pane label="以完成任务" name="4"></el-tab-pane>
+      </el-tabs>
+      <el-table border height="650" :data="tableData" stripe style="width: 100%">
+        <el-table-column
+          v-for="(item, index) in fieldList"
+          :key="index"
+          sortable="custom"
+          show-overflow-tooltip
+          :fixed="index==0"
+          :prop="item.fieldName"
+          :label="item.name"
+        ></el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="from.taskPage"
+          :page-sizes="[10, 30, 50, 100]"
+          :page-size="from.taskLimit"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { filedGetTableField } from "@/api/manage/SystemConfig";
+import { oaTaskManagerQueryMyTaskByStatus } from "@/api/oa/personCenter";
+import { queryDeptTreeAndUser } from "@/api/crm/ggkhc";
+import zdyListHeader from "../../components/zdyListHeader";
+import zdyTableHeader from "../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "1",
+      total: 0,
+      cjrName: "",
+      from: {
+        taskPage: 1,
+        taskLimit: 10,
+        status: "1",
+        taskName: "",
+        degree: "",
+        userCjr: "",
+      },
+      degreeList: [
+        { name: "一般", code: 1 },
+        { name: "紧急", code: 2 },
+      ],
+      tableData: [],
+      fieldList: [],
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      selectList: [],
+      idList: [],
+      gxrDialogStatus: false,
+      listType:'bggl_rw'
+    };
+  },
+
+  methods: {
+    companySearch(search) {
+      this.from.search = search;
+      this.loginTableData();
+    },
+    gjcxData(list) {
+      this.from.degree = "";
+      this.from.taskName = "";
+      this.from.userCjr = "";
+      for (var i in list) {
+        if (list[i].name == "jjcd") {
+          this.$set(this.from, "degree", list[i].value == '一般'?'1':'2');
+        } else if (list[i].name == "gjz") {
+          this.$set(this.from, "taskName", list[i].value);
+        } else if (list[i].name == "cjr ") {
+          this.$set(this.from, "userCjr", list[i].value);
+        }
+      }
+      this.loginTableData();
+    },
+    handleClick(val) {
+      this.from.status = val.name;
+      this.loginTableData();
+    },
+    loginTableData() {
+      oaTaskManagerQueryMyTaskByStatus(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.count;
+        })
+        .catch((res) => {});
+    },
+    logData() {
+      filedGetTableField({
+        label: 13,
+      })
+        .then((res) => {
+          this.fieldList = res.data;
+        })
+        .catch((res) => {});
+      queryDeptTreeAndUser()
+        .then((res) => {
+          this.selectList = this.cascader(res.data);
+        })
+        .catch(() => {});
+    },
+    cascader(data) {
+      for (var item in data) {
+        if (data[item].children === undefined) {
+          data[item].children = data[item].user;
+          for (var i in data[item].children) {
+            data[item].children[i].name = data[item].children[i].realname;
+            data[item].children[i].id = data[item].children[i].userId;
+          }
+        } else {
+          this.cascader(data[item].children);
+        }
+      }
+      return data;
+    },
+    handleSizeChange(val) {
+      this.from.taskLimit = val;
+      this.loginTableData();
+    },
+    handleCurrentChange(val) {
+      this.from.taskPage = val;
+      this.loginTableData();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.logData();
+    this.loginTableData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.c-container {
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    width: 16%;
+    margin: 20px 0 0 50px;
+    .el-date-editor {
+      width: 400px;
+    }
+    .el-select,
+    .el-cascader,
+    .el-input {
+      width: 50%;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

@@ -1,0 +1,420 @@
+<template>
+  <create-view :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto', 'z-index': zIndex }">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <flexbox class="create-header">
+        <div style="flex:1;font-size:17px;color:#333;font-weight: bold;">交往记录</div>
+        <img @click="hidenView" class="close" src="@/assets/img/task_close.png" />
+      </flexbox>
+      <div class="create-flex" style>
+        <create-sections title="基本信息"></create-sections>
+        <div class="input-box">
+          <label class="input-label">
+            <span style="color:red">*</span>交往人
+          </label>
+          <el-select filterable v-model="form.jwr" placeholder="请选择">
+            <el-option
+              v-for="item in selectList"
+              :key="item.userId"
+              :label="item.realname"
+              :value="item.userId"
+            ></el-option>
+          </el-select>
+        </div>
+        <div class="input-box">
+          <label class="input-label">
+            <span style="color:red">*</span>所属客户
+          </label>
+          <el-input :readonly="true" v-model="customerName">
+            <el-button slot="append" @click="customerClick" icon="el-icon-plus"></el-button>
+          </el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">
+            <span style="color:red">*</span>联系人
+          </label>
+          <el-select v-model="form.contactId" placeholder="请选择">
+            <el-option
+              v-for="item in contactList"
+              :key="item.contactId"
+              :label="item.contactName"
+              :value="item.contactId"
+            ></el-option>
+          </el-select>
+        </div>
+        <div class="input-box">
+          <label class="input-label">
+            <span style="color:red">*</span>联系电话
+          </label>
+          <el-input v-model="form.contactPhone"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">
+            <span style="color:red">*</span>交往日期
+          </label>
+          <el-date-picker
+            value-format="yyyy-MM-dd"
+            v-model="form.jwtime"
+            type="date"
+            placeholder="选择日期"
+          ></el-date-picker>
+        </div>
+        <div class="input-box">
+          <label class="input-label">文件上传</label>
+          <el-upload
+            class="upload-demo"
+            action="https"
+            :before-remove="beforeRemove"
+            :http-request="fileUpload"
+            multiple
+            :limit="5"
+            :file-list="fileList"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </div>
+        <div class="input-box">
+          <label class="input-label">
+            <span style="color:red">*</span>内容
+          </label>
+          <el-input type="textarea" v-model="form.content"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">备注</label>
+          <el-input type="textarea" v-model="form.remark"></el-input>
+        </div>
+      </div>
+      <div class="handle-bar">
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+        <el-button class="handle-button" type="primary" @click.native="saveField">保存</el-button>
+      </div>
+    </flexbox>
+
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="60%" :modal-append-to-body="false">
+      <div style="float:left">
+        <div class="dialog-box">
+          <label class="input-label">客户名称</label>
+          <el-input placeholder="请输入客户名称" clearable v-model="dialogFrom.name"></el-input>
+        </div>
+        <div class="dialog-box">
+          <label class="input-label">客户编码</label>
+          <el-input placeholder="请输入客户编码" clearable v-model="dialogFrom.code"></el-input>
+        </div>
+        <div class="dialog-box">
+          <el-button type="primary" @click="customerSearch">查询</el-button>
+          <el-button @click="customerReset">重置</el-button>
+        </div>
+      </div>
+      <el-table :data="tableData" stripe style="width: 100%">
+        <el-table-column align="center" label="客户名称">
+          <template slot-scope="scope">
+            <span
+              @click="queryName(scope.row)"
+              style="color: #3E84E9;cursor: pointer"
+              v-text="scope.row.name"
+            ></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="code" align="center" label="客户编码"></el-table-column>
+      </el-table>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page.sync="dialogFrom.page"
+        :page-size="dialogFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+  </create-view>
+</template>
+
+<script>
+import typeModel from "@/views/manage/model/typeModel";
+import CreateView from "@/components/CreateView";
+import CreateSections from "@/components/CreateSections";
+import { queryDeptTreeAndUser } from "@/api/crm/ggkhc";
+import {
+  crmCustomerJwjlFileUpload,
+  crmContactRecordAddOrUpdate
+} from "@/api/crm/jwjl";
+import { getMaxIndex } from "@/utils/index";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { usersList } from "@/api/common";
+
+export default {
+  components: {
+    CreateView,
+    CreateSections
+  },
+  name: "",
+  data() {
+    return {
+      contactList: [],
+      tableData: [],
+      dialogFrom: {
+        name: "",
+        code: "",
+        page: 1,
+        limit: 15
+      },
+      total: 0,
+      zIndex: getMaxIndex(),
+      dialogVisible: false,
+      showDialog: false,
+      addTitle: "",
+      loading: false,
+      fileList: [],
+      editImage: [],
+      editFile: "",
+      customerName: "",
+      form: {
+        id: "",
+        jwr: "",
+        remark: "",
+        content: "",
+        customerId: "",
+        contactId: "",
+        contactPhone: "",
+        jwtime: "",
+        fileId: ""
+      },
+      selectList: [],
+      idList: [],
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children"
+      }
+    };
+  },
+  watch: {
+    jwList: {
+      handler() {
+        if (this.jwList.id == 0) {
+          this.form.remark = "";
+          this.form.content = "";
+          this.form.customerId = "";
+          this.form.contactId = "";
+          this.form.contactPhone = "";
+          this.customerName = "";
+          this.contactList = [];
+        } else {
+          this.form = this.jwList;
+          this.dialogList();
+        }
+      }
+    }
+  },
+  props: {
+    listType: {
+      type: String,
+      default: ""
+    },
+    jwList: {
+      type: Object,
+      default: {}
+    }
+  },
+  methods: {
+    queryName(val) {
+      this.form.customerId = val.customerId;
+      this.customerName = val.name;
+      this.contactList = val.contactList;
+      this.form.contactId = val.contactList[0].contactId;
+      this.form.contactPhone = val.contactList[0].contactPhone;
+      this.dialogVisible = false;
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogList();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogList();
+    },
+    customerSearch() {
+      this.dialogList();
+    },
+    customerReset() {
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogList();
+    },
+    dialogList() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then(res => {
+          this.tableData = res.data.list;
+          if (this.form.id !== "") {
+            for (var i = 0; i < this.tableData.length; i++) {
+              if (this.tableData[i].customerId == this.form.customerId) {
+                this.customerName = this.tableData[i].name;
+                this.contactList = this.tableData[i].contactList;
+              }
+            }
+          }
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    customerClick() {
+      this.dialogVisible = true;
+      this.dialogList();
+    },
+    fileUpload(content) {
+      const reader = new FileReader();
+      var self = this;
+      reader.onload = function(e) {
+        let result;
+        if (typeof e.target.result === "object") {
+          // 把Array Buffer转化为blob 如果是base64不需要
+          result = window.URL.createObjectURL(new Blob([e.target.result]));
+        } else {
+          result = e.target.result;
+        }
+        self.editImage.push(result);
+        self.editFile = content.file;
+      };
+      reader.readAsDataURL(content.file);
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(
+        `当前限制选择 5 个文件，本次选择了 ${
+          files.length
+        } 个文件，共选择了 ${files.length + fileList.length} 个文件`
+      );
+    },
+    hidenView() {
+      this.$emit("hiden-view");
+    },
+    saveField() {
+      const blob = new Blob([this.editFile.size], {
+        type: this.editFile.type || "image/png"
+      });
+      const data = {
+        blob: blob,
+        file: this.editFile,
+        image: this.editImage
+      };
+      var param = new FormData();
+      // param.append("type", "type");
+      param.append("file", data.blob, data.file.name, self.editImage);
+      // crmCustomerJwjlFileUpload(param)
+      //   .then(res => {
+      //     this.form.fileId = res.fileId;
+      //   })
+      //   .catch(res => {});
+      if (this.form.jwr == "") {
+        this.msgInfo("请选择交往人");
+        return;
+      }
+      if (this.form.customerId == "") {
+        this.msgInfo("请选所属客户");
+        return;
+      }
+      if (this.form.customerId == "") {
+        this.msgInfo("请选所属客户");
+        return;
+      }
+      if (this.form.contactPhone == "") {
+        this.msgInfo("请输入联系电话");
+        return;
+      }
+      if (this.form.jwtime == "") {
+        this.msgInfo("请选择交往日期");
+        return;
+      }
+      if (this.form.content == "") {
+        this.msgInfo("请输入内容");
+        return;
+      }
+      crmContactRecordAddOrUpdate(this.form)
+        .then(res => {
+          if (this.form.id == "") {
+            this.msgSuccess("新增成功");
+          } else {
+            this.msgSuccess("修改成功");
+          }
+          this.hidenView();
+          this.$emit("save-success");
+        })
+        .catch(res => {});
+    },
+    beforeRemove(file, fileList) {
+      return this.$confirm(`确定移除 ${file.name}？`);
+    },
+    successhandleRemove(val) {},
+    loginData() {
+      usersList({ pageType: 0 })
+        .then(res => {
+          this.selectList = res.data;
+        })
+        .catch(() => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.loginData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+.el-date-editor {
+  width: 400px;
+}
+.handle-bar {
+  text-align: center;
+}
+.create-header {
+  height: 40px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  .close {
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin-right: -10px;
+    padding: 10px;
+    cursor: pointer;
+  }
+}
+
+.input-box {
+  width: 80%;
+  margin: 20px 10%;
+  .el-input {
+    width: 60%;
+  }
+  .el-select {
+    width: 60%;
+  }
+  .input-label {
+    display: inline-block;
+    width: 20%;
+  }
+  .upload-demo {
+    width: 60%;
+    float: right;
+  }
+}
+.dialog-box {
+  width: 300px;
+  display: inline-block;
+  margin-bottom: 20px;
+  .input-label {
+    display: inline-block;
+    line-height: 30px;
+    width: 60px;
+  }
+  .el-input {
+    width: 220px;
+  }
+}
+</style>

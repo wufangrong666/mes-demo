@@ -1,0 +1,204 @@
+// 通讯管理路由
+
+const emailAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'email',
+  twotype: 'inner'
+}
+const commanRouter = {
+  path: 'comman',
+  redirect: 'comman/writeNewEmail',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'notice',
+    title: '内部邮件',
+    index: 1,
+    requiresAuth: true,
+    type: 'email',
+    subType: 'inner'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'writeNewEmail',
+      name: 'writeNewEmail',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '撰写新邮件',
+        subType: 'inernew',
+        ...emailAuth
+      }
+    },
+    {
+      path: 'inbox',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '收件箱(0/0)',
+        subType: 'innershou',
+        ...emailAuth
+      }
+    },
+    {
+      path: 'drafts',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '草稿箱(0)',
+        subType: 'innercg',
+        ...emailAuth
+      }
+    },
+    {
+      path: 'sented',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '已发送(0)',
+        subType: 'inneryfs',
+        ...emailAuth
+      }
+    },
+    {
+      path: 'deleted',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '已删除(0)',
+        subType: 'innerysc',
+        ...emailAuth
+      }
+    },
+    {
+      path: 'emailQuery',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '邮件查询',
+        subType: 'innercx',
+        ...emailAuth
+      }
+    },
+  ]
+}
+// 外部邮件路由
+const ExternalMailAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'email',
+  twotype: 'outer'
+}
+const ExternalMailRouter = {
+  path: 'ExternalMail',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'project',
+    title: '外部邮件',
+    index: 1,
+    type: 'email',
+    subType: 'outer'
+  },
+  children: [{
+    path: 'outwriteNewEmail',
+    name: 'outwriteNewEmail',
+    component: () => import('@/views/email/wb/zxyj/zxyjIndex'),
+    meta: {
+      title: '撰写新邮件',
+      type: 'email',
+      subType: 'outnew',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outinbox',
+    component: () => import('@/views/email/wb/sjx/sjxIndex'),
+    meta: {
+      title: '收件箱',
+      type: 'email',
+      subType: 'outshou',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'inEmailForCom',
+    component: () => import('@/views/email/wb/gsyjSjx/gsyjSjxIndex'),
+    meta: {
+      title: '公司邮件[收件箱]',
+      subType: 'comshou',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outEmailForCom',
+    component: () => import('@/views/email/wb/gsyjYfs/gsyjYfsIndex'),
+    meta: {
+      title: '公司邮件[已发送]',
+      subType: 'comfa',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outDrafts',
+    component: () => import('@/views/email/wb/cgx/cgxIndex'),
+    meta: {
+      title: '草稿箱',
+      subType: 'outcg',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outOutbox',
+    component: () => import('@/views/email/wb/fjx/fjxIndex'),
+    meta: {
+      title: '发件箱',
+      subType: 'outfa',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outHadsend',
+    component: () => import('@/views/email/wb/yfs/yfsIndex'),
+    meta: {
+      title: '已发送',
+      subType: 'outyfs',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outHaddelete',
+    component: () => import('@/views/email/wb/yjDelete/ysscIndex'),
+    meta: {
+      title: '已删除',
+      subType: 'outysc',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outEmailQuery',
+    component: () => import('@/views/email/wb/yjcx/yjcxIndex'),
+    meta: {
+      title: '邮件查询',
+      subType: 'outcx',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outEmailSet',
+    component: () => import('@/views/email/wb/yxsz/yxszIndex'),
+    meta: {
+      title: '邮箱设置',
+      subType: 'set',
+      ...ExternalMailAuth
+    }
+  },
+  {
+    path: 'outPersonCol',
+    component: () => import('@/views/email/wb/grgl/grglIndex'),
+    meta: {
+      title: '个人管理',
+      subType: 'pemail',
+      ...ExternalMailAuth
+    }
+  },
+  ]
+}
+
+
+export const children = [...commanRouter.children, ...ExternalMailRouter.children]
+export const childrenMenu = [commanRouter, ExternalMailRouter]

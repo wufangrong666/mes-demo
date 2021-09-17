@@ -1,0 +1,146 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="认领款">
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="yskdDh" label="预收款单号"></el-table-column>
+            <el-table-column prop="customerName" label="客户名称"></el-table-column>
+            <el-table-column prop="skrq" label="收款日期"></el-table-column>
+            <el-table-column prop="skfs" label="收款方式"></el-table-column>
+            <el-table-column prop="skje" label="收款金额"></el-table-column>
+            <el-table-column prop="krlje" label="剩余金额(可认领)"></el-table-column>
+            <el-table-column prop="whxje" label="已认领(未核销)">
+              <template slot-scope="scope">
+                <span v-text="scope.row.whxje == ''? 0:scope.row.whxje"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="address" label="认领款">
+              <template slot-scope="scope">
+                <el-input
+                  @blur="rljeClick(scope.row)"
+                  @input="rljeInput(scope)"
+                  v-model="scope.row.rlje"
+                  placeholder="请输入内容"
+                ></el-input>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="handle-bar">
+            <el-button type="primary" :disabled="tableData.length == 0" @click="successClick">保存</el-button>
+            <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { sgdGetRlk, sgdAddAndUpdateRlk } from "@/api/jxc/jxc";
+import Lockr from "lockr";
+
+export default {
+  components: {
+    createView,
+    sections,
+  },
+  name: "",
+  data() {
+    return {
+      tableData: [],
+      loading: false,
+    };
+  },
+
+  methods: {
+    rljeInput(scope) {
+      if (scope.row.rlje != "") {
+        if (scope.row.rlje.indexOf(".") > -1) {
+          scope.row.rlje = scope.row.rlje.slice(0, scope.row.rlje.indexOf(".") + 3);
+        } else {
+          scope.row.rlje = scope.row.rlje;
+        }
+      }
+    },
+    rljeClick(row) {
+      if (Number(row.rlje) > Number(row.krlje)) {
+        this.msgInfo("认领金额不能大于剩余金额!");
+        return;
+      }
+    },
+    successClick() {
+      let arr = [];
+      for (var i in this.tableData) {
+        if (this.tableData[i].rlje != "") {
+          if (
+            Number(this.tableData[i].rlje) <= Number(this.tableData[i].krlje)
+          ) {
+            arr.push({
+              ddId: this.widowData.ddId,
+              yskdId: this.tableData[i].yskdId,
+              rlje: this.tableData[i].rlje,
+            });
+          } else {
+            this.msgInfo("认领金额不能大于剩余金额!");
+            return;
+          }
+        }
+      }
+      sgdAddAndUpdateRlk({ data: arr })
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "保存成功",
+            type: "success",
+            onClose: () => {
+              Lockr.set("rlzje", { rlje: res.rlzje });
+              // window.opener.postMessage(res.rlkId, window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+          window.opener.postMessage(
+            { type: "rlje", rlje: res.rlzje, rlkId: res.rlkId },
+            window.location
+          );
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+    hidenView() {
+      window.top.close();
+    },
+    loginTableData() {
+      sgdGetRlk({
+        customerId: this.widowData.id,
+        ddId: this.widowData.ddId,
+        dwtt: this.widowData.dwtt,
+      })
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.loginTableData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.handle-bar {
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  margin-top: 30px;
+}
+</style>

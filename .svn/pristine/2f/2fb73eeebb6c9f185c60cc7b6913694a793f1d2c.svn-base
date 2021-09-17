@@ -1,0 +1,61 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="仓库" name="ck">
+            <ck></ck>
+          </el-tab-pane>
+          <el-tab-pane label="入出库设置" name="rcksz">
+            <rcksz></rcksz>
+          </el-tab-pane>
+          <el-tab-pane label="库存平均单价取值" name="kcpjdjqz">
+            <kcpjdjqz></kcpjdjqz>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import ck from "./ck";
+import rcksz from "./rcksz";
+import kcpjdjqz from "./kcpjdjqz"
+export default {
+  name: "",
+  components: {
+    ck,
+    rcksz,
+    kcpjdjqz
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "ck",
+    };
+  },
+
+  methods: {},
+
+  created() {},
+  activated() {
+    this.title = this.$route.meta.title;
+  },
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  position: relative;
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+</style>

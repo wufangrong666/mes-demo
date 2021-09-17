@@ -1,0 +1,254 @@
+<template>
+  <div>
+    <!-- 品牌选择 -->
+    <el-dialog
+      title="品牌列表"
+      :visible.sync="customerVisible"
+      width="70%"
+      :before-close="handleCloseVisible"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-cascader
+          v-model="cascaderIds"
+          :options="options"
+          :props="props"
+          :show-all-levels="false"
+          collapse-tags
+          clearable
+        ></el-cascader>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品牌</label>
+        <el-input placeholder="请输入品牌" clearable v-model="customerFrom.brandName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">品名</label>
+        <el-input placeholder="请输入品名" clearable v-model="customerFrom.productName"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">规格型号</label>
+        <el-input placeholder="请输入规格型号" clearable v-model="customerFrom.productModelnum"></el-input>
+      </div>
+      <div class="dialog-box">
+        <el-button style="margin-left:20px" type="primary" @click="customerSearch">查询</el-button>
+        <el-button @click="customerReset">重置</el-button>
+        <el-button @click="addPP" type="success">新建产品</el-button>
+      </div>
+      <div class="customer-box">
+        <el-table
+          :data="customerList"
+          style="width: 100%"
+          height="400"
+          @selection-change="handleSelectionChange"
+        >
+          <!-- <el-table-column type="selection" width="55"></el-table-column> -->
+          <el-table-column label="品牌">
+            <template slot-scope="scope">
+              <span
+                @click="customerClick(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.brandName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="productName" label="品名"></el-table-column>
+          <el-table-column prop="productModelnum" label="规格型号">
+            <template slot-scope="scope">
+              <span
+                @click="productEdit(scope.row)"
+                style="color: #3E84E9; cursor:pointer"
+                v-text="scope.row.productModelnum"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="measureName" label="单位"></el-table-column>
+          <el-table-column prop="ylzd1" v-if="zdyName1 != ''" :label="zdyName1"></el-table-column>
+          <el-table-column prop="ylzd2" v-if="zdyName2 != ''" :label="zdyName2"></el-table-column>
+          <el-table-column prop="ylzd3" v-if="zdyName3 != ''" :label="zdyName3"></el-table-column>
+          <el-table-column prop="ylzd4" v-if="zdyName4 != ''" :label="zdyName4"></el-table-column>
+          <el-table-column prop="ylzd5" v-if="zdyName5 != ''" :label="zdyName5"></el-table-column>
+          <el-table-column prop="ylzd6" v-if="zdyName6 != ''" :label="zdyName6"></el-table-column>
+          <el-table-column prop="ylzd7" v-if="zdyName7 != ''" :label="zdyName7"></el-table-column>
+          <el-table-column prop="ylzd8" v-if="zdyName8 != ''" :label="zdyName8"></el-table-column>
+          <el-table-column prop="ylzd9" v-if="zdyName9 != ''" :label="zdyName9"></el-table-column>
+          <el-table-column prop="ylzd10" v-if="zdyName10 != ''" :label="zdyName10"></el-table-column>
+          <el-table-column prop="kcsl" label="库存数量"></el-table-column>
+          <el-table-column prop="kykc" label="可用库存"></el-table-column>
+          <el-table-column prop="dqckkc" label="当前仓库库存"></el-table-column>
+          <el-table-column prop="sellPrice" label="参考出售价"></el-table-column>
+        </el-table>
+      </div>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChangeA"
+          @current-change="handleCurrentChangeA"
+          :current-page="customerFrom.page"
+          :page-sizes="[15, 30, 50, 100]"
+          :page-size.sync="customerFrom.limit"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="customerFroTotal"
+        ></el-pagination>
+      </div>
+      <span
+        slot="footer"
+        class="dialog-footer"
+        style="width: 100%;
+    display: inline-block;
+    text-align: center;"
+      >
+        <el-button type="success" @click="customerAdd">确认</el-button>
+        <el-button @click="handleCloseVisible">取 消</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { xbjQueryProduct, xbjQueryBrandTree } from "@/api/crm/xbjTable";
+export default {
+  props: ["customerVisible"],
+  watch: {
+    customerVisible: {
+      handler() {
+        if (this.customerVisible) {
+          this.customerData();
+          this.treeData();
+        }
+      },
+    },
+  },
+  name: "",
+  data() {
+    return {
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      cascaderIds: [],
+      options: [],
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },
+      customerList: [],
+      customerFroTotal: 0,
+    };
+  },
+
+  methods: {
+    productEdit(row) {
+      this.windowOpen("/cpxxAddEdit", {
+        id: this.encode(row.productId),
+        type: "edit",
+      });
+    },
+    addPP() {
+      this.windowOpen("/cpxxAddEdit", {
+        id: this.encode(""),
+        type: "add",
+      });
+    },
+    customerClick(data) {
+      this.$emit("customerClick", data);
+      this.handleCloseVisible();
+    },
+    handleCloseVisible() {
+      this.$emit("colse");
+    },
+    handleSizeChangeA(val) {
+      this.customerFrom.limit = val;
+      this.customerData();
+    },
+    handleCurrentChangeA(val) {
+      this.customerFrom.page = val;
+      this.customerData();
+    },
+    customerSearch() {
+      let arr = [];
+      if (this.cascaderIds.length) {
+        for (var i in this.cascaderIds) {
+          arr.push(this.cascaderIds[i][this.cascaderIds[i].length - 1]);
+        }
+        this.customerFrom.brandName = arr.join(",");
+      }
+      this.customerData();
+    },
+    customerReset() {
+      this.customerFrom.page = 1;
+      this.customerFrom.limit = 15;
+      this.cascaderIds = [];
+      this.customerFrom.brandName = "";
+      this.customerFrom.productName = "";
+      this.customerFrom.productModelnum = "";
+      this.customerData();
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+          this.customerFroTotal = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    treeData() {
+      xbjQueryBrandTree()
+        .then((res) => {
+          this.options = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleSelectionChange(val) {
+      this.selectionList = val;
+    },
+    customerAdd() {
+      this.handleCloseVisible();
+      this.$emit("customerAdd", this.selectionList);
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../manage/styles/table.scss";
+@import "../../styles/detail.scss";
+.dialog-box {
+  width: 19%;
+  .el-input {
+    width: 60%;
+  }
+  .el-cascader {
+    width: 60%;
+  }
+}
+</style>

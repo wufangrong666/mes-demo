@@ -1,0 +1,597 @@
+/** 财务管理路由 */
+
+// 业务往来账
+const dealAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'finance',
+  twotype: 'ywwlz'
+}
+const dealAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'finance',
+  twotype: 'ywwlz',
+  threetype: 'cgwlz'
+}
+const dealAuth3 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'finance',
+  twotype: 'ywwlz',
+  threetype: 'xswlz'
+}
+const dealAuth4 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'finance',
+  twotype: 'ywwlz',
+  threetype: 'tswlz'
+}
+const dealRouter = {
+  path: 'deal',
+  redirect: 'deal/purchaseDeal',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    requiresAuth: true,
+    icon: 'moneystatistics',
+    title: '业务往来账'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'purchaseDeal',
+      redirect: 'purchaseDeal/accountQuery',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '采购往来账',
+        subType: 'cgwlz',
+        ...dealAuth
+      },
+      children: [
+        {
+          path: 'accountQuery',
+          name: 'accountQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '应付账款查询',
+            subType: 'yfzkcx',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'advPayOrder',
+          name: 'advPayOrder',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '预付款单',
+            subType: 'yfkd',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'payOrder',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '付款单',
+            subType: 'fkd',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'hasCostQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '已付查询',
+            subType: 'yfcx',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'hasReturnQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '已退查询',
+            subType: 'ytcx',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'purRelateList',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '采购关联费用统计',
+            subType: 'cgglfytj',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'supDebtInit',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '供应商欠款初始化',
+            subType: 'gysqkcsh',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'addPayable',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '应付款增加',
+            subType: 'yfkzj',
+            ...dealAuth2
+          }
+        },
+        {
+          path: 'reducePayable',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '应付款减少',
+            subType: 'yfkjs',
+            ...dealAuth2
+          }
+        },
+      ]
+    },
+    {
+      path: 'salechaseDeal',
+      component: () => import('@/views/common/appview'),
+      redirect: 'salechaseDeal/payableQuery',
+      meta: {
+        title: '销售往来账',
+        subType: 'xswlz',
+        ...dealAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'payableQuery',
+          component: () => import('@/views/crm/jwjl/jwIndex'),
+          meta: {
+            title: '应收账款查询',
+            subType: 'yszkcx',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'advanceReceipt',
+          component: () => import('@/views/finance/ywwl/xswl/yskd'),
+          meta: {
+            title: '预收款单',
+            subType: 'yskd',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'receiptOrder',
+          component: () => import('@/views/finance/ywwl/xswl/skd'),
+          meta: {
+            title: '收款单',
+            subType: 'skd',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'refund',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '退款单',
+            subType: 'tkd',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'receivedQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '已收查询',
+            subType: 'yscx',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'returnedQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '已退查询',
+            subType: 'ytcx',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'saleRelateCost',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '销售关联费用统计',
+            subType: 'xsglfytj',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'cusDebtInit',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '客户欠款初始化',
+            subType: 'khqkcsh',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'addReceivable',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '应收款增加',
+            subType: 'yskzj',
+            ...dealAuth3
+          }
+        },
+        {
+          path: 'reduceReceivable',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '应收款减少',
+            subType: 'yskjs',
+            ...dealAuth3
+          }
+        },
+      ]
+    },
+    {
+      path: 'specialDeal',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      // redirect: 'specialDeal/specialDealQuery',
+      meta: {
+        title: '特殊往来账',
+        subType: 'qtwlz',
+        ...dealAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'specialDealQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '特殊往来账查询',
+            ...dealAuth4
+          }
+        },
+      ]
+    }
+  ]
+}
+
+// 发票管理
+const invoiceAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'finance',
+  twotype: 'fpgl'
+}
+const invoiceAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'finance',
+  twotype: 'fpgl',
+  threetype: 'jxfpgl'
+}
+const invoiceAuth3 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'finance',
+  twotype: 'fpgl',
+  threetype: 'xxfpgl'
+}
+const invoiceAuth4 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'finance',
+  twotype: 'fpgl',
+  threetype: 'fpkccx'
+}
+const invoicesRouter = {
+  path: 'invoices',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    requiresAuth: true,
+    icon: 'contract',
+    title: '发票管理',
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'inputIvoice',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '进项发票管理',
+        subType: 'jxfpcx',
+        ...invoiceAuth
+      },
+      children: [
+        {
+          path: 'defaultInit',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '欠票初始化',
+            subType: 'qpcsh',
+            ...invoiceAuth2
+          }
+        },
+        {
+          path: 'tobeCollect',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '待收发票查询',
+            subType: 'dsfpcx',
+            ...invoiceAuth2
+          }
+        },
+        {
+          path: 'invoiceReg',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '进项发票登记',
+            subType: 'jxfpdj',
+            ...invoiceAuth2
+          }
+        },
+        {
+          path: 'purBilledQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '采购已收票查询',
+            subType: 'cgyspcx',
+            ...invoiceAuth2
+          }
+        }
+      ]
+    },
+    {
+      path: 'saleIvoice',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      redirect: 'saleIvoice/saledefaultInit',
+      meta: {
+        title: '销项发票管理',
+        subType: 'xxfpcx',
+        ...invoiceAuth
+      },
+      children: [
+        {
+          path: 'saledefaultInit',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '欠票初始化',
+            subType: 'qpcsh',
+            ...invoiceAuth3
+          }
+        },
+        {
+          path: 'pendingInvoice',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '待开发票查询',
+            subType: 'dkfpcx',
+            ...invoiceAuth3
+          }
+        },
+        {
+          path: 'saleInvoiceReg',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '销项发票登记',
+            subType: 'xxfpdj',
+            ...invoiceAuth3
+          }
+        },
+        {
+          path: 'outputInvoice',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '销项已开票查询',
+            subType: 'xsykpcx',
+            ...invoiceAuth3
+          }
+        }
+      ]
+    },
+    {
+      path: 'inventQuery',
+      component: () => import('@/views/common/appview'),
+      redirect: 'inventQuery/inventoryQuery',
+      meta: {
+        title: '发票库存查询',
+        subType: 'fpkccx',
+        ...invoiceAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'inventoryQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '发票库存查询',
+            subType: 'fpkccx',
+            ...invoiceAuth4
+          }
+        },
+      ]
+    }
+  ]
+}
+const otherTypeAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'finance',
+  twotype: 'qtlsfk'
+}
+const otherTypeRouter = {
+  path: 'otherType',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'pay',
+    title: '其他类收付款',
+    index: 1,
+    type: 'finance',
+    subType: 'qtlsfk'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'expense',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '费用支出单',
+        subType: 'fyzcd',
+        ...otherTypeAuth
+      }
+    },
+    {
+      path: 'otherIncome',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'), 
+      meta: {
+        title: '其他收入单',
+        subType: 'qtlsrd',
+        ...otherTypeAuth
+      }
+    },
+    {
+      path: 'otherTransfer',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '转款单',
+        subType: 'zkd',
+        ...otherTypeAuth
+      }
+    },
+    {
+      path: 'otherItemSet',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '项目类别设置',
+        subType: 'xmlsz',
+        ...otherTypeAuth
+      }
+    },
+  ]
+}
+
+
+// 财务报表
+const financialAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'finance',
+  twotype: 'cwbb'
+}
+const financialRouter = {
+  path: 'financial',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'book',
+    title: '财务报表',
+    requiresAuth: true,
+    index: 1,
+    type: 'finance',
+    subType: 'cwbb'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'fProfit',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '利润表',
+        subType: 'lrb',
+        ...financialAuth
+      }
+    },
+    {
+      path: 'fExpense',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '费用支出统计',
+        subType: 'fyzctj',
+        ...financialAuth
+      }
+    },
+    {
+      path: 'fMonthDetail',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '月报表明细',
+        subType: 'ybbmx',
+        ...financialAuth
+      }
+    },
+    {
+      path: 'fCashFlow',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '现金流水账',
+        subType: 'xjlsz',
+        ...financialAuth
+      }
+    },
+    {
+      path: 'fBankFlow',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '银行流水账',
+        subType: 'yhlsz',
+        ...financialAuth
+      }
+    },
+    {
+      path: 'fAccountSurplu',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '账户余额表',
+        subType: 'zhyeb',
+        ...financialAuth
+      }
+    },
+  ]
+}
+
+// 帐户基础设置
+const basicAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'finance',
+  twotype: 'zhjcsz'
+}
+const basicAccount = {
+  path: 'basicAccount',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'set',
+    title: '账户基础设置',
+    requiresAuth: true,
+    index: 1,
+    type: 'finance',
+    subType: 'zhjcsz'
+  },
+  children: [
+    {
+      path: 'bComSet',
+      component: () => import('@/views/finance/gszhgl/gszhgl'),
+      meta: {
+        title: '公司账户设置',
+        subType: 'gszhsz',
+        ...basicAuth
+      }
+    },
+    {
+      path: 'bComAccountInit',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '公司账款初始化',
+        subType: 'gszkcsh',
+        ...basicAuth
+      }
+    },
+  ]
+}
+
+export const children = [...dealRouter.children, ...invoicesRouter.children,otherTypeRouter.children, ...financialRouter.children, ...basicAccount.children]
+export const childrenMenu = [dealRouter, invoicesRouter,otherTypeRouter, financialRouter, basicAccount]

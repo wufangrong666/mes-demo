@@ -1,0 +1,101 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="单号">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <div class="el-input" v-text="cgddDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商订单单号</label>
+            <el-input placeholder="请选择" clearable v-model="gysdddh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商发票单号</label>
+            <el-input placeholder="请选择" clearable v-model="gysfpdh"></el-input>
+          </div>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="tshSubmit">提交</el-button>
+            <el-button @click="hidenView">关 闭</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { cgddAddGysInfo } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      cgddDh: "",
+      gysdddh: "",
+      gysfpdh: "",
+      loading: false
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    tshSubmit() {
+      cgddAddGysInfo({
+        cgddId: this.widowData.id,
+        gysdddh: this.gysdddh,
+        gysfpdh: this.gysfpdh
+      })
+        .then(res => {
+          this.loading = true;
+          this.$message({
+            message: "提交成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("dh", window.location);
+              this.hidenView();
+              this.loading = false;
+            }
+          });
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    this.cgddDh = this.widowData.dh;
+    this.gysdddh = this.widowData.gysdddh,
+    this.gysfpdh = this.widowData.gysfpdh,
+    this.widowData.id = this.decode(this.$route.query.id);
+  }
+};
+</script>
+<style lang='scss' scoped>
+.input-box {
+  width: 400px;
+  line-height: 40px;
+  .input-label {
+    float: left;
+    width: 100px;
+  }
+  .el-input {
+    float: left;
+    width: 300px;
+  }
+}
+.dialog-footer {
+  display: inline-block;
+  width: 100%;
+  margin-top: 40px;
+}
+</style>

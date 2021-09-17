@@ -1,0 +1,84 @@
+import request from '@/utils/request'
+//所有供应商
+export function crmProductBrandFindGysInfo(data) {
+    return request({
+        url: 'crmProductBrand/findGysInfo',
+        method: 'post',
+        data: data
+    })
+}
+//根据品牌id查询供应商
+export function crmProductBrandQueryGys(data) {
+    return request({
+        url: 'crmProductBrand/queryGys',
+        method: 'post',
+        data: data
+    })
+}
+//根据品牌id删除品名信息
+export function crmProductComnameDelById(data) {
+    return request({
+        url: 'crmProductBrand/delBrandByBrandId',
+        method: 'post',
+        data: data
+    })
+}
+//根据品牌id查询上级品牌
+export function crmProductComnameFindParent(data) {
+    return request({
+        url: 'crmProductBrand/findBrandById',
+        method: 'post',
+        data: data
+    })
+}
+//根据品牌id查询品牌详情
+export function crmProductComnameFindBrandById(data) {
+    return request({
+        url: 'crmProductBrand/findBrandById',
+        method: 'post',
+        data: data
+    })
+}
+//查询排序
+export function crmProductBrandFindMaxSort(data) {
+    return request({
+        url: 'crmProductBrand/findMaxSort',
+        method: 'post',
+        data: data
+    })
+}
+//新增修改
+export function crmProductBrandAddOrUpdate(data) {
+    return request({
+        url: 'crmProductBrand/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//部门树        
+export function deptQueryDeptTree(data) {
+    return request({
+        url: 'system/dept/queryDeptTree',
+        method: 'post',
+        data: data
+    })
+}
+//部门树        
+export function roleGetAllRole(data) {
+    return request({
+        url: 'system/role/getAllRole',
+        method: 'post',
+        data: data
+    })
+}
+//查询所有品牌
+export function crmProductBrandFindBrandList(data) {
+    return request({
+        url: 'crmProductBrand/findBrandList',
+        method: 'post',
+        data: data
+    })
+}

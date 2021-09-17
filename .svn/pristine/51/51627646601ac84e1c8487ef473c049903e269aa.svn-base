@@ -1,0 +1,94 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">是否启用客户定义收款期限：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.khdyskqx" :label="0">否</el-radio>
+          <el-radio v-model="from.khdyskqx" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">是否启用供应商定义付款期限：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.gysdyskqx" :label="0">否</el-radio>
+          <el-radio v-model="from.gysdyskqx" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">收款单是否自动审核：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.zdsh" :label="0">否</el-radio>
+          <el-radio v-model="from.zdsh" :label="1">是</el-radio>
+          <span>(仅针对收款方式为正常收款的收款单)</span>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminSfkQuerySfkSet,
+  adminSfkUpdateSfkSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    xlhData() {
+      adminSfkQuerySfkSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminSfkUpdateSfkSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.xlhData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.xlhData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

@@ -1,0 +1,283 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="客户名称/报价单号/品牌/型号"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title="新建报价单"
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @on-handle="handleHandle"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        class="n-table--border"
+        id="table"
+        v-loading="loading"
+        :data="list"
+        :height="tableHeight"
+        stripe
+        border
+        highlight-current-row
+        style="width: 100%"
+        :cell-style="cellStyle"
+        @row-click="handleRowClick"
+        @sort-change="sortChange"
+        @header-dragend="handleHeaderDragend"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column show-overflow-tooltip type="selection" align="center" width="55"></el-table-column>
+        <el-table-column
+          v-for="(item, index) in fieldList"
+          :key="index"
+          sortable="custom"
+          show-overflow-tooltip
+          :fixed="index==0"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width"
+          :formatter="fieldFormatter"
+          v-if="item.prop !== 'cbzje' && item.prop !== 'gdlx'"
+        ></el-table-column>
+        <el-table-column
+          v-for="(item,index) in fieldList"
+          :key="index + '_gdlx'"
+          sortable="custom"
+          show-overflow-tooltip
+          v-if="item.prop == 'gdlx'"
+          :label="item.label"
+          fixed="left"
+          width="150"
+        >
+          <template slot-scope="scopr">
+            <el-select
+              v-model="scopr.row.gdlx"
+              placeholder="请选择"
+              @visible-change="gdlxVisible(scopr.row)"
+              @change="gdlxChange"
+            >
+              <el-option
+                v-for="item in gdlxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-for="(item,index) in fieldList"
+          :key="index + '_ab'"
+          sortable="custom"
+          show-overflow-tooltip
+          v-if="item.prop == 'cbzje'"
+          :label="item.label"
+          :formatter="fieldFormatter"
+          fixed="right"
+          width="150"
+        >
+          <template v-if="item.prop == 'cbzje'" slot-scope="scopr">
+            <span v-text="scopr.row.cbzje == ''?'0':scopr.row.cbzje"></span>
+            <el-button
+              v-if="scopr.row.statusId == -1?scopr.row.creatorId == useridQx: scopr.row.statusId == 2?scopr.row.creatorId == useridQx:false"
+              @click="addOffer(scopr,'add')"
+              type="text"
+            >填写</el-button>
+            <el-button v-else @click="addOffer(scopr,'to')" type="text">查看</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column></el-table-column>
+        <el-table-column fixed="right" width="36">
+          <template slot="header" slot-scope="slot">
+            <el-popover
+              :ref="`popover-${slot.$index}`"
+              placement="bottom-end"
+              width="220"
+              trigger="click"
+            >
+              <div>
+                <ul class="ul-popover">
+                  <draggable v-model="checkList">
+                    <li v-for="item in checkList" :key="item.id">
+                      <el-switch v-model="item.show" active-color="#2362fb"></el-switch>
+                      <span v-text="item.name"></span>
+                    </li>
+                  </draggable>
+                </ul>
+                <div class="btn">
+                  <el-button type="primary" @click="reset">重置</el-button>
+                  <el-button type="primary" @click="addPopover(slot)">提交</el-button>
+                </div>
+              </div>
+              <img
+                slot="reference"
+                src="@/assets/img/t_set.png"
+                @click="handleTableSet"
+                class="table-set"
+              />
+            </el-popover>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="pageSizes"
+          :page-size.sync="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+    <bjdEdit
+      :bjdEditFlag="true"
+      :butonStatus="false"
+      :bjdEditId="bjdEditId"
+      v-if="bjdEdit"
+      @close="bjdEdit=false"
+    ></bjdEdit>
+
+    <!--添加报价 -->
+    <tjbj
+      @handle="handleHandle"
+      :listType="listType"
+      :activeData="activeData"
+      :activeName="activeName"
+      :tabsData="tabsData"
+      @close="tjbjVisible = false"
+      v-if="tjbjVisible"
+      class="d-view"
+    ></tjbj>
+
+    <ckbj
+      @handle="handleHandle"
+      :listType="listType"
+      :activeData="activeData"
+      :activeName="activeName"
+      :tabsData="tabsData"
+      @close="tobjVisible = false"
+      v-if="tobjVisible"
+      class="d-view"
+    ></ckbj>
+  </div>
+</template>
+
+<script>
+import table from "../../manage/mixins/table";
+import draggable from "vuedraggable";
+import bjdEdit from "./bjdEdit";
+import tjbj from "../../components/tjbj/tjbj";
+import ckbj from "../../components/tjbj/ckbj";
+import { bjdQuerydjmxBybjdId, bjdUpdateGdlx } from "@/api/crm/xsbjd";
+import { xbjQueryBzhl } from "@/api/crm/xbjTable";
+import Lockr from "lockr";
+
+export default {
+  name: "",
+  components: {
+    draggable,
+    bjdEdit,
+    tjbj,
+    ckbj,
+  },
+  mixins: [table],
+  data() {
+    return {
+      listType: "crm_bjd",
+      title: "",
+      activeData: {},
+      activeName: "",
+      tabsData: [],
+      tjbjVisible: false,
+      tobjVisible: false,
+      useridQx: "",
+      gdlxList: [{ name: "实单" }, { name: "重要单" }, { name: "机会单" }],
+      gdlxRow:{}
+    };
+  },
+
+  methods: {
+    gdlxVisible(row) {
+      this.gdlxRow = row;
+    },
+    gdlxChange(val) {
+      this.$confirm("确定要修改归档类型为" + val + "吗?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          bjdUpdateGdlx({
+            bjdId: this.gdlxRow.bjdId,
+            gdlx: val
+          })
+            .then(res => {
+              this.$message({
+                type: "success",
+                message: "修改成功!"
+              });
+              this.$emit('on-handle')
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消修改"
+          });
+        });
+    },
+    addOffer(data, val) {
+      if (val == "add") {
+        this.windowOpen("/addPrice", {
+          id: this.encode(data.row.bjdId),
+          type: "add",
+          listType: "crm_bjd",
+        });
+      } else {
+        this.windowOpen("/addPrice", {
+          id: this.encode(data.row.bjdId),
+          type: "toView",
+          listType: "crm_bjd",
+        });
+      }
+    },
+    /** 通过回调控制style */
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      if (column.property === "customerName") {
+        return { color: "#3E84E9", cursor: "pointer" };
+      } else if (column.property === "status") {
+        if (row.status == "未审核" || row.status == "审核不通过") {
+          return { color: "red" };
+        } else if (row.status == "已审核") {
+          return { color: "green" };
+        }
+      } else if (column.property === "jwjl") {
+        return { color: "#3E84E9", cursor: "pointer" };
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.useridQx = Lockr.get("loginUserInfo").userId;
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+</style>

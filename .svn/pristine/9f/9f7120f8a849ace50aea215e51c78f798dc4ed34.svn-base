@@ -1,0 +1,141 @@
+import request from '@/utils/request'
+// 给角色设置数据权限
+export function crmProductQueryPageList(data) {
+    return request({
+        url: 'crmProduct/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//删除产品信息
+export function crmProductDelProductById(data) {
+    return request({
+        url: 'crmProduct/delProductById',
+        method: 'post',
+        data: data
+    })
+}
+//查询品牌树
+export function crmProductBrandQueryList(data) {
+    return request({
+        url: 'crmProductBrand/queryList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//附件上传
+export function crmProductFileUpload(data) {
+    var param = new FormData()
+    Object.keys(data).forEach(key => {
+      param.append(key, data[key])
+    })
+    return request({
+      url: 'crmProductFile/upload',
+      method: 'post',
+      data: param,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
+//附件删除
+export function crmProductFileRemoveById(data) {
+    return request({
+        url: 'crmProductFile/removeById',
+        method: 'post',
+        data: data
+    })
+}
+//计量单位
+export function crmProductFindMeasureList(data) {
+    return request({
+        url: 'crmProduct/findMeasureList',
+        method: 'post',
+        data: data
+    })
+}
+//新增或修改产品信息
+export function crmProductSaveAndUpdate(data) {
+    return request({
+        url: 'crmProduct/saveAndUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//品名信息
+export function findAllComnameNameAndId(data) {
+    return request({
+        url: 'crmProductComname/findAllComnameNameAndId',
+        method: 'post',
+        data: data
+    })
+}  
+//根据id
+export function crmProductFindByProductId(data) {
+    return request({
+        url: 'crmProduct/findByProductId',
+        method: 'post',
+        data: data
+    })
+}
+//查询客户
+export function crmProductFindCustomer(data) {
+    return request({
+        url: 'crmProduct/findCustomer',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 超期预警
+export function crmCustomerQueryCqyj(data) {
+    return request({
+        url: 'crmCustomer/queryCqyj',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 查询产品价格
+export function crmPriceFindAll(data) {
+    return request({
+        url: 'crmPrice/findAll',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 查询产品单价
+export function crmPriceFindDj(data) {
+    return request({
+        url: 'crmPrice/findDj',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//预留字段
+export function crmProductFindYlzd(data) {
+    return request({
+        url: 'crmProduct/findYlzd',
+        method: 'post',
+        data: data
+    })
+}

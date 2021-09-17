@@ -1,0 +1,302 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red;">*</span>排序:
+            </label>
+            {{from.sort}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red;">*</span>物流公司名称:
+            </label>
+            {{from.name}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              物流公司编码:
+            </label>
+            {{from.code}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              公司电话:
+            </label>
+            {{from.compPhone}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              email:
+            </label>
+            {{from.email}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              所在国家:
+            </label>
+            {{from.gj}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              公司传真:
+            </label>
+            {{from.fax}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在省：</label>
+           {{from.sf}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在市：</label>
+            {{from.cs}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              网址:
+            </label>
+            {{from.website}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              开户行:
+            </label>
+            {{from.khh}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              地址:
+            </label>
+            {{from.dz}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              账号:
+            </label>
+            {{from.zh}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              邮政编码:
+            </label>
+            {{from.postcode}}
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              税号:
+            </label>
+            {{from.sh}}
+          </div>
+
+           <div class="input-box">
+            <label class="input-label">
+              联系人名称:
+            </label>
+            {{from.contactName}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              联系人电话:
+            </label>
+            {{from.contactPhone}}
+          </div> <div class="input-box">
+            <label class="input-label">
+              法定代表人:
+            </label>
+            {{from.fddbr}}
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              委托代理人:
+            </label>
+            {{from.wtdlr}}
+          </div>
+
+           <!-- <div class="input-box" style="width:100%">
+            <label class="input-label">添加附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div> -->
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="经营范围">
+          <div class="input-boxB">
+              {{from.jyfw}}
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">    
+        <sections title="备注">
+          <div class="input-boxB">
+              {{from.remark}}
+          </div>
+        </sections>
+      </div>
+
+      <div class="handle-bar" style="margin-top: 20px;">
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "@/views/components/createView";
+import sections from "@/views/components/sections";
+
+import {
+  jxcWlgsglQueryById, //详情接口
+} from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      loading: false,
+      value: "",
+      from: {
+        code:"",//	编码
+        contactPhone:"", //联系人电话
+        cjrq:"", //创建日期
+        remark:"", //备注
+        jyfw:"", //经营范围
+        sf:"", //省份
+        dz:"", //地址
+        compPhone:"", //电话
+        id:"", //id
+        fax:"", //传真
+        delflag:"", //删除标识
+        email:"", //邮箱
+        contactName:"", //联系人
+        website:"", //网址
+        gj:"", //国家
+        postcode:"", //邮编
+        khh:"", //开户行
+        cjr:"", //创建人
+        sort:"", //排序
+        zh:"", //账户
+        wtdlr:"", //委托代理人
+        cs:"", //城市
+        deletezy:"", //删除人员
+        name:"", //物流名称
+        fddbr:"", //法定代表人
+        sh:"",//税号
+      },
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    queryData() {
+      if (this.widowData.type == "toView") {
+        jxcWlgsglQueryById({
+          id: this.widowData.id,
+        }).then((res) => {
+          this.from = res.data;
+        });
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "@/views/manage/styles/table.scss";
+@import "@/styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

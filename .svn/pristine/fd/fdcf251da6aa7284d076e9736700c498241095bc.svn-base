@@ -1,0 +1,253 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="客户名称/单号" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="createDate" label="日期"></el-table-column>
+      <el-table-column prop="xskdDh" label="单据编号">
+        <template slot-scope="scope">
+          <span
+            style="color:#3E84E9; cursor: pointer"
+            @click="xskdDhClick(scope.row)"
+            v-text="scope.row.xskdDh"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="djlx" label="单据类型"></el-table-column>
+      <el-table-column prop="customerName" label="客户名称"></el-table-column>
+      <el-table-column prop="ywyName" label="业务员"></el-table-column>
+      <el-table-column prop="xshk" label="销售货款"></el-table-column>
+      <el-table-column prop="xsje" label="销售金额"></el-table-column>
+      <el-table-column prop="thje" label="退货金额"></el-table-column>
+      <el-table-column prop="zzxshk" label="最终销售货款"></el-table-column>
+      <el-table-column prop="xsglfy" label="销售关联费用"></el-table-column>
+      <el-table-column prop="xswlfy" label="销售物流费用"></el-table-column>
+      <el-table-column prop="cbzje" label="成本"></el-table-column>
+      <el-table-column prop="thcb" label="退货成本" width="110px">
+        <template slot="header" slot-scope="scope">
+          <span>退货成本</span>
+          <el-tooltip class="item" effect="dark" content="销售开单对应的销售退货的成本(除换货)" placement="top">
+            <el-button type="text">说明</el-button>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+      <el-table-column prop="lr" label="利润">
+        <template slot-scope="data">{{data.row.xshk - data.row.cbzje}}</template>
+      </el-table-column>
+      <el-table-column prop="xsddDh" label="对应销售订单"></el-table-column>
+      <el-table-column prop="cbzje" label="成本总金额"></el-table-column>
+      <el-table-column prop="lrl" label="利润率">
+        <template slot-scope="data">{{data.row.lr/data.row.cbzje}}</template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { reportXsadlrb } from "@/api/jxc/jxc";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  computed: {},
+  data() {
+    return {
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      //查询条件
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        code: "",
+        djbh: "",
+        ywy: "",
+        beginDate: "",
+        endDate: "",
+        search: "",
+      },
+      ywyName: "",
+      gxrDialogStatus: false,
+      treeId: "",
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      gxrDialogStatus: false,
+      listType: "jxc_xslrtj_xsadlrb",
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.loginData();
+  },
+  methods: {
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.customerName = "";
+      this.from.code = "";
+      this.from.djbh = "";
+      this.from.ywy = "";
+      this.from.beginDate = "";
+      this.from.endDate = "";
+      for (var i in list) {
+        if (list[i].name == "khmc") {
+          this.$set(this.from, "customerName", list[i].value);
+        } else if (list[i].name == "khbm") {
+          this.$set(this.from, "code", list[i].value);
+        } else if (list[i].name == "itemData") {
+          this.item = list[i].value;
+        } else if (list[i].name == "dh") {
+          this.$set(this.from, "djbh", list[i].value);
+        }  else if (list[i].name == "ywy") {
+          this.$set(this.from, "ywy", list[i].value);
+        } 
+      }
+      this.loginData();
+    },
+    xskdDhClick(row) {
+      this.windowOpen("/xsddDhmx", {
+        id: this.encode(row.xskdId),
+        type: "lookCard",
+      });
+    },
+    toViewClick(row) {
+      if (row.djType == "yskd") {
+        this.windowOpen("/yingScxMxYsk", {
+          id: this.encode(row.customerId),
+          type: "yskd",
+        });
+      } else {
+        this.windowOpen("/yingScxMx", {
+          id: this.encode(row.customerId),
+          type: "skd",
+        });
+      }
+    },
+    //获取列表数据
+    loginData() {
+      if (this.item.length) {
+        this.from.beginDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      reportXsadlrb(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+.c-container .el-date-editor .el-range-separator {
+  line-height: 28px;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin-top: 20px;
+    width: 13%;
+    height: 35px;
+    .input-label {
+      line-height: 35px;
+      width: 60px;
+    }
+    .el-date-editor {
+      width: 60%;
+      .el-date-editor .el-range-separator {
+        width: 10%;
+      }
+    }
+  }
+  .right-container {
+    margin-right: -10px;
+    float: right;
+    margin: 12px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

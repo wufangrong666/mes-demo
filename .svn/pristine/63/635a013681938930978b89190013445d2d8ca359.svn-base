@@ -1,0 +1,608 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="客户名称/询价单号/品牌/型号"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title="新建询价单"
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @on-handle="handleHandle"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        class="n-table--border"
+        id="table"
+        v-loading="dataLoadin"
+        :data="list"
+        :height="tableHeight"
+        stripe
+        border
+        highlight-current-row
+        style="width: 100%"
+        :cell-style="cellStyle"
+        :span-method="objectSpanMethod"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column fixed="left" label="操作">
+          <template slot-scope="scope">
+            <el-button
+              style="margin-left:10px"
+              @click="toAsk(scope.row)"
+              type="text"
+              size="small"
+            >去询价</el-button>
+            <el-button
+              @click="sunmitFs(scope.row)"
+              type="text"
+              :class="[scope.row.sendStatus == 0 ?'redClass':'greenClass']"
+              size="small"
+            >{{scope.row.sendStatus == 0 ?'未发送':'已发送'}}</el-button>
+            <el-button @click="xbjEdit(scope.row)" type="text" size="small">编辑</el-button>
+            <el-button
+              type="text"
+              @click="deleteById(scope.row)"
+              size="small"
+              style="color:#f56c6c"
+            >删除</el-button>
+            <el-button @click="cdxxClick(scope.row)" type="text" size="small">重单信息</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="归档类型" width="100px">
+          <template slot-scope="scope">
+            <el-select
+              v-model="scope.row.gdlx"
+              placeholder="请选择"
+              @visible-change="gdlxVisible(scope.row)"
+              @change="gdlxChange"
+            >
+              <el-option
+                v-for="item in gdlxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column prop="xjdDh" label="单号" width="120px">
+          <template slot-scope="scope">
+            <span
+              @click="checkDdxq(scope.row)"
+              style="color: #3E84E9; cursor: pointer"
+              v-text="scope.row.xjdDh"
+            ></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="customerName" width="80px" label="客户名称"></el-table-column>
+        <el-table-column type="selection" width="50"></el-table-column>
+        <el-table-column type="index" label="序号" width="50"></el-table-column>
+        <el-table-column prop="brandName" label="品牌"></el-table-column>
+        <el-table-column prop="nameCn" label="品名"></el-table-column>
+        <el-table-column prop="productModelnum" label="产品型号"></el-table-column>
+        <el-table-column prop="contactName" label="客户联系人"></el-table-column>
+        <el-table-column prop="contactPhone" label="联系人电话" width="110px"></el-table-column>
+        <el-table-column prop="quantity" label="数量"></el-table-column>
+        <el-table-column prop="creator" label="创建人"></el-table-column>
+        <el-table-column prop="mxremark" label="备注"></el-table-column>
+        <el-table-column label="销售价格" width="200px">
+          <template slot-scope="scope">
+            <div class="scope-box">
+              <span class="scope-leble">价格:</span>
+              <el-input style="width:50%" v-model="scope.row.feedbackUnitprice" placeholder="请输入内容"></el-input>
+              <span class="scope-leble">元/个</span>
+            </div>
+            <div class="scope-box">
+              <span class="scope-leble">货期:</span>
+              <el-input v-model="scope.row.feedbackHq" placeholder="请输入内容"></el-input>
+            </div>
+            <div class="scope-box">
+              <span class="scope-leble">备注:</span>
+              <el-input v-model="scope.row.feedbackRamark" placeholder="请输入内容"></el-input>
+            </div>
+            <el-button @click="addfeedback(scope)" type="text">保存</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column width="240px" label="成本价格">
+          <template slot-scope="scope">
+            <div class="scope-box">
+              <el-select el-select v-model="scope.row.bjlx" placeholder="请选择">
+                <el-option
+                  v-for="item in options"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+            </div>
+            <div class="scope-box">
+              <el-button @click="generate(scope.row)" type="text">价格生成</el-button>
+            </div>
+            <div class="scope-box">
+              <span class="scope-leble" style="width:78px">人民币单价:</span>
+              <el-input style="width:40%" v-model="scope.row.rmbdj"></el-input>
+              <span class="scope-leble">元</span>
+            </div>
+            <div class="scope-box">
+              <span class="scope-leble">货期:</span>
+              <span style="width:110px" v-text="scope.row.hq"></span>
+            </div>
+            <div class="scope-box">
+              <span class="scope-leble">备注:</span>
+              <span style="width:110px" v-text="scope.row.costremark"></span>
+            </div>
+            <div class="scope-box">
+              <span class="scope-leble" style="width:45px">供应商:</span>
+              <span style="width:110px" v-text="scope.row.gysName"></span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column fixed="right" label="报价">
+          <template slot-scope="scope">
+            <el-button type="text" @click="addQuote(scope)" size="small">添加报价</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="from.page"
+          :page-sizes="[15,30,50,100]"
+          :page-size.sync="from.limit"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+
+    <!-- 编辑 -->
+    <xbjDetail
+      :xbjDetailDataFlag="xbjDetailDataFlag"
+      @save-success="refreshTable"
+      :titleName="titleName"
+      :xbjDetailData="xbjDetailData"
+      v-if="xbjDetail"
+      @close="xbjDetail=false"
+    ></xbjDetail>
+
+    <toAsk :toaskRow="toaskRow" @close="toaskStatus = false" v-if="toaskStatus"></toAsk>
+
+    <!--添加报价 -->
+    <tjbj
+      @handle="handleHandle"
+      :listType="listType"
+      :activeData="activeData"
+      :activeName="activeName"
+      :tabsData="tabsData"
+      @close="tjbjVisible = false"
+      v-if="tjbjVisible"
+      class="d-view"
+    ></tjbj>
+  </div>
+</template>
+
+<script>
+import table from "../../manage/mixins/table";
+import { mapGetters } from "vuex";
+import tjbj from "../../components/tjbj/tjbj";
+import {
+  xbjQueryPageList,
+  xbjAddfeedbackUnitprice,
+  xbjQuerydjmxByxjdId,
+  xbjQueryBzhl,
+  xbjAddCostInfo,
+  xbjGetPriceRule,
+  xbjQueryComname,
+  xbjDeleteById,
+  xbjCheckSendStatus,
+  xbjUpdateGdlx,
+} from "@/api/crm/xbjTable";
+import xbjDetail from "./xbjDetail";
+import toAsk from "./xbjToask";
+import { EventBus } from "../../../utils/eventBus";
+
+export default {
+  name: "",
+  components: {
+    xbjDetail,
+    toAsk,
+    tjbj,
+  },
+  mixins: [table],
+  watch: {
+    xbjFlag(val) {
+      if (val) {
+        this.loginData();
+        this.$store.commit("xbjSet");
+      }
+    },
+  },
+  data() {
+    return {
+      tjbjVisible: false,
+      titleName: "",
+      toaskStatus: false,
+      xbjDetail: false,
+      xbjDetailData: {},
+      activeData: {},
+      activeName: "",
+      dialogVisible: false,
+      tabsData: [],
+      value: "",
+      tableIndex: 0,
+      options: [
+        {
+          name: "大货",
+          id: 1,
+        },
+        {
+          name: "单独",
+          id: 2,
+        },
+        {
+          name: "国内",
+          id: 3,
+        },
+      ],
+      input: "",
+      listType: "crm_xbj",
+      list: [],
+      title: "",
+      dataLoadin: true,
+      tableHeight: document.documentElement.clientHeight - 240, // 表的高度
+      total: 0,
+      from: {
+        page: 1,
+        limit: 15,
+        search: "",
+        data: {},
+      },
+      gdlxList: [{ name: "实单" }, { name: "重要单" }, { name: "机会单" }],
+      bjlxType: 1,
+      costinfoList: [],
+      productList: [],
+      toaskRow: {},
+      gdlxRow: {},
+    };
+  },
+
+  methods: {
+    cdxxClick(row) {
+      console.log(row);
+      this.windowOpen("/cdxx", {
+        id: this.encode(row.xjdId),
+        type: "toAsk",
+      });
+    },
+    gdlxVisible(row) {
+      this.gdlxRow = row;
+    },
+    gdlxChange(val) {
+      this.$confirm("确定要修改归档类型为" + val + "吗?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          xbjUpdateGdlx({
+            xjdId: this.gdlxRow.xjdId,
+            gdlx: val,
+          })
+            .then((res) => {
+              this.$message({
+                type: "success",
+                message: "修改成功!",
+              });
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消修改",
+          });
+        });
+    },
+    sunmitFs(val) {
+      this.$confirm("请确认是否修改发送状态, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          xbjCheckSendStatus({
+            xjdId: val.xjdId,
+            status: val.sendStatus == 0 ? 1 : 0,
+          })
+            .then((res) => {
+              this.msgSuccess("修改成功");
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消修改");
+        });
+    },
+    toAsk(val) {
+      this.windowOpen("/toAsk", {
+        id: this.encode(val.xjdId),
+        type: "toAsk",
+        toaskRow: val.xjdId,
+      });
+    },
+    companySearch(val) {
+      this.from.search = val;
+      this.loginData();
+    },
+    checkDdxq(data) {
+      this.windowOpen("/xbjAddEdit", {
+        id: this.encode(data.xjdId),
+        type: "toView",
+        customerId: data.customerId,
+      });
+    },
+    deleteById(val) {
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          xbjDeleteById({
+            id: val.xjdId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消删除");
+        });
+    },
+    listHeadHandle() {
+      this.loginData();
+    },
+    generate(row) {
+      if (row.bjlx == null) {
+        this.msgInfo("请选择报价类型");
+        return;
+      }
+      if (row.rmbdj == null) {
+        this.msgInfo("请先填写该类型报价!");
+        return;
+      }
+      xbjGetPriceRule({
+        brandId: row.brandId,
+      })
+        .then((res) => {
+          row.feedbackHq = row.hq;
+          row.feedbackRamark = row.costremark;
+          if (res.data.priceRuleType == 0) {
+            row.feedbackUnitprice = row.rmbdj.toFixed(2);
+          } else if (res.data.priceRuleType == 1) {
+            row.feedbackUnitprice = (
+              Number(row.rmbdj) + Number(res.data.priceRuleNum)
+            ).toFixed(2);
+          } else if (res.data.priceRuleType == 2) {
+            row.feedbackUnitprice = (
+              Number(row.rmbdj) - Number(res.data.priceRuleNum)
+            ).toFixed(2);
+          } else if (res.data.priceRuleType == 3) {
+            row.feedbackUnitprice = (
+              Number(row.rmbdj) * Number(res.data.priceRuleNum)
+            ).toFixed(2);
+          } else if (res.data.priceRuleType == 4) {
+            row.feedbackUnitprice = (
+              Number(row.rmbdj) / Number(res.data.priceRuleNum)
+            ).toFixed(2);
+          }
+        })
+        .catch((res) => {});
+    },
+    xbjEdit(data) {
+      this.windowOpen("/xbjAddEdit", {
+        id: this.encode(data.xjdId),
+        type: "edit",
+        customerId: data.customerId,
+      });
+    },
+    refreshTable() {
+      this.loginData();
+    },
+    // 添加报价
+    addQuote(data) {
+      this.windowOpen("/addPrice", {
+        id: this.encode(data.row.xjdId),
+        type: "add",
+        listType: "crm_xbj",
+      });
+    },
+    /** 勾选操作 */
+    handleSelectionChange(val) {
+      this.selectionList = val; // 勾选的行
+      this.$refs.tableHead.headSelectionChange(val);
+    },
+    objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+      // columnIndex === 0 找到第一列，实现合并随机出现的行数
+      if (
+        columnIndex === 0 ||
+        columnIndex === 1 ||
+        columnIndex === 2 ||
+        column.label === "报价"
+      ) {
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {
+          rowspan: _row,
+          colspan: _col,
+        };
+      }
+    },
+    getSpanArr(data) {
+      this.spanArr = [];
+      for (var i = 0; i < data.length; i++) {
+        if (i === 0) {
+          // 如果是第一条记录（即索引是0的时候），向数组中加入１
+          this.spanArr.push(1);
+          this.pos = 0;
+        } else {
+          if (data[i].xjdId === data[i - 1].xjdId) {
+            // 如果xjdId相等就累加，并且push 0
+            this.spanArr[this.pos] += 1;
+            this.spanArr.push(0);
+          } else {
+            // 不相等push 1
+            this.spanArr.push(1);
+            this.pos = i;
+          }
+        }
+      }
+    },
+    loginData() {
+      xbjQueryPageList(this.from)
+        .then((res) => {
+          this.dataLoadin = false;
+          this.list = res.data.list;
+          this.total = res.data.totalRow;
+          this.getSpanArr(res.data.list);
+        })
+        .catch((res) => {});
+      xbjQueryComname()
+        .then((res) => {
+          this.productList = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleHandle() {
+      this.loginData();
+    },
+    // 销售价格修改
+    addfeedback(data) {
+      xbjAddfeedbackUnitprice({
+        xjdmxId: data.row.xjdmxId,
+        feedbackUnitprice: data.row.feedbackUnitprice,
+        feedbackRamark: data.row.feedbackRamark,
+        feedbackHq: data.row.feedbackHq,
+      })
+        .then((res) => {
+          this.msgSuccess("保存成功!");
+          this.loginData();
+        })
+        .catch((res) => {});
+    },
+    handleFilter(data) {
+      this.from.data = data;
+      this.loginData();
+    },
+    /** 通过回调控制style */
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      //   if (column.property === "nameCn" || column.property === "businessCheck") {
+      //     return { color: "#3E84E9", cursor: "pointer" };
+      //   } else {
+      //     return "";
+      //   }
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+    // 更改每页展示数量
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    // 更改当前页数
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    receiveMessage(event) {
+      this.loginData();
+      EventBus.$emit("message", "来自A页面的消息");
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    document.getElementById("table").addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    this.title = this.$route.meta.title;
+    this.loginData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+#table table th,
+table td {
+  padding: 0;
+}
+.scope-box {
+  width: 100%;
+  //   margin: 5px 0;
+  span {
+    display: inline-block;
+    width: 40px;
+  }
+  .el-input {
+    width: 75%;
+  }
+}
+.offer {
+  width: 100%;
+  margin: 20px;
+  .dialog-box {
+    width: 20%;
+    display: inline-block;
+    margin-top: 20px;
+    .input-label {
+      width: 100px;
+      display: inline-block;
+    }
+    .el-input {
+      width: 60%;
+    }
+    .el-select {
+      width: 60%;
+    }
+  }
+  .fy-box {
+    width: 50%;
+    max-height: 170px;
+    overflow: auto;
+    display: inline-block;
+    margin-top: 10px;
+    .el-input {
+      width: 42%;
+    }
+  }
+}
+.redClass {
+  color: red;
+}
+.greenClass {
+  color: #67c23a;
+}
+</style>

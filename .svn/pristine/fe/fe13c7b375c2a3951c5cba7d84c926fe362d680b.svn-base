@@ -1,0 +1,146 @@
+import { Message, MessageBox } from 'element-ui';
+export default {
+  methods: {
+    msgError(msg) {
+      Message({
+        message: msg,
+        type: 'error',
+        duration: 3 * 1000
+      })
+    },
+    msgSuccess(msg) {
+      Message({
+        message: msg,
+        type: 'success',
+        duration: 3 * 1000
+      })
+    },
+    msgInfo(msg) {
+      Message({
+        message: msg,
+        type: 'warning',
+        duration: 3 * 1000
+      })
+    },
+    resetForm(data) {
+      let formKeys = Object.keys(data);
+      for (let k of formKeys) {
+        data[k] = '';
+      }
+    },
+    getFathersById(id, data, prop) {
+      var arrRes = [];
+      const rev = (data, nodeId) => {
+        for (var i = 0, length = data.length; i < length; i++) {
+          const node = data[i];
+          if (node[prop] === nodeId) {
+            arrRes.unshift(node[prop]);
+            return true;
+          } else {
+            if (node.children && node.children.length) {
+              if (rev(node.children, nodeId)) {
+                arrRes.unshift(node[prop]);
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      };
+      rev(data, id);
+      return arrRes;
+    },
+    number(data) {
+      if (data < 0) {
+        this.msgInfo('不能小于0')
+      }
+    },
+    //时间
+    getTime() {
+      var myDate = new Date();
+      let y = myDate.getFullYear();
+      let m = myDate.getMonth() + 1
+      m = m < 10 ? '0' + m : m
+      let d = myDate.getDate();
+      d = d < 10 ? ('0' + d) : d
+      return y + '-' + m + '-' + d
+    },
+    //当前月第一天
+    getCurrentMonthFirst() {
+      var date = new Date();
+      date.setDate(1);
+      var month = parseInt(date.getMonth() + 1);
+      var day = date.getDate();
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (day < 10) {
+        day = "0" + day;
+      }
+      return date.getFullYear() + "-" + month + "-" + day;
+    },
+    //当前月最有一天
+    getCurrentMonthLast() {
+      var date = new Date();
+      var currentMonth = date.getMonth();
+      var nextMonth = ++currentMonth;
+      var nextMonthFirstDay = new Date(date.getFullYear(), nextMonth, 1);
+      var oneDay = 1000 * 60 * 60 * 24;
+      var lastTime = new Date(nextMonthFirstDay - oneDay);
+      var month = parseInt(lastTime.getMonth() + 1);
+      var day = lastTime.getDate();
+      if (month < 10) {
+        month = '0' + month
+      }
+      if (day < 10) {
+        day = '0' + day
+      }
+      return date.getFullYear() + '-' + month + '-' + day;
+    },
+    //加密
+    encode(str) {
+      return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+        function toSolidBytes(match, p1) {
+          return String.fromCharCode('0x' + p1);
+        }));
+    },
+    //解密
+    decode(str) {
+      return decodeURIComponent(atob(str).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+    },
+    //新页面跳转
+    windowOpen(url, data) {
+      let routeUrl = this.$router.resolve({
+        path: url,
+        query: data
+      });
+      window.open(routeUrl.href, '_blank');
+    },
+
+    // el-tree单选
+    handleTreeClick(data, checked, node) {
+      if (checked == true) {
+        this.$refs.tree.setCheckedNodes([data]);
+      }
+    },
+    nodeClick(data, checked, node) {
+      this.$refs.tree.setCheckedNodes([data]);
+    },
+    test() {
+      console.log(1)
+    },
+    // 导出
+    exportInfos(tHeader, filterVal, list, name) {
+      require.ensure([], () => {
+        const { export_json_to_excel } = require('../vendor/Export2Excel');
+        const data = this.formatJson(filterVal, list);
+        export_json_to_excel(tHeader, data, name);//这里可以定义你的Excel表的默认名称
+      })
+    },
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => v[j]))
+    },
+  },
+}

@@ -1,0 +1,108 @@
+<template>
+  <div class="c-container">
+    <div class="title">{{title}}</div>
+    <el-input
+      class="sc-container"
+      v-if="dontShow"
+      :placeholder="placeholder"
+      clearbale
+      v-model="inputContent"
+      @keyup.enter.native="searchInput"
+    >
+      <el-button slot="append" @click.native="searchInput" icon="el-icon-search"></el-button>
+    </el-input>
+    <div class="right-container" v-if="warnShow">
+      <el-button @click="createClick" type="primary">{{mainTitle}}</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      depCreateDialog:false,
+      inputContent: "",
+      sendName:'立即发送'
+    }
+  },
+  props: {
+    sendShow: {
+      type:Boolean,
+      default: false
+    },
+    dontShow:{
+      type:Boolean,
+      default:true
+    },
+    warnShow: {
+      type: Boolean,
+      default: false
+    },
+    placeholder: {
+      type: String,
+      default: ""
+    },
+    title: {
+      type: String,
+      default: ""
+    },
+    mainTitle: {
+      type: String,
+      default: ""
+    },
+    recordShow: {
+      type: Boolean,
+      default: false
+    },
+    crmType: {
+      type: String,
+      default: ""
+    }
+  },
+  methods: {
+    searchInput() {
+      // 进行搜索操作
+      //   this.$emit("on-search", this.inputContent);
+    },
+    createClick() {
+      console.log(this.recordShow, "row"); //false
+      this.$emit('creatClick')
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.c-container {
+  height: 60px;
+  position: relative;
+  // z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .sc-container {
+    width: 300px;
+    margin: -18px 0 0 -150px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+  }
+}
+.right-container {
+  margin-right: -10px;
+  float: right;
+  margin: 12px 20px 0 0;
+  position: relative;
+  .right-item {
+    float: left;
+    margin-right: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 2px;
+  }
+}
+</style>

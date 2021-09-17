@@ -1,0 +1,907 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="采购收货基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <div style="float:left" v-text="from.gysName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <div style="float:left" v-text="from.contactName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发票类型</label>
+            <div style="float:left" v-text="from.fplx"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购收货单号</label>
+            <div style="float:left" v-text="from.cgshDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人电话</label>
+            <div style="float:left" v-text="from.contactPhone"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货日期</label>
+            <div style="float:left" v-text="from.jhrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div style="float:left" v-text="from.czyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="from.dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员</label>
+            <div style="float:left" v-text="from.ywyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款期限</label>
+            <div style="float:left" v-text="from.fkqx"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <div
+              style="float:left"
+            >{{from.gxrName == ''?from.gxrName:from.gxrName.map(item => { return item.realname}).join(',')}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">整单折扣</label>
+            <div style="float:left" v-text="from.zdzk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">入货仓库</label>
+            <div style="float:left" v-text="from.ckName"></div>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <a style="color:#409eff" :href="item.filePath" :download="item.name">{{item.name}}</a>
+              </li>
+            </ul>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货类型</label>
+            <div style="float:left" v-text="from.cgshlx"></div>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="物流管理">
+          <div class="input-box">
+            <label class="input-label">采购收货方式</label>
+            <div style="float:left" v-text="from.cgsgfs"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发货金额</label>
+            <div style="float:left" v-text="from.fhje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <div style="float:left" v-text="from.fylbName"></div>
+          </div>
+          <div class="input-box" v-show="from.fylb == '2'"></div>
+          <div class="input-box" v-show="from.fylb == '1'">
+            <label class="input-label">付款账户</label>
+            <div style="float:left" v-text="from.fkzhName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发货方名称</label>
+            <div style="float:left" v-text="from.fhfmc"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发货方查询电话</label>
+            <div style="float:left" v-text="from.fhfcxdh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发货单号</label>
+            <div style="float:left" v-text="from.fhdh"></div>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections>
+          <el-table
+            max-height="400px"
+            :data="tableList"
+            style="width: 100%"
+            :summary-method="getSummaries"
+            show-summary
+          >
+            <el-table-column label="订单单号">
+              <template slot-scope="scopr">
+                <div
+                  style="float:left;width:100%;text-align:center;color:#3E84E9;cursor: pointer"
+                  @click="cgdddhClick(scopr.row)"
+                  v-text="scopr.row.dddh"
+                ></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.brandName"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.nameCn"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <div
+                  style="float:left;width:100%;text-align:center"
+                  v-text="scopr.row.productModelnum"
+                ></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName1 != ''" :label="zdyName1">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd1"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName2 != ''" :label="zdyName2">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd2"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName3 != ''" :label="zdyName3">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd3"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName4 != ''" :label="zdyName4">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd4"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName5 != ''" :label="zdyName5">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd5"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName6 != ''" :label="zdyName6">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd6"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName7 != ''" :label="zdyName7">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd7"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName8 != ''" :label="zdyName8">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd8"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName9 != ''" :label="zdyName9">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd9"></div>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName10 != ''" :label="zdyName10">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.ylzd10"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="计量单位">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.measureName"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="未税单价">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.wsdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="quantity" label="数量">
+              <template slot-scope="scopr">
+                <div
+                  style="float:left;width:100%;text-align:center"
+                  v-text="scopr.row.orderQuantity"
+                ></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="税率(%)">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.sl"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="含税单价">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.hsdj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="sj" label="税金">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.sj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hk" label="货款">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.hk"></div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hj" label="合计">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.hj"></div>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+              <template slot-scope="scopr">
+                <div style="float:left;width:100%;text-align:center" v-text="scopr.row.zy"></div>
+              </template>
+            </el-table-column>
+          </el-table>
+          <ul class="tableButton">
+            <li
+              :style="{'width':width}"
+              v-for="index of widthList"
+              :key="index"
+            >{{index == 1?'折扣后合计':index == widthList-1?from.zkhZje:''}}</li>
+          </ul>
+          <!-- <div class="tableButton">
+            <span>折扣后合计</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span v-text="from.zkhZje"></span>
+          </div> -->
+          <div class="input-box">
+            <label class="input-label">价格审批人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">价格审批时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审批时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box" style="width:100%;height:50px" v-show="widowData.type == 'cgshrk'">
+            <label class="input-label">收货说明</label>
+            <el-input
+              type="textarea"
+              placeholder="请输入内容"
+              v-model="shsm"
+              maxlength="200"
+              show-word-limit
+            ></el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button v-show="widowData.type == 'cgshrk'" type="success" @click="shsmClick">保存</el-button>
+        <el-button v-show="btnStatus" type="success" @click="auditY">审核通过</el-button>
+        <el-button v-show="btnStatus" type="info" @click="auditN">审核不通过</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <el-dialog
+      title="审核不通过原因"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <span>
+        <el-input v-model="nopassReason" placeholder="请输入内容"></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitAudit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import Lockr from "lockr";
+import {
+  jxcXskdQueryForAdd,
+  jxcXsddQueryck,
+  jxcXskdAddOrUpdate,
+  jxcXsddQueryForEditById,
+  jxcXskdQueryById,
+  jxcXsddXsddToxskd,
+  cgshAddOrUpdate,
+  sgdFindGys,
+  sgdFindGysContactByGysId,
+  cgshCreateCgshInfo,
+  cgddCgddToCgsh,
+  cgshFindCgshById,
+  cgshCreateDh,
+  cgshAddCgshmxByCgdd,
+  cgddFindSl,
+  cgshChangeStatus,
+  ckrckCgshrksh,
+} from "@/api/jxc/jxc";
+import {
+  bjdQueryDwtt,
+  httkQueryTypeOfContact,
+  bjdQueryForEdit,
+} from "@/api/crm/xsbjd";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import {
+  xbjQueryCustomer,
+  xbjQueryProduct,
+  xbjQueryBrandTree,
+  xbjQueryCustomerContact,
+  adminYszdGetYlzdSetByType,
+} from "@/api/crm/xbjTable";
+import { cgshFileUpload } from "@/api/common";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {},
+  computed: {},
+  props: {
+    cgshDetailsData: {
+      type: Object,
+    },
+    cgshType: {
+      type: Number,
+    },
+  },
+  data() {
+    return {
+      shsm: "",
+      widowData: {},
+      btnStatus: false,
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      cgshTitle: "",
+      cyfmcList: [
+        { name: "中国邮政速递物流", id: "1" },
+        { name: "德邦物流", id: "2" },
+        { name: "韵达快递公司", id: "3" },
+        { name: "顺丰快递", id: "4" },
+        { name: "宅急送", id: "5" },
+      ],
+      fpStatusList: [
+        { name: "票未开", id: 1 },
+        { name: "票已开", id: 2 },
+        { name: "票作废", id: 3 },
+      ],
+      cgshlxList: [],
+      customerVisible: false,
+      options: [],
+      customerList: [],
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },
+      cascaderIds: [],
+      dwttList: [],
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        gysBm: "",
+      },
+      loading: false,
+      customerName: "",
+      dialogVisible: false,
+      customerId: "",
+      shlxList: [
+        { name: "原料采购" },
+        { name: "申购采购" },
+        { name: "日常采购" },
+        { name: "计划采购" },
+        { name: "其他采购" },
+        { name: "获赠类" },
+      ],
+      from: {
+        cgddid: "",
+        cgshlx: "原料采购",
+        cgshId: "",
+        sfbd: "否",
+        fkqx: "",
+        czy: "",
+        czyName: "",
+        zdzk: 100,
+        jhdz: "",
+        fplx: "增值税发票",
+        ck: 1,
+        cgddId: "",
+        remark: "",
+        ckName: "",
+        cgshDh: "",
+        jhrq: "",
+        realname: "",
+        zje: 0,
+        gysId: "",
+        gysName: "",
+        ywy: "",
+        ywyName: "",
+        createDate: "",
+        dwtt: 0,
+        zkhZje: 0,
+        createName: "",
+        contactPhone: "",
+        contactId: "",
+        jhrq: "",
+        gxrName: "",
+        gxr: "",
+        gxr: "",
+        cgsgfs: "",
+        fhje: "",
+        fylb: "现金",
+        fhfmc: "",
+        fhfcxdh: "",
+        fhdh: "",
+      },
+      fhfmcList: [
+        { name: "中国邮政速递物流" },
+        { name: "德邦物流" },
+        { name: "韵达快递公司" },
+        { name: "顺丰快递" },
+        { name: "宅急送" },
+      ],
+      fylbList: [{ name: "现金" }, { name: "银行汇款" }],
+      cgshfsList: [
+        { name: "快递" },
+        { name: "字体" },
+        { name: "物流" },
+        { name: "航空" },
+        { name: "海运" },
+        { name: "邮政" },
+        { name: "客户自提" },
+        { name: "公司送货" },
+        { name: "其他" },
+        { name: "开车去取" },
+      ],
+      tableList: [
+        {
+          cgshmxId: "",
+          brandName: "",
+          brandId: "",
+          productId: "",
+          cgshId: "",
+          cgddmxId: "",
+          productModelnum: "",
+          nameCn: "",
+          comnameId: "",
+          measureName: "",
+          measureUnitid: "",
+          orderQuantity: "",
+        },
+      ],
+      ckList: [],
+      tableData: [],
+      contactList: [],
+      total: 0,
+      fplxList: [
+        {
+          name: "增值税发票",
+        },
+        {
+          name: "普通发票",
+        },
+      ],
+      fileList: [],
+      wsdjCheckbox: false,
+      hsdjCheckbox: true,
+      dialogVisibleGys: false,
+      dialogStatus: false,
+      treeId: "",
+      gxrDialogStatus: false,
+      nopassReason: "",
+      width: "",
+      widthList: 0,
+    };
+  },
+  methods: {
+    shsmClick() {
+      ckrckCgshrksh({
+        cgshId: this.widowData.id,
+        shsm: this.shsm,
+      })
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "保存成功",
+            type: "success",
+            onClose: () => {
+              this.resetGetList();
+              this.hidenView();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    auditN() {
+      this.dialogVisible = true;
+    },
+    submitAudit() {
+      cgshChangeStatus({
+        cgshId: this.widowData.id,
+        status: 2,
+        nopassReason: this.nopassReason,
+      })
+        .then((res) => {
+          this.dialogVisible = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              this.resetGetList();
+              this.hidenView();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    auditY() {
+      this.$confirm("请确认审核信息, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          cgshChangeStatus({
+            cgshId: this.widowData.id,
+            status: 10,
+            nopassReason: "",
+          })
+            .then((res) => {
+              this.dialogVisible = false;
+              this.loading = true;
+              this.$message({
+                message: "审核成功",
+                type: "success",
+                onClose: () => {
+                  this.resetGetList();
+                  this.hidenView();
+                  this.loading = false;
+                },
+              });
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    cgdddhClick(row) {
+      this.windowOpen("/cgddDhmx", {
+        id: this.encode(row.cgddId),
+        type: "toView",
+      });
+    },
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      cgshFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    hidenView() {
+      window.top.close();
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      let self = this;
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          this.ylzdList = res.data;
+          for (var i in this.tableList) {
+            for (var k in res.data) {
+              this.$set(this.tableList[i], res.data[k].ylzdName, "");
+            }
+          }
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      cgshFindCgshById({
+        cgshId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.cgsh;
+          this.tableList = res.cgshmx;
+          this.fileList = res.cgshFile;
+          let num = 0;
+          for (var i in this.tableList) {
+            num += Number(this.tableList[i].hj);
+          }
+          this.$set(
+            this.from,
+            "zkhZje",
+            (Number(num) * (Number(this.from.zdzk) * 0.01)).toFixed(2)
+          );
+          sgdFindGysContactByGysId({
+            gysId: res.cgsh.gysId,
+          })
+            .then((res) => {
+              this.contactList = res.data;
+              this.from.contactId = res.data[0].contactId;
+            })
+            .catch((res) => {});
+        })
+        .catch((res) => {});
+    },
+    getSummaries(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        const values = data.map((item) => Number(item[column.property]));
+        if (!values.every((value) => isNaN(value))) {
+          sums[index] = values
+            .reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0)
+            .toFixed(2);
+          sums[index];
+        } else {
+          sums[index] = "";
+        }
+      });
+      this.from.hj = sums[10];
+      this.from.je = sums[10];
+      return sums;
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    setTimeout(() => {
+      this.width = 100 / $(".el-table__row")[0].cells.length + "%";
+      this.widthList = $(".el-table__row")[0].cells.length;
+    }, 300);
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.from.czyName = Lockr.get("loginUserInfo").realname;
+    this.from.czy = Lockr.get("loginUserInfo").userId;
+    if (this.widowData.type == "toView") {
+      this.btnStatus = false;
+    } else if (this.widowData.type == "audit") {
+      this.btnStatus = true;
+    }
+    this.from.createDate = this.getTime();
+    this.queryData();
+  },
+};
+</script>
+<style >
+.create-flex .el-input__inner {
+  padding-right: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  height: 40px;
+  li {
+    float: left;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+  }
+}
+.dialog-box {
+  float: left;
+  .input-label {
+    width: 100px;
+    float: left;
+  }
+  .el-input {
+    width: 200px;
+    float: left;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

@@ -1,0 +1,76 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="客户重新分配期限设置" name="khcxfpqxsz">
+            <khcxfpqxsz></khcxfpqxsz>
+          </el-tab-pane>
+          <el-tab-pane label="客户联系方式重复校验" name="khlxfscfjy">
+            <khlxfscfjy></khlxfscfjy>
+          </el-tab-pane>
+          <el-tab-pane label="必填设置" name="btsz">
+            <btsz></btsz>
+          </el-tab-pane>
+          <el-tab-pane label="客户数据权限设置" name="khsjqxsz">
+            <khsjqxsz></khsjqxsz>
+          </el-tab-pane>
+          <el-tab-pane label="客户提示设置" name="khtssz">
+            <khtssz></khtssz>
+          </el-tab-pane>
+          <el-tab-pane label="交往频率" name="jwpl">
+            <jwpl></jwpl>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import khcxfpqxsz from "./khcxfpqxsz";
+import khlxfscfjy from "./khlxfscfjy";
+import btsz from "./btsz";
+import khsjqxsz from "./khsjqxsz";
+import khtssz from "./khtssz";
+import jwpl from "./jwpl";
+export default {
+  name: "",
+  components: {
+    khcxfpqxsz,
+    khlxfscfjy,
+    btsz,
+    khsjqxsz,
+    khtssz,
+    jwpl,
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "khcxfpqxsz",
+    };
+  },
+
+  methods: {},
+
+  created() {},
+  activated() {
+    this.title = this.$route.meta.title;
+  },
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  position: relative;
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+</style>

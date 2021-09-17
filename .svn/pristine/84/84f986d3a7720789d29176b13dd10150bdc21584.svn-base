@@ -1,0 +1,413 @@
+<template>
+  <div>
+    <el-dialog
+      :title="dialogTitle"
+      :visible.sync="showDialog"
+      width="40%"
+      :before-close="handleClose"
+    >
+      <div>
+        <el-form class="from" ref="form" :model="form" label-width="120px">
+          <el-form-item v-if="!labelStatus" :label="labelName">
+            <el-input :readonly="true" clearable placeholder="请选择销售负责人" v-model="fzrName">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </el-form-item>
+          <el-form-item v-if="labelStatus" label="客户名称">
+            <div v-text="userName"></div>
+          </el-form-item>
+          <el-form-item label="转移至">
+            <el-radio style="line-height:38px" @change="radioChagne" v-model="form.radio" label="1">
+              <el-input :readonly="true" clearable v-model="ywyName">
+                <el-button @click="zyzDialog" slot="append" icon="el-icon-plus"></el-button>
+              </el-input>
+            </el-radio>
+            <el-radio
+              @change="radioChagne"
+              style="width:45%;margin-left:120px"
+              v-model="form.radio"
+              label="2"
+            >公共客户池</el-radio>
+          </el-form-item>
+          <el-form-item v-show="form.radio == 2" label="填写原因">
+            <el-input
+              style="width:40%"
+              resize="none"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入内容"
+              v-model="backReason"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogVisible">确 认</el-button>
+        <el-button @click="handleClose">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 销售负责人 -->
+    <el-dialog
+      title="选择人员"
+      :visible.sync="dialogYwy"
+      width="40%"
+      style="margin-top:-5vh"
+      :before-close="handleCloseYwy"
+      :modal-append-to-body="false"
+    >
+      <div>
+        <el-tabs v-model="activeName" @tab-click="tabsClick">
+          <el-tab-pane class="el-tab-department" label="按部门" name="department">
+            <el-tree
+              ref="tree"
+              node-key="userId"
+              @check-change="handleTreeClick"
+              @node-click="nodeClick"
+              :props="defaultProps"
+              :data="treeData"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="按角色" name="role">
+            <el-tree
+              ref="treeR"
+              @check-change="handleTreeClickR"
+              @node-click="nodeClickR"
+              node-key="id"
+              :props="defaultPropsR"
+              :data="treeDataR"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="查询" name="search">
+            <div style="margin-top:5px">
+              <el-input style="width:30%" v-model="realname"></el-input>
+              <el-select style="width:10%" v-model="realStatus">
+                <el-option
+                  v-for="item in realStatusList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+              <el-button @click="realSearch" type="primary">查询</el-button>
+              <el-table
+                height="450px"
+                :show-header="false"
+                :data="realtableData"
+                style="width: 100%"
+              >
+                <el-table-column width="50">
+                  <template slot-scope="scope">
+                    <el-radio v-model="realRadio" :label="scope.row" @change="realRadioChange">
+                      <i></i>
+                    </el-radio>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="realname" label="姓名"></el-table-column>
+              </el-table>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="downYwy">取 消</el-button>
+        <el-button type="primary" @click="submitYwy">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import dataList from "../../components/Json";
+import {
+  queryDeptTreeAndUser,
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+} from "@/api/crm/ggkhc";
+import {
+  crmCustomerTurnOverByCustomer,
+  crmCustomerTurnOverByYwy,
+} from "@/api/crm/khzy";
+import { usersList } from "@/api/common";
+
+export default {
+  name: "",
+  data() {
+    return {
+      realRadio: "",
+      backReason: "",
+      realname: "",
+      realStatus: "",
+      dialogYwy: false,
+      ywyName: "",
+      fzrName: "",
+      showDialog: false,
+      activeName: "initial",
+      initial: {},
+      entity: {},
+      form: {
+        name: "",
+        ids: [],
+        idList: "",
+        radio: "1",
+        oldYwyId: [],
+      },
+      labelName: "",
+      selectList: [],
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+      },
+      optionPropsA: {
+        value: "id",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      labelStatus: false,
+      defaultProps: {
+        label: "name",
+        children: "children",
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user",
+      },
+      treeData: [],
+      treeDataR: [],
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" },
+      ],
+      realtableData: [],
+      dialogType: "",
+      userName: "",
+    };
+  },
+  watch: {
+    show: {
+      handler(val) {
+        this.showDialog = val;
+        this.loginData();
+      },
+    },
+    dialogTitle: {
+      handler(val) {
+        if (val == "按客户转移") {
+          this.labelName = "欲转移客户";
+          this.labelStatus = true;
+        } else {
+          this.labelName = "当前销售负责人：	";
+          this.labelStatus = false;
+        }
+      },
+    },
+    customerList: {
+      handler(val) {
+        this.form.ids = this.customerList
+          .map(function (item) {
+            return item.customerId;
+          })
+          .join(",");
+        this.userName = this.customerList
+          .map(function (item) {
+            return "《" + item.name + "》";
+          })
+          .join(",");
+      },
+    },
+  },
+  props: {
+    show: {
+      type: Boolean,
+      default: false,
+    },
+    dialogTitle: String,
+    customerList: {
+      type: Array,
+      dialogTitle: [],
+    },
+  },
+  methods: {
+    radioChagne(val) {
+      if (val == 1) {
+        this.backReason = "";
+      } else {
+        this.ywyName = "";
+      }
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+      } else {
+      }
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    handleCloseGxr() {
+      this.dialogGxr = false;
+    },
+    ywyDialog() {
+      this.dialogType = "xsfzr";
+      this.dialogYwy = true;
+      this.activeName = "department";
+      this.dialogYwyTree();
+    },
+    zyzDialog() {
+      this.dialogType = "zyz";
+      this.dialogYwy = true;
+      this.activeName = "department";
+      this.dialogYwyTree();
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    dialogVisible() {
+      let radio = false;
+      if (this.form.radio == "1") {
+        radio = true;
+        this.backReason = "";
+        this.form.idList = "";
+      } else {
+        radio = false;
+      }
+      if (this.dialogTitle == "按客户转移") {
+        if (radio) {
+          if (this.form.idList == "") {
+            this.msgInfo("请选择转移至人员");
+            return;
+          }
+        }
+        crmCustomerTurnOverByCustomer({
+          customerIds: this.form.ids,
+          ywyIds: radio ? this.form.idList : "0",
+          backReason: this.backReason,
+        })
+          .then((res) => {
+            this.msgSuccess("转移成功!");
+            this.$emit("close");
+            this.$emit("save-success");
+            this.handleClose();
+          })
+          .catch((res) => {});
+      } else {
+        if (this.form.oldYwyId == "") {
+          this.msgInfo("请选择当前销售负责人");
+          return;
+        }
+        crmCustomerTurnOverByYwy({
+          oldYwyIds: this.form.oldYwyId,
+          newYwyId: radio ? this.form.idList : "0",
+          backReason: this.backReason,
+        })
+          .then((res) => {
+            this.msgSuccess("转移成功!");
+            this.$store.commit("edit");
+            this.handleClose();
+          })
+          .catch((res) => {});
+      }
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then((res) => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then((res) => {
+          this.treeData = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleClick(val) {},
+    handleClose() {
+      this.$emit("close");
+    },
+    downYwy() {
+      this.dialogYwy = false;
+    },
+    realRadioChange(val) {
+      // this.from.ywy = val.userId;
+      // this.ywyName = val.realname;
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      if (this.dialogType == "xsfzr") {
+        this.form.oldYwyId = this.$refs.tree.getCheckedKeys().join("");
+        this.fzrName = this.$refs.tree.getCheckedNodes()[0].name;
+      } else if (this.dialogType == "zyz") {
+        this.form.idList = this.$refs.tree.getCheckedKeys().join("");
+        this.ywyName = this.$refs.tree.getCheckedNodes()[0].name;
+      }
+    },
+    loginData() {
+      this.form.idList = "";
+      this.form.oldYwyId = "";
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus,
+      })
+        .then((res) => {
+          this.realtableData = res.data.list;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+.el-tab-pane {
+  height: 500px;
+  overflow: auto;
+}
+.from {
+  .el-input,
+  .el-select,
+  .el-col {
+    width: 40%;
+  }
+  .el-radio {
+    width: 80%;
+    margin-right: 0;
+  }
+  .el-cascader {
+    width: 50%;
+  }
+}
+</style>

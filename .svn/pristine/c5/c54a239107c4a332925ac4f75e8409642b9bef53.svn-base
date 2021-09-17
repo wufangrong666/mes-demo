@@ -1,0 +1,137 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <div style="float:left" v-text="tableData.customerName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <div style="float:left" >
+              {{tableData.fylb == 1?"银行汇款":"现金"}}
+            </div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div style="float:left" v-text="tableData.accountName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="tableData.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="tableData.dwttNmae"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款方式</label>
+            <div style="float:left" v-text="tableData.skfsName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="tableData.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款日期</label>
+            <div style="float:left" v-text="tableData.skrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="tableData.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款账户</label>
+            <div style="float:left" v-text="tableData.accountName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售收款单号</label>
+            <div style="float:left" v-text="tableData.skdDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">提醒日期</label>
+            <div style="float:left" v-text="customerName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">附件</label>
+            <div style="float:left" v-text="customerName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款类型</label>
+            <div style="float:left" v-text="tableData.sklx"></div>
+          </div>
+          <el-table :data="xsdd" style="width: 100%">
+            <el-table-column prop="xsddDh" label="销售订单单号"></el-table-column>
+            <el-table-column prop="zkhZje" label="总额"></el-table-column>
+            <el-table-column prop="ysk" label="已收款"></el-table-column>
+            <el-table-column prop="wsk" label="未收款"></el-table-column>
+            <el-table-column prop="wskkcwsh" label="未收款(扣除未审核)"></el-table-column>
+            <el-table-column prop="bcsk" label="本次收款"></el-table-column>
+          </el-table>
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="tableData.creatorName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="tableData.createDate"></div>
+          </div>
+          <div style="width:100%;line-height:50px;text-align:center;float:left;margin:10px 0">
+            <el-button type="info" @click="hidenView" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { skdQueryById } from "@/api/finance/finance";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      customerName: "",
+      loading: false,
+      tableData: [],
+      xsdd:[]
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    loginMx() {
+      skdQueryById({
+        skdId: this.form.id
+      })
+        .then(res => {
+          this.tableData = res.data;
+          this.xsdd.push(res.data.xsdd)
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.form = JSON.parse(this.widowData.row);
+    // console.log(this.form);
+    this.loginMx();
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../../manage/styles/table.scss";
+</style>

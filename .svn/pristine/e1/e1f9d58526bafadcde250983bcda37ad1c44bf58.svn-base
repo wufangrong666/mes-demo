@@ -1,0 +1,172 @@
+import request from '@/utils/request'
+//列表查询
+export function crmCustomerQueryPageList(data) {
+    return request({
+        url: 'crmCustomer/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//客户转移
+export function crmCustomerQueryKhzyPageList(data) {
+    return request({
+        url: 'crmCustomer/queryKhzyPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站
+export function crmCustomerQueryHsz(data) {
+    return request({
+        url: 'crmCustomer/queryHsz',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站---恢复
+export function crmCustomerRecoverById(data) {
+    return request({
+        url: 'crmCustomer/recoverById',
+        method: 'post',
+        data: data,
+    })
+}
+//回收站---删除
+export function crmCustomerRemoveById(data) {
+    return request({
+        url: 'crmCustomer/removeById',
+        method: 'post',
+        data: data,
+    })
+}
+//删除
+export function crmCustomerDeleteByIds(data) {
+    return request({
+        url: 'crmCustomer/deleteByIds',
+        method: 'post',
+        data: data
+    })
+}
+//删除
+export function crmCustomerValidataName(data) {
+    return request({
+        url: 'crmCustomer/validateName',
+        method: 'post',
+        data: data
+    })
+}
+//查询附件
+export function crmCustomerFileQueryByCusId(data) {
+    return request({
+        url: 'crmCustomerFile/queryByCusId',
+        method: 'post',
+        data: data
+    })
+}
+//删除附件
+export function crmCustomerFileRemoveById(data) {
+    return request({
+        url: 'crmCustomerFile/removeById',
+        method: 'post',
+        data: data
+    })
+}
+//客户名唯一校验
+export function crmCustomerValidateName(data) {
+    return request({
+        url: 'crmCustomer/validateName',
+        method: 'post',
+        data: data
+    })
+}
+//根据ID查询客户编辑信息
+export function crmCustomerQueryEditById(data) {
+    return request({
+        url: 'crmCustomer/queryEditById',
+        method: 'post',
+        data: data
+    })
+}
+//客户信息审核
+export function crmCustomerCheckStatus(data) {
+    return request({
+        url: 'crmCustomer/checkStatus',
+        method: 'post',
+        data: data,
+    })
+}
+
+//新增或更新客户信息
+export function crmCustomerAddOrUpdate(data) {
+    return request({
+        url: 'crmCustomer/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//查询客户关怀列表页详细信息 
+export function crmCustomerCareQueryPageList(data) {
+    return request({
+        url: 'crmCustomerCare/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增关怀信息 
+export function crmCustomerCareAddOrUpdate(data) {
+    return request({
+        url: 'crmCustomerCare/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//根据ID查询关怀信息 
+export function crmCustomerCareQueryById(data) {
+    return request({
+        url: 'crmCustomerCare/queryById',
+        method: 'post',
+        data: data,
+    })
+}
+//启用 
+export function crmCustomerCareCheckStatus(data) {
+    return request({
+        url: 'crmCustomerCare/checkStatus',
+        method: 'post',
+        data: data,
+    })
+}
+//删除
+export function crmCustomerCareDeleteByIds(data) {
+    return request({
+        url: 'crmCustomerCare/deleteByIds',
+        method: 'post',
+        data: data,
+    })
+}
+//客户信息管理 查询分配转移记录
+export function crmCustomerQueryfpzy(data) {
+    return request({
+        url: 'crmCustomer/queryfpzy',
+        method: 'post',
+        data: data,
+    })
+}

@@ -1,0 +1,442 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <div style="float:left" v-text="from.gysName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <div style="float:left" v-text="from.contactName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人电话</label>
+            <div style="float:left" v-text="from.contactPhone"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购退货单号</label>
+            <div v-text="from.cgydDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div v-text="from.createName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员</label>
+            <div style="float:left" v-text="from.ywyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货仓库</label>
+            <div style="float:left" v-text="from.ckName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="from.dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货日期</label>
+            <div style="float:left" v-text="from.thrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货方式</label>
+            <div style="float:left" v-text="from.thfs"></div>
+          </div>
+          <div class="input-box" v-if="fkfsView">
+            <label class="input-label">退货收款方式</label>
+            <div style="float:left" v-text="from.thskfs"></div>
+          </div>
+          <div class="input-box" v-if="fkfsView">
+            <label class="input-label">退货账户</label>
+            <div style="float:left" v-text="from.thzh"></div>
+          </div>
+
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          
+          <div class="input-box" style="width:100%">
+            <label class="input-label">附件信息</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <a style="color:#409eff" :href="item.filePath" :download="item.name">{{item.name}}</a>
+              </li>
+            </ul>
+          </div>
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <div style="float:left" v-text="gxrName"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+        </sections>
+      </div>
+      <div>
+        <sections title="明细信息">
+            <el-table
+            height="400px"
+            :data="tableList"
+            style="width: 100%"
+            :key="Math.random()"
+          >
+            <el-table-column label="采购收货单号">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.cgshDh"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.brandName"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.nameCn"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.modelNum"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="1">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.ylzd1"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="2">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.ylzd2"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="3">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.ylzd3"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="单位">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.measureName"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="退货数量">
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.thQuantity"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="实发数量">
+              <template slot-scope="scopr">
+                <el-input v-if="stockStatus" v-model="scopr.row.sfQuantity" ></el-input>
+                <span v-else v-text="scopr.row.sfQuantity"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+                
+              <template slot-scope="scopr">
+                <span v-text="scopr.row.zy"></span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </sections>
+        <div style="padding-left:10px">
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">出库人</label>
+            <div style="float:left" v-text="from.ckrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">出库时间</label>
+            <div style="float:left" v-text="from.sjcksj"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">出库说明</label>
+            <el-input v-if="stockStatus" v-model="from.cksm" ></el-input>
+            <div v-else style="float:left" v-text="from.cksm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="handle-bar">
+        <el-button v-if="stockStatus" type="primary" @click="stockOut()">出库</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "@/views/components/createView";
+import sections from "@/views/components/sections";
+import {
+  jxcCgydQueryById,
+  jxcCgthckStockOut,
+} from "@/api/jxc/jxc";
+
+import Lockr from "lockr";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {
+    
+  },
+  computed: {
+   
+  },
+  props: {
+
+  },
+  data() {
+    return {
+      loading: false,
+      stockStatus: false,
+      fileList: [], //附件列表
+      gxrName: "", //共享人名称
+      fkfsView: false, //退款账户显示
+      message: "",
+      from: {
+        contactPhone: "",//联系人电话
+        contactId: "",//联系人id
+        contactName: "",
+        dh: "",//
+        thrq: "",//退货日期
+        remark: "",//备注
+        cgydId: "",//采购异动id
+        precelx: "",//
+        thzje: "",//退货总金额
+        thzh: "",//退货账户
+        shsj: "",//
+        create: "",//操作者
+        ywy: "",//业务员
+        createDate: "",//添加时间
+        createName: "",
+        sfbd: "否",//是否补单
+        gxr: "",//共享人
+        creator: "",//操作者id
+        ck: "",//仓库
+        ckName: "",
+        cgddId: "",//
+        cgydDh: "",//采购异动单号
+        cgshId: "",//
+        thfs: "",//退货方式
+        gysId: "",//供应商id
+        thskfs: "",//退货收款方式
+        gysName: "",//供应商名称
+        dwtt: "",//单位抬头
+        dwttName: "",
+
+        ckrName: "",//出库人名称---发货人名称
+        cksm: "",//出库说明--发货说明
+        sjcksj: "",//出库时间--发货时间
+      },
+      
+      tableList: [
+        {
+          cgydDh: "", //采购异动单号
+          hsdj: "", //含税单价
+          brandName: "", //品牌名称
+          hj: "", //合计
+          hk: "", //货款
+          productId: "", //产品id
+          modelNum: "", //
+          productSl: "", //税率
+          thQuantity: "", //退货数量
+          shdQuantity: "", //收货数量
+          nameCn: "", //品名
+          comname: "", //品名id
+          measureName: "", //单位名称
+          measureUnitid: "", //单位id
+          cgydmxId: "",//采购异动明细id
+          wsdj: "",//未税单价
+          brandId: "", //品牌id
+          sj: "", //税金
+          cgydId: "", //采购异动id
+          ylzd1: "", //预留字段1
+          ylzd2: "", //预留字段2
+          ylzd3: "", //预留字段3
+          zy: "", //摘要
+          sfQuantity: "",
+        }
+      ],
+      tableData: [],
+    };
+  },
+
+  methods: {
+    //关闭按钮
+    hidenView() {
+      window.top.close();
+    },
+    //点击审核
+    stockOut() {
+      let self = this;
+        this.$confirm("确定要出库吗?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            var data = [];
+            for(var i in this.tableList){
+                data.push({
+                    cgydmxId: this.tableList[i].cgydmxId,
+                    sfQuantity: this.tableList[i].sfQuantity
+                });
+            }
+            jxcCgthckStockOut({
+              cgydId: this.widowData.id,
+              cksm: this.from.cksm,
+              djmxList: data
+            })
+              .then(res => {
+                this.loading = true
+                this.$message({
+                  message: "出库成功",
+                  type: "success",
+                  onClose: () => {
+                    this.resetGetList();
+                    this.hidenView();
+                    this.loading = false;
+                  }
+                });
+              })
+              .catch(res => {});
+          })
+          .catch(() => {
+            this.msgInfo("取消出库");
+          });
+    },
+    //审核操作完成后，传输数据至列表页
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    //初始化页面数据
+    queryData() {
+        let self = this;
+        //信息
+        jxcCgydQueryById({
+            cgydId: this.widowData.id,
+        })
+            .then((res) => {
+            this.tableList = res.cgydmx;
+            this.from = res.cgyd;
+            this.fileList = res.cgydFile;
+            //共享人
+            var gxrName = [];
+            for(var i in res.cgyd.gxrName){
+              gxrName[i] = res.cgyd.gxrName[i].realname;
+            }
+            this.gxrName = gxrName.join(',');
+            if(this.from.thfs == "退还账户"){
+                this.fkfsView = true;
+            }
+            
+            })
+            .catch((res) => {});
+      
+    },
+    
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+    if (this.widowData.type == "stockOut") {
+      this.stockStatus = true;
+    } else {
+      this.stockStatus = false;
+    }
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-input__inner {
+  padding-right: 0;
+}
+.content .el-input__inner {
+  height: 25px;
+}
+.content .el-input__icon {
+  line-height: 25px;
+}
+</style>
+<style lang='scss' scoped>
+@import "@/views/manage/styles/table.scss";
+@import "@/styles/detail.scss";
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 80%;
+  float: left;
+  line-height: 20px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

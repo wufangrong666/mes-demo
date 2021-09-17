@@ -1,0 +1,234 @@
+import request from '@/utils/request'
+
+/**
+ * 修改头像
+ * @param {*} data
+ */
+export function adminUsersUpdateImg(data) {
+  return request({
+    url: 'system/user/updateImg',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
+ * 个人详情
+ * @param {*} data
+ */
+export function adminUsersRead(data) {
+  return request({
+    url: 'system/user/queryLoginUser',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
+ * 修改个人信息
+ * @param {*} data
+ */
+export function adminUsersUpdate(data) {
+  return request({
+    url: 'system/user/updateUser',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
+ * 修改密码
+ * @param {*} data
+ */
+export function oaPersonSetUpdatePassword(data) {
+  return request({
+    url: 'oaPersonSet/updatePassword',
+    method: 'post',
+    data: data
+  })
+}
+//获取用户信息
+export function oaPersonSetFindUserInfo(data) {
+  return request({
+    url: 'oaPersonSet/findUserInfo',
+    method: 'post',
+    data: data
+  })
+}
+//所有用户信息
+export function userGetUserByRloe(data) {
+  return request({
+    url: 'system/user/getUserByRloe',
+    method: 'post',
+    data: data
+  })
+}
+//上传头像
+export function oaPersonSetUploadImg(data) {
+  return request({
+    url: 'oaPersonSet/uploadLogo',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//设置个人信息
+export function oaPersonSetUpdateUserInfo(data) {
+  return request({
+    url: 'oaPersonSet/updateUserInfo',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
+  })
+}
+//组织通讯录列表查询
+export function oaAddressBookQueryPageList(data) {
+  return request({
+      url: 'oaAddressBook/queryPageList',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//根据任务状态查询我的任务
+export function oaTaskManagerQueryMyTaskByStatus(data) {
+  return request({
+      url: 'oaTaskManager/queryMyTaskByStatus',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//创建或者修改任务
+export function oaTaskManagerAddOrUpdateTask(data) {
+  return request({
+      url: 'oaTaskManager/addOrUpdateTask',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//查询汇报列表
+export function oaReportQueryReportList(data) {
+  return request({
+      url: 'oaReport/queryReportList',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//新增或修改汇报
+export function oaReportAddOrUpdate(data) {
+  return request({
+      url: 'oaReport/addOrUpdate',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//新增或修改汇报
+export function oaDownloadQueryAllFile(data) {
+  return request({
+      url: 'oaDownload/queryAllFile',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//新增或修改汇报
+export function oaDownloadQueryFileByGroup(data) {
+  return request({
+      url: 'oaDownload/queryFileByGroup',
+      method: 'post',
+      data: data,
+      headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+      }
+  })
+}
+//常用下载 通过id删除文件
+export function oaDownloadRemoveById(data) {
+  return request({
+      url: 'oaDownload/removeById',
+      method: 'post',
+      data: data,
+  })
+}
+//常用下载 通过group删除文件
+export function oaDownloadRemoveByGroup(data) {
+  return request({
+      url: 'oaDownload/removeByGroup',
+      method: 'post',
+      data: data,
+  })
+} 
+//常用下载 文件下载
+export function oaDownloadDownload(data) {
+  return request({
+      url: 'oaDownload/download',
+      method: 'post',
+      data: data,
+  })
+} 
+//常用下载 文件名修改
+export function oaDownloadRenameFileById(data) {
+  return request({
+      url: 'oaDownload/renameFileById',
+      method: 'post',
+      data: data,
+  })
+}
+//常用下载 通过id查询文件
+export function oaDownloadQueryById(data) {
+  return request({
+      url: 'oaDownload/queryById',
+      method: 'post',
+      data: data,
+  })
+}
+//常用下载 通过group查询文件
+export function oaDownloadQueryByGroup(data) {
+  return request({
+      url: 'oaDownload/queryByGroup',
+      method: 'post',
+      data: data,
+  })
+}
+//常用下载 上传文件
+export function oaDownloadUpload(data) {
+  return request({
+      url: 'oaDownload/upload',
+      method: 'post',
+      data: data,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//查询所有上级领导
+export function oaPersonSetFindUser(data) {
+  return request({
+      url: 'oaPersonSet/findUser',
+      method: 'post',
+      data: data,
+  })
+}

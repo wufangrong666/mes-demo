@@ -1,0 +1,252 @@
+import request from '@/utils/request'
+// 邮件设置 - 查询当前用户已保存邮箱
+export function mailInfoQueryPageList(data) {
+    return request({
+        url: 'mailInfo/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 测试连接邮箱
+export function mailInfoTestConnection(data) {
+    return request({
+        url: 'mailInfo/testConnection',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+// 新增或修改邮箱信息
+export function mailInfoAddOrUpdate(data) {
+    return request({
+        url: 'mailInfo/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+// 新增或修改邮箱信息
+export function mailInfoDelMailInfoByMailId(data) {
+    return request({
+        url: 'mailInfo/delMailInfoByMailId',
+        method: 'post',
+        data: data
+    })
+}
+
+// 发件箱 - 查询当前用户已保存邮箱
+export function mailSendFindAccount(data) {
+    return request({
+        url: 'mailSend/findAccount',
+        method: 'post',
+        data: data
+    })
+}
+
+// 发送邮件
+export function mailSendSendMail(data) {
+    return request({
+        url: 'mailSend/sendMail',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 发送邮件邮箱唯一校验
+export function mailInfoMailNotSame(data) {
+    return request({
+        url: 'mailInfo/mailNotSame',
+        method: 'post',
+        data: data
+    })
+}
+// 已发邮件列表
+export function mailSendFindSendMail(data) {
+    return request({
+        url: 'mailSend/findSendMail',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 删除已发送邮件
+export function mailSendDelMailBySendId(data) {
+    return request({
+        url: 'mailSend/delMailBySendId',
+        method: 'post',
+        data: data
+    })
+}
+// 查看详情
+export function mailSendFindMailInfoBySendId(data) {
+    return request({
+        url: 'mailSend/findMailInfoBySendId',
+        method: 'post',
+        data: data
+    })
+}
+// 查看草稿箱or发送失败邮件
+export function mailSendFindDraftOrSendMail(data) {
+    return request({
+        url: 'mailSend/findDraftOrSendMail',
+        method: 'post',
+        data: data
+    })
+}
+
+// 草稿箱编辑
+export function mailSendUpdateMail(data) {
+    return request({
+        url: 'mailSend/updateMail',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+
+// 批量删除草稿箱未发送邮件Or已发送邮件
+export function mailSendDelDraftOrSendMailBySendId(data) {
+    return request({
+        url: 'mailSend/delDraftOrSendMailBySendId',
+        method: 'post',
+        data: data
+    })
+}
+
+
+// 查看收件箱
+export function mailReceiveFindReceiveMail(data) {
+    return request({
+        url: 'mailReceive/findReceiveMail',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}  
+// 修改邮件已读or未读
+export function mailReceiveuUpdateReceiveStatus(data) {
+    return request({
+        url: 'mailReceive/updateReceiveStatus',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}  
+// 根据receiveIds批量删除收件箱邮件
+export function mailReceiveDelReceiveMailByReceiveIds(data) {
+    return request({
+        url: 'mailReceive/delReceiveMailByReceiveIds',
+        method: 'post',
+        data: data
+    })
+}  
+// 接收邮件
+export function mailReceiveReceiveMail(data) {
+    return request({
+        url: 'mailReceive/receiveMail',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }   
+    })
+}  
+// 查看邮件详情
+export function mailReceiveFindReceiveMailInfo(data) {
+    return request({
+        url: 'mailReceive/findReceiveMailInfo',
+        method: 'post',
+        data: data
+    })
+} 
+// 查看已删除邮件
+export function mailSendFindDeleteMail(data) {
+    return request({
+        url: 'mailSend/findDeleteMail',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }   
+    })
+}  
+
+// 还原已删除邮件
+export function mailSendReductionStatus(data) {
+    return request({
+        url: 'mailSend/reductionStatus',
+        method: 'post',
+        data: data
+    })
+} 
+// 彻底删除邮件
+export function mailSendCompleteDeleteMail(data) {
+    return request({
+        url: 'mailSend/completeDeleteMail',
+        method: 'post',
+        data: data
+    })
+} 
+// 更改自动接收邮件定时器刷新时间
+export function mailCronMailCronUpdate(data) {
+    return request({
+        url: 'mailCron/MailCronUpdate',
+        method: 'post',
+        data: data
+    })
+} 
+
+// 生成邮件信息
+export function mailYjmbCreateEmail(data) {
+    return request({
+        url: 'mailYjmb/createEmail',
+        method: 'post',
+        data: data
+    })
+}  
+export function gsMailQuerySendMailList(data) {
+    return request({
+        url: 'gsMail/querySendMailList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }   
+    })
+} 
+export function gsMailQueryReceiveMailList(data) {
+    return request({
+        url: 'gsMail/queryReceiveMailList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }   
+    })
+}  
+export function gsMailFindMail(data) {
+    return request({
+        url: 'gsMail/findMail',
+        method: 'post',
+        data: data
+    })
+} 

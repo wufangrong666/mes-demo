@@ -1,0 +1,306 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex sgdd-box">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">申购单单号</label>
+            <div v-text="from.sgdDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人</label>
+            <div v-text="from.cjrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建时间</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">申请事由</label>
+            <div v-text="from.sqyy"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">申请人</label>
+            <div v-text="from.sqrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购期限</label>
+            <div v-text="from.cgqx"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购人</label>
+            <div v-text="from.cgrName"></div>
+          </div>
+          <div class="input-box" style="width:100%;height:35px">
+            <label class="input-label">上传附件</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <a style="color:#409eff" :href="item.path" :download="item.name" v-text="item.name"></a>
+              </li>
+            </ul>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div v-text="from.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">申购总金额</label>
+            <div v-text="from.sgzje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">认领金额</label>
+            <div style="width:50px;float:left" v-text="from.rlzje == ''?0:from.rlzje"></div>
+            <!-- <el-button @click="rlkClick" type="primary">认领款</el-button> -->
+          </div>
+          <el-table :data="sgdmxList" max-height="300" stripe style="width: 100%">
+            <el-table-column prop="brandName" label="品牌"></el-table-column>
+            <el-table-column prop="nameCn" label="品名"></el-table-column>
+            <el-table-column prop="productModelnum" label="型号"></el-table-column>
+            <el-table-column prop="measureName" label="单位"></el-table-column>
+            <el-table-column prop="orderQuantity" label="订单数量"></el-table-column>
+            <el-table-column prop="sgQuantity" label="申请数量"></el-table-column>
+            <el-table-column prop="zy" label="摘要"></el-table-column>
+          </el-table>
+        </sections>
+        <div class="bottom">
+          <el-button @click="hidenView" plain>关闭</el-button>
+          <el-button @click="auditY" v-show="flag" type="success">审核通过</el-button>
+          <el-button @click="auditN" v-show="flag" type="info">审核不通过</el-button>
+        </div>
+      </div>
+
+      <el-dialog
+        title="审核不通过原因"
+        :visible.sync="dialogVisible"
+        width="30%"
+        :before-close="handleClose"
+        :modal-append-to-body="false"
+      >
+        <span>
+          <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="nopassReason"></el-input>
+        </span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="auditNSet">确 定</el-button>
+        </span>
+      </el-dialog>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { sgdFindSgdById, sgdAuditSgdBySgdId } from "@/api/jxc/jxc";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      loading: false,
+      sgdmxList: [],
+      sgdList: [],
+      from: [],
+      flag: false,
+      nopassReason: "",
+      dialogVisible: false,
+      fileList: [],
+    };
+  },
+
+  methods: {
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handler() {
+      this.$emit("save-success");
+    },
+    shFunction() {
+      sgdAuditSgdBySgdId({
+        sgdId: this.widowData.id,
+        status: 1,
+        nopassReason: "",
+      })
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "审核成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    auditY() {
+      let self = this;
+      for (var i in this.sgdmxList) {
+        if (this.sgdmxList[i].sgQuantity !== this.sgdmxList[i].orderQuantity) {
+          this.$confirm("申购数量与订单数量不符, 是否继续?", "提示", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning",
+          })
+            .then(() => {
+              this.shFunction();
+            })
+            .catch(() => {
+              this.$message({
+                type: "info",
+                message: "已取消删除",
+              });
+            });
+        } else {
+          this.$confirm("请确认需要审核的信息, 是否继续?", "提示", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning",
+          })
+            .then(() => {
+              this.shFunction();
+            })
+            .catch(() => {
+              this.msgInfo("取消审核");
+            });
+        }
+      }
+    },
+    auditNSet() {
+      let self = this;
+      if (this.nopassReason == "") {
+        this.msgInfo("请输入不通过原因");
+        return;
+      }
+      sgdAuditSgdBySgdId({
+        sgdId: this.widowData.id,
+        status: 2,
+        nopassReason: this.nopassReason,
+      })
+        .then((res) => {
+          this.dialogVisible = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+    auditN() {
+      this.dialogVisible = true;
+    },
+    queryData() {
+      this.loading = true;
+      sgdFindSgdById({
+        sgdId: this.widowData.id,
+      })
+        .then((res) => {
+          this.loading = false;
+          //   this.listData = res.data;
+          this.sgdList = res.sgd;
+          this.from = res.sgd;
+          this.sgdmxList = res.sgdmx;
+          this.fileList = res.sgdFile;
+          this.from.cjrName = res.sgd.create;
+        })
+        .catch((res) => {});
+    },
+    hidenView() {
+      window.top.close();
+    },
+  },
+
+  created() {},
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+    if (this.widowData.type == "audit") {
+      this.flag = true;
+    }
+  },
+};
+</script>
+<style lang='scss'>
+.sgdd-box .el-button {
+  padding: 6px 12px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 33%;
+}
+.content {
+  width: 100%;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.create-top {
+  width: 100%;
+  float: left;
+  line-height: 40px;
+  li {
+    width: 300px;
+    float: left;
+    span {
+      float: left;
+      width: 50%;
+    }
+    span:nth-child(1) {
+      text-align: center;
+    }
+  }
+}
+.create-topA {
+  width: 100%;
+  float: left;
+  line-height: 40px;
+  li {
+    width: 260px;
+    float: left;
+    span {
+      float: left;
+      width: 50%;
+    }
+    span:nth-child(1) {
+      text-align: center;
+    }
+  }
+}
+.create-flex {
+  height: 100%;
+  position: relative;
+}
+.bottom {
+  width: 100%;
+  text-align: center;
+  margin:20px 0;
+  float: left;
+}
+</style>

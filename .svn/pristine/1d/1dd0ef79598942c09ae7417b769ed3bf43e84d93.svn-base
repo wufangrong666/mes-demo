@@ -1,0 +1,1065 @@
+<template>
+  <div class="navbar">
+    <img :src="logo" class="logo" />
+    <div class="nav-items-container">
+      <flexbox style="width: auto;">
+        <router-link
+          v-for="(item, index) in items"
+          :key="index"
+          @click.native="navItemsClick(item.type)"
+          class="nav-item"
+          :style="{ 'color' : item.type == navIndexChild ? '#2362FB' : '#333' }"
+          :to="item.path"
+        >
+          <!-- 菜单栏图标 -->
+          <i
+            class="wukong"
+            :class="'wukong-' + item.icon"
+            style="margin-right: 10px;"
+            :style="{ 'color': item.type == navIndexChild ? '#2362FB' : '#333'}"
+          ></i>
+          <!-- 菜单栏标题 -->
+          <div class="nav-item-title">{{item.title}}</div>
+        </router-link>
+      </flexbox>
+    </div>
+
+    <!-- 通知栏开始 -->
+    <!-- 菜单栏通知 -->
+    <div class="to-do-sth" @click="drawerTrue">
+      <div class="todo-img" style="color:#333;margin-right:60px;">
+        <el-badge :value="storeNum" class="item">
+          <!-- <i class="wukong wukong-message ld"></i> -->
+          <img v-show="storeNum > 0" class="ld" src="./ld.png" alt="">
+          <img v-show="storeNum == 0" class="imgStyle" src="./ld.png" alt />
+        </el-badge>
+      </div>
+    </div>
+    <el-drawer
+      title="通知"
+      :visible.sync="drawer"
+      size="auto"
+      :with-header="false"
+      :append-to-body="true"
+    >
+      <div class="DioNotice">通知</div>
+      <div class="DioMenu">
+        <el-badge style="margin-left:0" :value="storeNum" class="item" :hidden="storeNum === 0">
+          <el-button @click="bioMenu('storeNum')" size="small">全部</el-button>
+        </el-badge>
+        <el-badge :value="crmNum" class="item" :hidden="crmNum === 0">
+          <el-button @click="bioMenu('crmNum')" size="small">CRM管理</el-button>
+        </el-badge>
+        <el-badge :value="jxcNum" class="item" :hidden="jxcNum === 0">
+          <el-button @click="bioMenu('jxcNum')" size="small">进销存</el-button>
+        </el-badge>
+        <el-badge :value="cwNum" class="item" :hidden="cwNum === 0">
+          <el-button @click="bioMenu('cwNum')" size="small">财务管理</el-button>
+        </el-badge>
+        <el-badge :value="oaNum" class="item" :hidden="oaNum === 0">
+          <el-button @click="bioMenu('oaNum')" size="small">OA</el-button>
+        </el-badge>
+        <el-badge :value="txNum" class="item" :hidden="txNum === 0">
+          <el-button @click="bioMenu('txNum')" size="small">邮件管理</el-button>
+        </el-badge>
+      </div>
+      <div class="center" v-infinite-scroll="load">
+        <div
+          class="message-cell"
+          v-for="(item,index) in cententList"
+          :key="index"
+          track-by="$index"
+        >
+          <div class="message-cell__hd">
+            <i class="el-icon-message wk"></i>
+          </div>
+          <div class="message-cell__bd">
+            <!-- <span>{{'您有一个新的 ' + item.menuName + ' 记录'+index}}</span> -->
+            <span @click="linkClick(item)" class="click-content">{{ item.content}}</span>
+            <!-- <span>，请及时查看</span> -->
+          </div>
+          <div class="message-cell__ft">
+            <div v-text="item.noticeTime"></div>
+            <div class="handle">
+              <span v-if="!item.read" @click="tabClick(item.messageId)" class="check">标记已读</span>
+              <span @click="deleteClick(item.messageId)" class="delete">删除</span>
+            </div>
+            <div v-if="!item.read" class="is-dot"></div>
+          </div>
+        </div>
+        <p
+          style="display: inline-block;line-height: 1.5;padding: 15px 20px 15px 15px;text-align:center;width:100%"
+          v-if="noMore"
+        >没有更多了</p>
+      </div>
+      <div class="bottomBar">
+        <div class="btmLeft">
+          <el-switch
+            v-model="value"
+            @change="switchChange"
+            active-color="#2362fb"
+            inactive-color="#e6e6e6"
+          ></el-switch>&nbsp;仅显示未读信息
+        </div>
+        <div class="btmRight">
+          <el-dropdown trigger="click" @command="dropdown">
+            <span class="el-dropdown-link">
+              <i class="el-icon-more"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="true" icon="el-icon-check" class="text-align:left">全部标记为已读</el-dropdown-item>
+              <el-dropdown-item command="fales" icon="el-icon-delete-solid">删除全部已读信息</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </div>
+    </el-drawer>
+
+    <el-popover
+      placement="bottom"
+      :visible-arrow="false"
+      popper-class="no-padding-popover"
+      width="200"
+      trigger="hover"
+    >
+      <div class="auth-content">
+        <span class="phone">021-33750395思奉贸易</span>
+      </div>
+    </el-popover>
+
+    <el-popover
+      placement="bottom"
+      :visible-arrow="false"
+      popper-class="no-padding-popover"
+      width="200"
+      trigger="click"
+      @show="showClick"
+    >
+      <div class="handel-items">
+        <div v-if="grzl" class="handel-item" @click="handleClick('person')">
+          <i class="wukong wukong-personcenter"></i>个人中心
+        </div>
+        <div class="handel-item" @click="handleClick('goout')">
+          <i class="wukong wukong-goout"></i>退出登录
+        </div>
+        <el-popover placement="left" :title="popover" width="550" trigger="hover">
+          <div :class="{popoverNav:flag}">
+            <ul class="popoverUl">
+              <li class="popoverLi" v-for="(item,index) in versionList" :key="index">
+                <span class="popoverLi" v-text="item.versionNum"></span>
+                <span class="popoverLi" v-text="item.updatetime"></span>
+                <div v-for="(val,index) in item.contentList" :key="index">
+                  <span style="margin-right:10px" v-text="val.content"></span>
+                </div>
+              </li>
+            </ul>
+            <div class="popoverBtn">
+              <el-button @click="otherClick" type="text">更多</el-button>
+            </div>
+          </div>
+          <div
+            slot="reference"
+            class="handel-item hr-top"
+            :style="{'margin-bottom': manage ? '15px' : '0'}"
+          >
+            <i class="wukong wukong-versions"></i>
+            <span>{{'思奉工业' + versionNum}}</span>
+          </div>
+        </el-popover>
+
+        <div v-if="manage" class="handel-box">
+          <el-button @click="enterSystemSet()" type="primary" class="handel-button">进入企业管理后台</el-button>
+        </div>
+      </div>
+
+      <div slot="reference" class="user-container">
+        <div
+          v-photo="userInfo"
+          class="user-img div-photo"
+          :key="userInfo.img"
+          v-lazy:background-image="$options.filters.filterUserLazyImg(userInfo.img)"
+        ></div>
+        <span class="userName">{{userInfo.realname}}</span>
+        <i class="el-icon-caret-bottom mark"></i>
+      </div>
+    </el-popover>
+    <!-- 待办事项组件 -->
+    <!-- <backlog v-if="showPro" @hiden-view="hideView"></backlog> -->
+  </div>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import { Loading } from "element-ui";
+import Lockr from "lockr";
+// import backlog from "@/views/customermanagement/message/backlog";
+import {
+  noticeGetNoticeNumber,
+  noticeGetNoticeByModule,
+  noticeCheckStatus,
+  noticeCheckAllStatus,
+  noticeDeleteMessageById,
+  noticeDeleteMessageByRead,
+  versionQueryLatestVersion,
+} from "@/api/common";
+import { EventBus } from "../../../utils/eventBus";
+export default {
+  data() {
+    return {
+      list: [],
+      versionList: [],
+      versionNum: "",
+      activeName: "first",
+      value: true,
+      drawer: false,
+      storeNum: 0,
+      navIndexChild: 0,
+      oaNum: 0,
+      jxcNum: 0,
+      cwNum: 0,
+      txNum: 0,
+      crmNum: 0,
+      information: "arrInformation",
+      cententList: [],
+      module: "",
+      read: "0",
+      page: 1,
+      popover: "新功能",
+      flag: false,
+      grzl: true,
+      infiniteName: "storeNum",
+      noMore: false,
+    };
+  },
+  props: {
+    navIndex: {
+      type: [Number, String],
+      default: 0,
+    },
+  },
+  filters: {
+    langName: function (value) {
+      if (value) {
+        return { cn: "中文", en: "English" }[value];
+      } else {
+        return "中文";
+      }
+    },
+  },
+  components: {},
+  computed: {
+    ...mapGetters([
+      "userInfo",
+      "lang",
+      "crm",
+      "oa",
+      "logo",
+      "manage",
+      "finance",
+      "email",
+      "jxc",
+    ]),
+    items() {
+      var tempsItems = [];
+      if (this.crm) {
+        tempsItems.push({
+          title: "CRM管理",
+          type: 0,
+          path: "/crm",
+          icon: "department",
+        });
+      }
+      if (this.jxc) {
+        tempsItems.push({
+          title: "进销存", //buyandsale
+          type: 1,
+          path: "/jxc",
+          icon: "BI_Employee_performance",
+        });
+      }
+      if (this.finance) {
+        tempsItems.push({
+          title: "财务管理", //project
+          type: 2,
+          path: "/finance",
+          icon: "moneystatistics",
+        });
+      }
+
+      if (this.oa) {
+        tempsItems.push({
+          title: "办公管理", //bi
+          type: 3,
+          path: "/oa",
+          icon: "oa_analysis",
+        });
+      }
+      // if (this.project) {
+      //   tempsItems.push({
+      //     title: "信息中心",
+      //     type: 4,
+      //     path: "/inforcenter",
+      //     icon: "notice"
+      //   });
+      // }
+      if (this.email) {
+        tempsItems.push({
+          title: "通讯管理", //comman
+          type: 5,
+          path: "/email",
+          icon: "examine-category-four",
+        });
+      }
+      return tempsItems;
+    },
+  },
+  mounted() {
+    this.navIndexChild = this.navIndex;
+    this.logData();
+    let self = this;
+    if (Lockr.get("authList").oa == undefined) {
+      this.grzl = false;
+    } else {
+      if (Lockr.get("authList").oa.personset.grzl) {
+        this.grzl = Lockr.get("authList").oa.personset.grzl;
+      }
+    }
+    EventBus.$on("message", (msg) => {
+      // A发送来的消息
+      this.logData();
+      EventBus.$off("message");
+    });
+    this.timer = setInterval(function () {
+      self.logData();
+    }, 600000);
+  },
+  methods: {
+    load() {
+      if (this.infiniteName == "storeNum") {
+        if (this.page < Math.ceil(this.storeNum / 30)) {
+          this.page += 1;
+          this.noMore = false;
+          this.logLeftData();
+        } else {
+          this.noMore = true;
+        }
+      }
+      if (this.infiniteName == "crmNum") {
+        if (this.page < Math.ceil(this.crmNum / 30)) {
+          this.page += 1;
+          this.noMore = false;
+          this.logLeftData();
+        } else {
+          this.noMore = true;
+        }
+      }
+      if (this.infiniteName == "jxcNum") {
+        if (this.page < Math.ceil(this.jxcNum / 30)) {
+          this.page += 1;
+          this.noMore = false;
+          this.logLeftData();
+        } else {
+          this.noMore = true;
+        }
+      }
+      if (this.infiniteName == "cwNum") {
+        if (this.page < Math.ceil(this.cwNum / 30)) {
+          this.page += 1;
+          this.noMore = false;
+          this.logLeftData();
+        } else {
+          this.noMore = true;
+        }
+      }
+      if (this.infiniteName == "oaNum") {
+        if (this.page < Math.ceil(this.oaNum / 30)) {
+          this.page += 1;
+          this.noMore = false;
+          this.logLeftData();
+        } else {
+          this.noMore = true;
+        }
+      }
+      if (this.infiniteName == "txNum") {
+        if (this.page < Math.ceil(this.txNum / 30)) {
+          this.page += 1;
+          this.noMore = false;
+          this.logLeftData();
+        } else {
+          this.noMore = true;
+        }
+      }
+    },
+    otherClick() {
+      if (this.flag) {
+        this.popover = "新功能";
+        this.versionList = [];
+        this.versionList.push(this.dataList[0]);
+        this.flag = !this.flag;
+      } else {
+        this.versionList = [];
+        this.popover = "版本信息";
+        this.versionList = this.dataList;
+        this.flag = !this.flag;
+      }
+    },
+    linkClick(type) {
+      this.$router.push({
+        path: type.type,
+      });
+      this.tabClick(type.messageId);
+      this.drawer = false;
+      EventBus.$emit("aMsg", "来自A页面的消息");
+    },
+    showClick() {
+      versionQueryLatestVersion()
+        .then((res) => {
+          this.versionNum = res.data[0].versionNum;
+          this.dataList = res.data;
+          this.versionList.push(this.dataList[0]);
+        })
+        .catch((res) => {});
+    },
+    switchChange(status) {
+      if (status) {
+        this.read = "0";
+      } else {
+        this.read = "1";
+      }
+      this.logLeftData();
+    },
+    bioMenu(val) {
+      if (val == "storeNum") {
+        this.infiniteName = "storeNum";
+        this.module = "";
+        this.cententList = [];
+        this.page = 1;
+        this.noMore = false;
+        this.logLeftData();
+      }
+      if (val == "jxcNum") {
+        this.infiniteName = "jxcNum";
+        this.module = "2";
+        this.cententList = [];
+        this.page = 1;
+        this.noMore = false;
+        this.logLeftData();
+      }
+      if (val == "oaNum") {
+        this.infiniteName = "oaNum";
+        this.module = "4";
+        this.cententList = [];
+        this.page = 1;
+        this.noMore = false;
+        this.logLeftData();
+      }
+      if (val == "cwNum") {
+        this.infiniteName = "cwNum";
+        this.module = "3";
+        this.cententList = [];
+        this.page = 1;
+        this.noMore = false;
+        this.logLeftData();
+      }
+      if (val == "crmNum") {
+        this.infiniteName = "crmNum";
+        this.module = "1";
+        this.cententList = [];
+        this.page = 1;
+        this.noMore = false;
+        this.logLeftData();
+      }
+      if (val == "txNum") {
+        this.infiniteName = "txNum";
+        this.module = "5";
+        this.cententList = [];
+        this.page = 1;
+        this.noMore = false;
+        this.logLeftData();
+      }
+    },
+    dropdown(command) {
+      if (command == "true") {
+        noticeCheckAllStatus({
+          module: this.module,
+        })
+          .then((res) => {
+            this.logLeftData();
+            this.logData();
+          })
+          .catch((res) => {});
+      } else {
+        noticeDeleteMessageByRead({
+          module: this.module,
+        })
+          .then((res) => {})
+          .catch((res) => {});
+      }
+    },
+    tabClick(id) {
+      noticeCheckStatus({
+        messageIds: id,
+      })
+        .then((res) => {
+          this.logLeftData();
+          this.logData();
+        })
+        .catch((res) => {});
+    },
+    deleteClick(id) {
+      noticeDeleteMessageById({
+        messageIds: id,
+      })
+        .then((res) => {
+          this.logLeftData();
+          this.logData();
+        })
+        .catch((res) => {});
+    },
+    logData() {
+      noticeGetNoticeNumber()
+        .then((res) => {
+          this.storeNum = res.data.all;
+          this.oaNum = res.data.oa;
+          this.jxcNum = res.data.jxc;
+          this.cwNum = res.data.cw;
+          this.txNum = res.data.tx;
+          this.crmNum = res.data.crm;
+          EventBus.$off("message");
+        })
+        .catch((res) => {});
+    },
+    logLeftData() {
+      this.cententList = [];
+      noticeGetNoticeByModule({
+        page: this.page,
+        limit: 30,
+        read: this.read,
+        module: this.module,
+      })
+        .then((res) => {
+          this.list = res.data;
+          this.cententList = this.cententList.concat(res.data);
+          // if (res.data.length == 0) {
+          //   this.page -= 1;
+          // }
+        })
+        .catch((res) => {});
+    },
+    navItemsClick(type) {
+      if (type == 5) {
+        this.$router.push({
+          path: "/email/ExternalMail/outwriteNewEmail",
+        });
+      }
+      this.navIndexChild = type;
+      this.$store.commit("SET_NAVACTIVEINDEX", type);
+      this.$emit("nav-items-click", type);
+    },
+    enterSystemSet() {
+      this.$router.push({
+        path: "/manage/orzStructure/combination",
+      });
+    },
+    handleClick(type) {
+      if (type === "goout") {
+        this.$confirm("退出登录？", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        })
+          .then(() => {
+            var loading = Loading.service({
+              target: document.getElementById("#app"),
+            });
+            this.$store
+              .dispatch("LogOut")
+              .then(() => {
+                location.reload();
+                loading.close();
+              })
+              .catch(() => {
+                location.reload();
+                loading.close();
+              });
+          })
+          .catch(() => {});
+      } else if (type === "person") {
+        this.$router.push({
+          path: "/oa/purchasemanagement/personalInfo",
+        });
+      }
+    },
+    switchLang(item) {
+      this.$store.commit("SET_LANG", item.lang);
+      this.langName = item.name;
+    },
+    drawerTrue() {
+      this.drawer = true;
+      this.logLeftData();
+      this.logData();
+    },
+  },
+};
+</script>
+
+<style rel="stylesheet/scss" lang="scss" scoped>
+.message-cell:hover .message-cell__ft .handle .check,
+.message-cell:hover .message-cell__ft .handle .delete {
+  visibility: visible;
+}
+.message-cell {
+  position: relative;
+  font-size: 14px;
+  color: #333;
+  padding: 15px 20px 15px 15px;
+  line-height: 1.5;
+}
+.message-cell:hover {
+  background: #f6f8fa;
+}
+.message-cell__hd {
+  flex-shrink: 0;
+  margin-right: 15px;
+  background-color: #2362fb;
+  text-align: center;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 14px;
+  display: inline-block;
+  .wk {
+    color: #fff;
+    font-size: 13px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+.message-cell__bd {
+  display: inline-block;
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+  width: 450px;
+  .click-content {
+    color: #2362fb;
+    cursor: pointer;
+  }
+}
+.message-cell__ft {
+  display: inline-block;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+  width: 155px;
+  text-align: left;
+  position: relative;
+  .handle {
+    position: absolute;
+    top: 20px;
+    right: 42px;
+    font-size: 12px;
+    color: #999;
+    .check,
+    .delete {
+      visibility: hidden;
+      cursor: pointer;
+      font-size: 12px;
+      color: #999;
+    }
+    .check:hover {
+      color: #2362fb;
+    }
+    .delete:hover {
+      color: #f56c6c;
+    }
+  }
+  .is-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: red;
+    border-radius: 50%;
+    right: 20px;
+    top: 5px;
+  }
+}
+
+.center {
+  width: 720px;
+  height: 780px;
+  overflow: auto;
+  padding-bottom: 40px;
+}
+.navbar {
+  height: 60px;
+  min-height: 60px;
+  background-color: white;
+  box-shadow: 0px 1px 2px #dbdbdb;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 0 15px;
+  .logo {
+    width: 165px;
+    height: 50px;
+    display: block;
+    flex-shrink: 0;
+    margin-right: 20px;
+  }
+  .nav-items-container {
+    flex: 1;
+    display: flex;
+    min-width: 500px;
+    height: 100%;
+    overflow-x: auto;
+    line-height: 60px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .user-container {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    .user-img {
+      display: block;
+      width: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      height: 32px;
+      margin-right: 8px;
+      border-radius: 50%;
+    }
+    .mark {
+      font-size: 15px;
+      color: #aaaaaa;
+    }
+  }
+
+  .user-container:hover {
+    .mark {
+      color: #2362fb;
+    }
+  }
+}
+
+.nav-item {
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.nav-item-img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  margin-right: 5px;
+}
+
+.handel-items {
+  padding: 10px 0 18px 0;
+  .handel-item {
+    padding: 5px 20px;
+    font-size: 14px;
+    color: #aaa;
+    cursor: pointer;
+    i {
+      margin-right: 8px;
+      font-size: 15px;
+    }
+  }
+  .handel-item:hover {
+    background-color: #f7f8fa;
+    color: #2362fb;
+  }
+  .handel-box {
+    padding: 0 15px;
+    .handel-button {
+      width: 100%;
+      border-radius: 4px;
+      border-color: #2362fb;
+      background-color: #2362fb;
+    }
+  }
+}
+.hr-top {
+  margin-top: 8px;
+  border-top: 1px solid #f4f4f4;
+  padding-top: 3px;
+}
+
+.nav-lang {
+  cursor: pointer;
+  color: #888;
+  padding: 20px;
+  &:hover {
+    color: #2362fb;
+  }
+  &.active {
+    font-weight: bold;
+    color: #2362fb;
+  }
+}
+
+.auth-button {
+  background: linear-gradient(to right, #d9ac7c, #c28e5c);
+  color: white;
+  padding: 5px 15px;
+  font-size: 12px;
+  height: 24px;
+  outline: none;
+  margin: 0;
+  border: none;
+  border-radius: 12px;
+  transform: scale(0.9);
+  margin-right: 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.auth-content {
+  text-align: center;
+  color: #333;
+  padding: 30px 20px;
+  .title {
+    font-size: 16px;
+    font-weight: 600px;
+  }
+  .detail {
+    transform: scale(0.9);
+    margin-top: 8px;
+    font-size: 12px;
+    margin-bottom: 15px;
+  }
+  .phone {
+    background: linear-gradient(to right, #f2dfb2, #e5c78a);
+    border-radius: 4px;
+    padding: 5px 17px;
+    font-size: 12px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.12);
+    line-height: 17px;
+  }
+}
+.router-link-active {
+  height: 58px;
+  border-bottom: 3px solid #2362fb;
+}
+.userName {
+  margin-right: 5px;
+  color: #333;
+}
+.to-do-sth {
+  cursor: pointer;
+  .todo-img {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    min-width: 32px;
+    min-height: 32px;
+    height: 32px;
+    margin-right: 8px;
+    border-radius: 50%;
+  }
+}
+.item {
+  margin-top: 10px;
+  margin-right: 40px;
+}
+.router-link-active {
+  background-color: rgba(255, 255, 255, 0);
+}
+.el-dropdown-link {
+  cursor: pointer;
+}
+.el-dropdown-menu__item {
+  display: flex;
+  justify-content: space-between;
+}
+.el-badge {
+  margin-left: 30px;
+}
+.wukong-message {
+  font-size: 20px;
+}
+// 通知栏
+.DioNotice {
+  padding: 0 20px;
+  height: 50px;
+  line-height: 50px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #333;
+  background-color: #f7f8fa;
+  border-radius: 4px;
+  border: 1px solid #f7f8fa;
+}
+.el-drawer__body {
+  position: relative;
+}
+.DioMenu .el-tabs__item.is-active {
+  background-color: #2362fb;
+  color: #fff;
+  border-radius: 20px;
+}
+.DioMenu {
+  // overflow-x: auto;
+  // overflow-y: hidden;
+  padding: 0 15px;
+  // height: 60px;
+  // border-top: 1px solid #e6e6e6;
+
+  .el-badge {
+    .el-button--small {
+      border-radius: 20px !important;
+      background-color: #f6f8fa;
+    }
+    .el-button:hover,
+    .el-button:focus {
+      color: #fff;
+      background-color: #2362fb;
+    }
+  }
+  .item {
+    margin-left: 40px;
+    margin-right: 0;
+  }
+  .el-dropdown-menu__item {
+    display: flex;
+    justify-content: space-around;
+  }
+}
+.sm-main__bd {
+  height: calc(100% - 110px);
+  overflow-y: auto;
+}
+.bottomBar {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background-color: #f7f8fa;
+}
+.bgpBom {
+  padding: 0 40px;
+}
+.el-divider--horizontal {
+  margin: 0;
+}
+</style>
+<style>
+.DioMenu .el-tabs__nav .el-tabs__active-bar {
+  height: 0 !important;
+}
+/* .DioMenu .el-badge {
+  padding: 0 15px !important;
+} */
+.DioMenu .el-tabs__item {
+  margin-top: 10px;
+  margin-left: 15px !important;
+  border-radius: 20px;
+  text-align: center;
+  background-color: #f6f8fa;
+  height: 30px;
+  line-height: 30px;
+}
+.DioMenu .el-tabs__item.is-active {
+  background-color: #2362fb;
+  color: #fff;
+  border-radius: 20px;
+}
+.DioMenu .el-tabs--card > .el-tabs__header .el-tabs__nav {
+  border: none;
+}
+.DioMenu .el-tabs--card > .el-tabs__header {
+  border-bottom: 0;
+}
+.DioMenu .el-tabs__item:hover {
+  background-color: #2362fb;
+  color: #fff;
+}
+.DioMenu .el-tabs--card > .el-tabs__header .el-tabs__item {
+  border: 0 !important;
+  transition: color 0s;
+}
+
+.el-icon-delete-solid,
+.el-icon-check {
+  line-height: 36px;
+}
+.popoverNav {
+  height: 200px;
+  position: relative;
+}
+.popoverUl {
+  height: 160px;
+  width: 100%;
+  overflow: auto;
+}
+.popoverLi {
+  width: 100%;
+  line-height: 40px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 10px;
+}
+.popoverBtn {
+  width: 100%;
+  height: 40px;
+  background: blank;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding-right: 20px;
+  text-align: right;
+}
+.imgStyle {
+  width: 20px;
+  height: 20px;
+}
+.ld {
+  width: 20px;
+  height: 20px;
+  transform-origin: 50% 0;
+  animation: yaolingdang 3s infinite ease;
+}
+@keyframes yaolingdang {
+  5%,
+  25%,
+  45% {
+    transform: rotate(30deg);
+  }
+  0%,
+  10%,
+  30%,
+  50% {
+    transform: rotate(-30deg);
+  }
+  15%,
+  35%,
+  55% {
+    transform: rotate(30deg);
+  }
+  20%,
+  40%,
+  60% {
+    transform: rotate(-30deg);
+  }
+  65%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+</style>

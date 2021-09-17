@@ -1,0 +1,288 @@
+<template>
+  <div>
+    <el-dialog
+      title="客户联系人"
+      :visible.sync="lxrdialogVisible"
+      width="60%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">联系人名称</label>
+        <el-input placeholder="请输入联系人名称" clearable v-model="dialogFrom.name"></el-input>
+      </div>
+      <div class="dialog-box">
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+        <el-button type="success" @click="addLxr">新建联系人</el-button>
+      </div>
+      <div class="table-box">
+        <el-table :data="dataList" style="width: 100%" max-height="500px">
+          <el-table-column label="联系人名称">
+            <template slot-scope="scope">
+              <span
+                @click="queryName(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.contactName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="contactGender" label="性别">
+            <template slot-scope="scope">
+              <span>{{scope.row.contactGender == 1?'男':'女'}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="contactPhone" label="电话"></el-table-column>
+          <el-table-column prop="code" label="操作">
+            <template slot-scope="scope">
+              <el-button @click="editLxr(scope.row)" type="text">编辑</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="lxrdialogVisible = false">关 闭</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+      title="新建联系人"
+      :visible.sync="lxrdialogVisibleAdd"
+      width="25%"
+      :before-close="handleCloseAdd"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">
+          <span style="color:red">*</span>姓名
+        </label>
+        <el-input maxlength="25" placeholder="请输入联系人名称" clearable v-model="from.contactName"></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">性别</label>
+        <el-select v-model="from.contactGender" placeholder="请选择">
+          <el-option
+            v-for="item in contactGenderList"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+          ></el-option>
+        </el-select>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">重要程度</label>
+        <el-select v-model="from.zycd" placeholder="请选择">
+          <el-option
+            v-for="item in zycdList"
+            :key="item.name"
+            :label="item.name"
+            :value="item.name"
+          ></el-option>
+        </el-select>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">职位</label>
+        <el-input placeholder="请输入联系人职位" clearable v-model="from.zw"></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">手机</label>
+        <el-input maxlength="11" placeholder="请输入联系人手机" clearable v-model="from.sj"></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">
+          <span style="color:red">*</span>工作电话
+        </label>
+        <el-input placeholder="请输入联系人工作电话" clearable v-model="from.contactPhone"></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">E-mail</label>
+        <el-input
+          @blur="contactEmailInput(from.contactEmail)"
+          placeholder="请输入联系人E-mail"
+          clearable
+          v-model="from.contactEmail"
+        ></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">QQ</label>
+        <el-input maxlength="15" placeholder="请输入联系人QQ" clearable v-model="from.contactQq"></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">传真</label>
+        <el-input placeholder="请输入联系人传真" clearable v-model="from.fax"></el-input>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">生日</label>
+        <el-date-picker
+          value-format="yyyy-MM-dd"
+          v-model="from.contactBirthday"
+          type="date"
+          placeholder="选择日期"
+          :picker-options="pickerOptions"
+        ></el-date-picker>
+      </div>
+      <div class="dialog-box" style="width:350px">
+        <label class="input-label" style="width:120px">备注</label>
+        <el-input placeholder="请输入联系人备注" clearable v-model="from.remark"></el-input>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="lxrdialogVisibleAdd = false">取 消</el-button>
+        <el-button type="primary" @click="submitLxr">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { crmGysAddorUpdateContact } from "@/api/crm/xbjTable";
+import { crmGysQueryById } from "@/api/crm/gysxx";
+
+export default {
+  name: "",
+  data() {
+    return {
+      dataList: [],
+      dialogFrom: {
+        name: "",
+      },
+      from: {
+        contactName: "",
+        contactGender: "",
+        zycd: "",
+        zw: "",
+        sj: "",
+        contactPhone: "",
+        contactEmail: "",
+        contactQq: "",
+        fax: "",
+        contactBirthday: "",
+        remark: "",
+        customerId: "",
+        contactId: "",
+      },
+      lxrdialogVisibleAdd: false,
+      contactGenderList: [
+        { name: "男", code: "1" },
+        { name: "女", code: "2" },
+      ],
+      zycdList: [
+        { name: "关键联系人" },
+        { name: "重要联系人" },
+        { name: "普通联系人" },
+        { name: "一般联系人" },
+        { name: "特别联系人" },
+        { name: "主管" },
+      ],
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+    };
+  },
+  watch: {
+    lxrdialogVisible: {
+      handler() {
+        if (this.lxrdialogVisible) {
+          this.lxrData();
+          this.from.gysId = this.gysId;
+        }
+      },
+    },
+  },
+  props: ["lxrdialogVisible", "gysId"],
+  methods: {
+    editLxr(row) {
+      Object.assign(this.from, row);
+      this.lxrdialogVisibleAdd = true;
+    },
+    submitLxr() {
+      if (this.from.contactName == "") {
+        this.msgInfo("请输入联系人名称");
+        return;
+      }
+      if (this.from.contactPhone == "") {
+        this.msgInfo("请输入联系人工作电话");
+        return;
+      }
+      crmGysAddorUpdateContact(this.from)
+        .then((res) => {
+          if (this.from.contactId == "") {
+            this.msgSuccess("新增成功");
+          } else {
+            this.msgSuccess("修改成功");
+          }
+          this.lxrdialogVisibleAdd = false;
+          this.lxrData();
+        })
+        .catch((res) => {});
+    },
+    contactEmailInput(contactEmail) {
+      var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+      if (reg.test(contactEmail)) {
+      } else {
+        this.from.contactEmail = "";
+        this.msgInfo("邮箱格式不正确");
+      }
+    },
+    handleCloseAdd() {
+      this.lxrdialogVisibleAdd = false;
+    },
+    addLxr() {
+      this.lxrdialogVisibleAdd = true;
+      this.from.contactId = "";
+      this.from.contactName = "";
+      this.from.contactGender = "";
+      this.from.zycd = "";
+      this.from.zw = "";
+      this.from.sj = "";
+      this.from.contactPhone = "";
+      this.from.contactEmail = "";
+      this.from.contactQq = "";
+      this.from.fax = "";
+      this.from.contactBirthday = "";
+      this.from.remark = "";
+    },
+    handleClose() {
+      this.$emit("colse");
+    },
+    reset() {
+      this.dialogFrom.name = "";
+      this.lxrData();
+    },
+    search() {
+      if (this.dialogFrom.name) {
+        for (var i in this.dataList) {
+          if (!this.dataList[i].contactName.includes(this.dialogFrom.name)) {
+            this.dataList.splice(i, 1);
+          }
+        }
+      }
+    },
+    queryName(row) {
+      this.$emit("lxrDialog", row.contactId, row.contactName, row.contactPhone);
+      this.handleClose();
+    },
+    lxrData() {
+      crmGysQueryById({
+        gysId: this.gysId,
+      })
+        .then((res) => {
+          this.dataList = res.data.CrmGysContactList
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../manage/styles/table.scss";
+@import "../../styles/detail.scss";
+.dialog-box .el-select {
+  width: 220px;
+}
+</style>

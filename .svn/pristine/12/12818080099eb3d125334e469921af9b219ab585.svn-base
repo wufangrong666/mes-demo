@@ -1,0 +1,434 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">收款日期</label>
+            <div style="float:left" v-text="from.skrq"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <div style="float:left" v-text="from.customerName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <div style="float:left">{{from.fylb== 1?"银行汇款":"现金"}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div style="float:left" v-text="from.creatorName"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="from.dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款方式</label>
+            <div style="float:left" v-text="from.skfsName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款账户</label>
+            <div style="float:left" v-text="from.accountName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售收款单号</label>
+            <div style="float:left" v-text="from.yskdDh"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">客户编码</label>
+            <div style="float:left" v-text="from.code"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">初始欠款</label>
+            <div style="float:left" v-text="fyData.csqk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">总金额</label>
+            <div style="float:left" v-text="fyData.zkhZje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已收金额</label>
+            <div style="float:left" v-text="fyData.ysk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已退总额(除换货)</label>
+            <div style="float:left" v-text="fyData.ytze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货冲抵总额</label>
+            <div style="float:left" v-text="fyData.thcdze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">未收金额</label>
+            <div style="float:left" v-text="from.syje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label" style="width:140px">未收金额(扣除未审核)</label>
+            <div style="float:left" v-text="from.syje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本次收款</label>
+            <div style="float:left" v-text="from.je"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已核销金额</label>
+            <div style="float:left" v-text="from.yhxje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">剩余金额</label>
+            <div style="float:left" v-text="from.syje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本单可核销余额</label>
+            <div style="float:left" v-text="from.bdkhxye"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">审核原因</label>
+            <div style="float:left;width:80%" v-text="from.nopassReason"></div>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex" v-show="widowData.type == 'auditClick'">
+        <sections title="核销信息">
+          <div class="input-box">
+            <label class="input-label" style="width:100%">未收金额 = 总金额 - 已收金额 - 本单退货冲抵金额</label>
+          </div>
+          <div class="input-box">
+            <el-radio v-model="radio" label="1" @change="radioChange">自动</el-radio>
+            <el-radio v-model="radio" label="2" @change="radioChange">手动</el-radio>
+          </div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="xsddDh" label="销售订单单号">
+              <template slot-scope="scope">
+                <span
+                  @click="dhClick(scope.row)"
+                  style="color: #3E84E9;cursor:pointer"
+                  v-text="scope.row.xsddDh"
+                ></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="zkhZje" label="总金额"></el-table-column>
+            <el-table-column prop="ysk" label="已收金额"></el-table-column>
+            <el-table-column prop="wsje" label="未收金额"></el-table-column>
+            <el-table-column prop="wsjekcwsh" label="未收金额(扣除未审核)"></el-table-column>
+            <el-table-column prop="bcsk" label="本次收款">
+              <template slot-scope="scope">
+                <el-input @input="bcskInput(scope.row)" v-model="scope.row.bcsk" placeholder="本次收款"></el-input>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-table :show-header="false" :data="tableDataHj" style="width: 100%">
+            <el-table-column prop="xsddDh" label="销售订单单号"></el-table-column>
+            <el-table-column prop="zkhZje" label="总金额"></el-table-column>
+            <el-table-column prop="ysk" label="已收金额"></el-table-column>
+            <el-table-column prop="wsje" label="未收金额"></el-table-column>
+            <el-table-column prop="wsjekcwsh" label="未收金额(扣除未审核)"></el-table-column>
+            <el-table-column prop="bcsk" label="本次收款"></el-table-column>
+          </el-table>
+        </sections>
+      </div>
+      <div class="bottom">
+        <el-button v-show="hxStatus" @click="submitHx" type="success">核销</el-button>
+        <el-button v-show="btnStatus" @click="auditY" type="success">审核通过</el-button>
+        <el-button v-show="btnStatus" @click="auditN" type="info" plain>审核不通过</el-button>
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+
+      <el-dialog
+        title="审核不通过原因"
+        :visible.sync="dialogVisible"
+        width="30%"
+        :before-close="handleClose"
+        :modal-append-to-body="false"
+      >
+        <span>
+          <el-input maxlength="200" type="textarea"  :rows="5" show-word-limit v-model="message" placeholder="请输入内容"></el-input>
+        </span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submit">确 定</el-button>
+        </span>
+      </el-dialog>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../components/createView";
+import sections from "../../../components/sections";
+import {
+  yskdQueryForAdd,
+  yskdQuerySkfs,
+  yskdQueryAccount,
+  yskdAddOrUpdate,
+  yskdCheckStatus,
+  yskdQueryById,
+  yskdQueryJeByCustomerId,
+  yskdQueryAutoHx,
+  yfkdAutoHx,
+} from "@/api/finance/finance";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+
+export default {
+  components: {
+    createView,
+    sections,
+  },
+  name: "",
+  watch: {},
+  computed: {},
+  props: {},
+  data() {
+    return {
+      radio: "1",
+      widowData: {},
+      message: "",
+      dialogVisible: false,
+      loading: false,
+      createDate: "",
+      from: {
+        yskdId: "",
+        yskddh: "",
+        customerId: "",
+        customerName: "",
+        skfs: "",
+        bankaccount: "",
+        je: "",
+        dwtt: "",
+        fylb: 1,
+        skrq: "",
+      },
+      fyData: {},
+      dwttName: "",
+      btnStatus: false,
+      hxStatus: false,
+      tableData: [],
+      tableDataHj: [
+        {
+          xsddDh: "合计",
+          zkhZje: "",
+          ysk: "",
+          wsje: "",
+          wsjekcwsh: "",
+          bcsk: "",
+        },
+      ],
+    };
+  },
+
+  methods: {
+    dhClick(row) {
+      this.windowOpen("/xsddDhmx", {
+        id: this.encode(row.xsddId),
+        type: "toView",
+      });
+    },
+    submitHx() {
+      let fkdList = [];
+      for (var i in this.tableData) {
+        fkdList.push({
+          xsddId: this.tableData[i].xsddId,
+          je: this.tableData[i].bcsk,
+        });
+      }
+      console.log(this.tableData);
+      yfkdAutoHx({
+        yskdId: this.widowData.id,
+        skdList: fkdList,
+      })
+        .then((res) => {
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    bcskInput(row) {
+      if (row.bcsk > row.wsjekcwsh) {
+        this.msgInfo("本次付款金额不能大于未付款数，请重新输入！");
+        row.bcsk = "";
+      }
+    },
+    radioChange(val) {
+      if (val == 1) {
+      } else {
+      }
+    },
+    submit() {
+      yskdCheckStatus({
+        yskdId: this.widowData.id,
+        type: 2,
+        message: this.message,
+      })
+        .then((res) => {
+          this.dialogVisible = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    auditY() {
+      this.$confirm("请确认审核信息, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          yskdCheckStatus({
+            yskdId: this.widowData.id,
+            type: 1,
+            message: "",
+          })
+            .then((res) => {
+              this.loading = true;
+              this.$message({
+                message: "审核通过",
+                type: "success",
+                onClose: () => {
+                  window.opener.postMessage("child", window.location);
+                  window.top.close();
+                  this.loading = false;
+                },
+              });
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消审核");
+        });
+    },
+    auditN() {
+      this.dialogVisible = true;
+    },
+    hidenView() {
+      window.top.close();
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    queryData() {
+      yskdQueryById({
+        yskdId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+          this.$set(this.tableDataHj[0], "bcsk", res.data.je);
+          this.from.skrq = res.data.skrq.substring(0, 10);
+          yskdQueryJeByCustomerId({
+            customerId: res.data.customerId,
+          })
+            .then((res) => {
+              this.fyData = res.data;
+            })
+            .catch((res) => {});
+        })
+        .catch((res) => {});
+      if (this.widowData.type == "auditClick") {
+        yskdQueryAutoHx({
+          yskdId: this.widowData.id,
+        })
+          .then((res) => {
+            this.tableData = res.data;
+            this.zdJsBcsk();
+            let num = 0;
+            for (var i in res.data) {
+              num += res.data[i].wsjekcwsh;
+            }
+            this.$set(this.tableDataHj[0], "wsjekcwsh", num);
+          })
+          .catch((res) => {});
+      }
+    },
+    zdJsBcsk(data) {
+      let num = this.from.je;
+      for (var i in this.tableData) {
+        if (Number(num) > Number(this.tableData[i].wsjekcwsh)) {
+          this.$set(this.tableData[i], "bcsk", this.tableData[i].wsjekcwsh);
+          num -= this.tableData[i].wsjekcwsh;
+        } else {
+          this.$set(this.tableData[i], "bcsk", num);
+        }
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    if (this.widowData.type == "audit") {
+      this.btnStatus = true;
+    } else {
+      this.btnStatus = false;
+    }
+    if (this.widowData.type == "auditClick") {
+      this.hxStatus = true;
+    } else {
+      this.hxStatus = false;
+    }
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+.bottom {
+  float: left;
+  width: 100%;
+  text-align: center;
+  margin: 40px 0;
+}
+</style>

@@ -1,0 +1,111 @@
+<template>
+  <div style="float:left;position: relative;min-height:600px">
+    <div class="center" v-for="(item,index) in cgList" :key="index">
+      <div class="top">
+        <span v-text="item.description"></span>
+        <el-radio v-model="item.noticeFlag" :label="1">是</el-radio>
+        <el-radio v-model="item.noticeFlag" :label="0">否</el-radio>
+      </div>
+      <div class="top">
+        <el-checkbox v-model="item.noticeToparentStatus">提醒给有相关权限的人</el-checkbox>
+      </div>
+      <div class="top">
+        <el-checkbox v-model="item.noticeTofixStatus">提醒给指定人员</el-checkbox>
+        <el-select filterable multiple collapse-tags v-model="item.noticeUsers" placeholder="请选择">
+          <el-option
+            v-for="item in selectList"
+            :key="item.userId"
+            :label="item.realname"
+            :value="item.userId"
+          ></el-option>
+        </el-select>
+      </div>
+    </div>
+    <div class="btn">
+      <el-button type="primary" @click="add" plain>保存</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import { noticeSettingUpdateNoticeSetting } from "@/api/manage/jxcsz";
+export default {
+  name: "",
+  props: {
+    cgList: {
+      type: Array,
+      default: {}
+    },
+    selectList: {
+      type: Array,
+      default: []
+    }
+  },
+  data() {
+    return {
+      checkbox: true,
+      idList: [],
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+        multiple: true
+      },
+      idList:[]
+    };
+  },
+
+  methods: {
+    add() {
+      for (var i in this.cgList) {
+        this.cgList[i].noticeToparent = this.cgList[i].noticeToparentStatus
+          ? 1
+          : 0;
+        this.cgList[i].noticeTofix = this.cgList[i].noticeTofixStatus ? 1 : 0;
+        this.cgList[i].noticeTofixusers = this.cgList[i].noticeUsers.join(",")
+      }
+      noticeSettingUpdateNoticeSetting({
+        adminNoticesettingList: this.cgList
+      })
+        .then(res => {
+          this.msgSuccess("修改成功");
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+.center {
+  width: 30%;
+  height: 102px;
+  border: 1px solid #e6e6e6;
+  margin: 10px 20px;
+  float: left;
+  .top {
+    display: in;
+    line-height: 30px;
+    width: 100%;
+    span {
+      display: inline-block;
+      width: 170px;
+      text-indent: 10px;
+    }
+    .el-checkbox {
+      text-indent: 5px;
+    }
+  }
+}
+.btn {
+  width: 100%;
+  height: 40px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+}
+</style>

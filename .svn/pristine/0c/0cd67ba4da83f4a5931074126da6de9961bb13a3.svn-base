@@ -1,0 +1,748 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-boxA">
+            <label class="input-label">
+              <span style="color:red">*</span>关怀主题:
+            </label>
+            <div v-if="toViewType" v-text="from.title"></div>
+            <el-input v-else clearable placeholder="请输入关怀主题" v-model="from.title"></el-input>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label">
+              <span style="color:red">*</span>关怀日期:
+            </label>
+            <div v-if="toViewType" v-text="from.ghDate"></div>
+            <el-date-picker v-else v-model="from.ghDate" type="date" placeholder="选择日期"></el-date-picker>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label">
+              <span style="color:red">*</span>关怀客户:
+            </label>
+            <div v-if="toViewType" v-text="customerName"></div>
+            <el-input v-else clearable placeholder="请输入所属客户" v-model="customerName">
+              <el-button @click="customerDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label">联系人:</label>
+            <div v-if="toViewType" v-text="from.contactName"></div>
+            <el-select v-else v-model="from.contactId" placeholder="请选择" @change="contactChange">
+              <el-option
+                v-for="item in contactList"
+                :key="item.contactId"
+                :label="item.contactName"
+                :value="item.contactId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label">联系电话:</label>
+            <div style="height:34px" v-text="from.contactDh"></div>
+          </div>
+          <div class="input-boxA">
+            <label class="input-label">手机:</label>
+            <div style="height:34px" v-text="from.contactSj"></div>
+          </div>
+          <div class="input-boxA" style="margin-bottom:15px">
+            <label class="input-label">
+              <span style="color:red">*</span>销售负责人:
+            </label>
+            <div v-if="toViewType" v-text="xsfzrName"></div>
+            <el-input v-else :readonly="true" clearable placeholder="销售负责人" v-model="xsfzrName">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+
+          <div class="input-boxA" style="margin-bottom:20px">
+            <label class="input-label">创建人:</label>
+            <div style="height:34px" v-text="creator"></div>
+          </div>
+          <div class="input-boxA" style="margin-bottom:15px">
+            <label class="input-label">创建日期:</label>
+            <div style="height:34px" v-text="createDate"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">关怀内容:</label>
+            <div v-if="toViewType" v-text="from.content"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入内容"
+              v-model="from.content"
+            ></el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">备注:</label>
+            <div v-if="toViewType" v-text="from.remark"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入备注"
+              v-model="from.remark"
+            ></el-input>
+          </div>
+          <div v-if="reviewType" class="input-boxB">
+            <label class="input-label">点评:</label>
+            <el-input resize="none" type="textarea" :rows="4" placeholder="请输入备注" v-model="dp"></el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button v-if="!toViewType" type="success" @click="successClick">保存</el-button>
+        <el-button v-if="reviewType" type="success" @click="successClick">保存</el-button>
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <!-- 关怀客户 -->
+    <el-dialog
+      title="客户列表"
+      :visible.sync="dialogVisible"
+      width="60%"
+      style="margin-top:-5vh"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">客户名称</label>
+        <el-input placeholder="请输入客户名称" clearable v-model="dialogFrom.name"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">客户编码</label>
+        <el-input placeholder="请输入客户编码" clearable v-model="dialogFrom.code"></el-input>
+      </div>
+      <div class="dialog-box">
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+      <div class="table-box">
+        <el-table :data="tableData" style="width: 100%" height="500">
+          <el-table-column label="客户名称">
+            <template slot-scope="scope">
+              <span
+                @click="queryName(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.name"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="客户编码"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page.sync="dialogFrom.page"
+        :page-size="dialogFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+    <!-- 交往人 -->
+    <el-dialog
+      title="选择人员"
+      :visible.sync="dialogYwy"
+      width="40%"
+      style="margin-top:-5vh"
+      :before-close="handleCloseYwy"
+      :modal-append-to-body="false"
+    >
+      <div>
+        <el-tabs v-model="activeName" @tab-click="tabsClick">
+          <el-tab-pane class="el-tab-department" label="按部门" name="department">
+            <el-tree
+              ref="tree"
+              node-key="userId"
+              @check-change="handleTreeClick"
+              @node-click="nodeClick"
+              :props="defaultProps"
+              :data="treeData"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="按角色" name="role">
+            <el-tree
+              ref="treeR"
+              @check-change="handleTreeClickR"
+              @node-click="nodeClickR"
+              node-key="id"
+              :props="defaultPropsR"
+              :data="treeDataR"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="查询" name="search">
+            <div style="margin-top:5px">
+              <el-input style="width:30%" v-model="realname"></el-input>
+              <el-select style="width:10%" v-model="realStatus">
+                <el-option
+                  v-for="item in realStatusList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+              <el-button @click="realSearch" type="primary">查询</el-button>
+              <el-table
+                height="350px"
+                :show-header="false"
+                :data="realtableData"
+                style="width: 100%"
+              >
+                <el-table-column width="50">
+                  <template slot-scope="scope">
+                    <el-radio v-model="realRadio" :label="scope.row" @change="realRadioChange">
+                      <i></i>
+                    </el-radio>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="realname" label="姓名"></el-table-column>
+              </el-table>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="downYwy">取 消</el-button>
+        <el-button type="primary" @click="submitYwy">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import Lockr from "lockr";
+import dataList from "../../components/Json";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { crmCustomerJwjlFileUpload } from "@/api/crm/jwjl";
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+  crmCustomerQueryById
+} from "@/api/crm/ggkhc";
+import {
+  crmCustomerCareAddOrUpdate,
+  crmCustomerCareQueryById
+} from "@/api/crm/khxxgl";
+import { crmCustomerFileUpload, usersList } from "@/api/common";
+import { EventBus } from "../../../utils/eventBus";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  props: {},
+  watch: {},
+  data() {
+    return {
+      dp: "",
+      createDate: "",
+      widowData: {},
+      toViewType: true,
+      reviewType: true,
+      customerName: "",
+      contactList: [],
+      phone: "",
+      xsfzrName: "",
+      tableData: [],
+      xsfzrRoleId: "",
+      realRadio: "",
+      realname: "",
+      realStatus: "1",
+      realtableData: [],
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" }
+      ],
+      ywyName: "",
+      editData: {},
+      defaultProps: {
+        label: "name",
+        children: "children"
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user"
+      },
+      treeData: [],
+      treeDataR: [],
+      activeName: "department",
+      dialogYwy: false,
+      fhhData: "",
+      kphData: "",
+      dialogFrom: {
+        name: "",
+        code: "",
+        page: 1,
+        limit: 15
+      },
+      total: 0,
+      dialogVisible: false,
+      loading: false,
+      khxxglDetailTitle: "",
+      fileList: [],
+      creator: "",
+      jwData: [],
+      contactName: "",
+      from: {
+        id: "",
+        title: "",
+        ghDate: "",
+        customerId: "",
+        contactId: "",
+        contactDh: "",
+        contactSj: "",
+        xsfzr: "",
+        content: "",
+        remark: ""
+      },
+
+      provinces: [],
+      cities: [],
+      loadingCity: false
+    };
+  },
+
+  methods: {
+    contactChange(val) {
+      for (var i in this.contactList) {
+        if (this.contactList[i].contactId == val) {
+          this.from.contactDh = this.contactList[i].contactPhone;
+          this.from.contactSj = this.contactList[i].sj;
+        }
+      }
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    queryName(row) {
+      this.from.customerId = row.customerId;
+      this.customerName = row.name;
+      this.contactList = row.contactList;
+      this.from.contactId = row.contactList[0].contactId;
+      this.from.contactDh = row.contactList[0].contactPhone;
+      this.from.contactSj = row.contactList[0].sj;
+      this.dialogVisible = false;
+    },
+    deleteTable(scope) {
+      this.tableData.splice(scope.$index, 1);
+    },
+    realRadioChange(val) {
+      this.from.ywy = val.userId;
+      this.ywyName = val.realname;
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      if (this.activeName == "department") {
+        this.from.xsfzr = this.$refs.tree.getCheckedKeys().join("");
+        this.xsfzrName = this.$refs.tree.getCheckedNodes()[0].name;
+      } else if (this.activeName == "role") {
+        this.from.xsfzr = this.$refs.treeR.getCheckedNodes()[0].userId;
+        this.xsfzrName = this.$refs.treeR.getCheckedNodes()[0].realname;
+        this.xsfzrRoleId = this.$refs.treeR.getCheckedKeys().join("");
+      }
+    },
+    downYwy() {
+      this.dialogYwy = false;
+      this.from.ywy = "";
+    },
+    successClick() {
+      let self = this;
+      if (this.from.title == "") {
+        this.msgInfo("请输入关怀主题");
+        return;
+      }
+      if (this.from.ghDate == "") {
+        this.msgInfo("请选择关怀日期");
+        return;
+      }
+      if (this.from.customerId == "") {
+        this.msgInfo("请选择关怀客户");
+        return;
+      }
+      if (this.from.contactId == "") {
+        this.msgInfo("请选择联系人");
+        return;
+      }
+      if (this.from.xsfzr == "") {
+        this.msgInfo("请选择销售负责人");
+        return;
+      }
+      if (this.from.content == "") {
+        this.msgInfo("请输入关怀内容");
+        return;
+      }
+      delete this.from.creator;
+      delete this.from.createTime;
+      crmCustomerCareAddOrUpdate(this.from)
+        .then(res => {
+          if (this.widowData.type == "review") {
+            this.loading = true;
+            this.message("点评成功");
+          } else if (this.widowData.type == "add") {
+            this.loading = true;
+            this.message("新增成功");
+          } else if (this.widowData.type == "edit") {
+            this.loading = true;
+            this.message("编辑成功");
+          }
+        })
+        .catch(res => {
+          this.loading = false;
+        });
+    },
+    message(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          this.resetGetList();
+          this.hidenView();
+          this.loading = false;
+        }
+      });
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    hidenView() {
+      window.top.close();
+    },
+    getName(val) {
+      var easyName = pinyin.getCamelChars(val);
+      this.from.code = easyName.toUpperCase();
+    },
+    customerDialog() {
+      if (this.from.ssjt != "") {
+        this.dialogFrom.name = this.from.ssjt;
+      }
+      this.dialogVisible = true;
+      this.dialogData();
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    ywyDialog() {
+      this.dialogYwy = true;
+      this.activeName = "department";
+      if (this.from.xsfzr != "") {
+        if (this.widowData.id != "") {
+        } else {
+          this.$refs.tree.setCheckedKeys([this.from.xsfzr]);
+        }
+      }
+      this.dialogYwyTree();
+    },
+    gxrDialog() {
+      this.activeName = "department";
+      this.dialogGxr = true;
+      if (this.from.gxr != "") {
+        this.$refs.treeGxr.setCheckedKeys(this.from.gxr.join(","));
+      }
+      this.dialogYwyTree();
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    handleCloseGxr() {
+      this.dialogGxr = false;
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+        if (this.from.ywy != "") {
+          this.$refs.tree.setCheckedKeys([this.from.ywy]);
+        }
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+        if (this.from.ywy != "") {
+          this.$refs.treeR.setCheckedKeys([this.xsfzrRoleId]);
+        }
+      } else {
+      }
+    },
+    duakigReal() {
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus
+      })
+        .then(res => {
+          this.realtableData = res.data.list;
+        })
+        .catch(res => {});
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then(res => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then(res => {
+          this.treeData = res.data;
+        })
+        .catch(res => {});
+    },
+    search() {
+      this.dialogData();
+    },
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmCustomerJwjlFileUpload(params)
+        .then(res => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    loginData() {},
+    editDataQuery() {
+      crmCustomerCareQueryById({
+        ghId: this.widowData.id
+      })
+        .then(res => {
+          this.from = res.data;
+          this.from.contactId = Number(res.data.contactId);
+          this.from.ghDate = res.data.ghDate.substr(0, 10);
+          this.xsfzrName = res.data.xsfzr;
+          this.from.xsfzr = res.data.xsfzrId;
+          this.customerName = res.data.customerName;
+          this.createDate = res.data.createTime;
+          this.creator = res.data.creator;
+
+          xbjQueryCustomer(this.dialogFrom)
+            .then(list => {
+              for (var i in list.data.list) {
+                if (list.data.list[i].customerId == res.data.customerId) {
+                  this.contactList = list.data.list[i].contactList;
+                  this.phone = list.data.list[i].contactList[0].contactPhone;
+                }
+              }
+            })
+            .catch(res => {});
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.provinces = dataList.addrs.provinces;
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    if (this.widowData.id != "") {
+      this.editDataQuery();
+      if (this.widowData.type == "toView") {
+        this.toViewType = true;
+      } else {
+        this.toViewType = false;
+      }
+      if (this.widowData.type == "review") {
+        this.reviewType = true;
+        this.toViewType = true;
+      } else {
+        this.reviewType = false;
+      }
+    } else {
+      this.toViewType = false;
+      this.reviewType = false;
+      this.creator = Lockr.get("loginUserInfo").realname;
+      this.createDate = this.getTime();
+    }
+  }
+};
+</script>
+<style lang='scss'>
+.el-dialog__body {
+  padding-top: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.el-tab-department {
+  height: 400px;
+  overflow: auto;
+}
+.input-boxA {
+  width: 50%;
+  float: left;
+  margin-bottom: 5px;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-input {
+    width: 50%;
+    margin-bottom: 5px;
+  }
+  .el-select {
+    width: 50%;
+    margin-bottom: 5px;
+  }
+  .el-date-editor {
+    width: 50%;
+  }
+}
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 25px;
+  line-height: 25px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+.handle-bar {
+  margin-top: 5px;
+}
+</style>

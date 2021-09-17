@@ -1,0 +1,412 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="历史信息">
+          <div v-for="(item,index) in tabsData" :key="index">
+            <div class="offer">
+              <div class="offer-left">
+                <div class="dialog-box">
+                  <label v-if="bjlxType ==2 || bjlxType ==1" class="input-label">外币总成本</label>
+                  <label v-if="bjlxType ==3" class="input-label">采购总成本</label>
+                  <span
+                    style="display: inline-block;width:45%;line-height:34px"
+                    v-text="item.zwbcb"
+                  ></span>
+                </div>
+                <div class="dialog-box">
+                  <label v-if="bjlxType ==2 || bjlxType ==1" class="input-label">总人民币成本</label>
+                  <label v-if="bjlxType ==3" class="input-label">总成本</label>
+                  <span
+                    style="display: inline-block;width:45%;line-height:34px"
+                    v-text="item.zrmbcb"
+                  ></span>
+                </div>
+                <div class="dialog-box">
+                  <label v-if="bjlxType ==2 || bjlxType ==1" class="input-label">国外运杂费</label>
+                  <label v-if="bjlxType ==3" class="input-label">快递费</label>
+                  <span
+                    style="display: inline-block;width:45%;line-height:34px"
+                    v-text="item.gwyzf"
+                  ></span>
+                </div>
+                <div v-if="bjlxType !==3" class="dialog-box">
+                  <label v-if="bjlxType ==1" class="input-label">国际运费</label>
+                  <label v-if="bjlxType ==2" class="input-label">国际快递(海运)</label>
+                  <span style="display: inline-block;width:45%;line-height:34px" v-text="item.gjyf"></span>
+                </div>
+                <div v-if="bjlxType ==2 || bjlxType ==1" class="dialog-box">
+                  <label class="input-label">外币币种</label>
+                  <span style="display: inline-block;width:45%;line-height:34px" v-text="item.bzmc"></span>
+                </div>
+                <div v-if="bjlxType ==2 || bjlxType ==1" class="dialog-box">
+                  <label class="input-label">汇率</label>
+                  <span style="display: inline-block;width:45%;line-height:34px" v-text="item.hl"></span>
+                </div>
+                <div class="dialog-box">
+                  <label class="input-label">增值税</label>
+                  <span style="display: inline-block;width:45%;line-height:34px" v-text="item.zzs"></span>
+                </div>
+                <div class="dialog-box">
+                  <label class="input-label">货期</label>
+                  <span style="display: inline-block;width:45%;line-height:34px" v-text="item.hq"></span>
+                </div>
+                <div class="dialog-box" v-if="bjlxType == 2">
+                  <label class="input-label">银行转账费</label>
+                  <el-input v-model="item.yhzzf" placeholder="货期"></el-input>
+                </div>
+                <div class="dialog-box" v-if="bjlxType == 2">
+                  <label class="input-label"></label>
+                </div>
+                <div class="dialog-box" v-if="bjlxType == 2">
+                  <label class="input-label"></label>
+                </div>
+                <div class="dialog-box" v-if="bjlxType == 3">
+                  <label class="input-label"></label>
+                </div>
+                <div class="dialog-box" v-if="bjlxType == 3">
+                  <label class="input-label"></label>
+                </div>
+                <div
+                  v-show="bjlxType ==2 || bjlxType ==1"
+                  style="width:49%;float:left;margin-left:5px"
+                >
+                  <div class="fy-box">
+                    <div v-for="(list,index) in item.wbinfoList" :key="index">
+                      <span
+                        style="display: inline-block;width:20%;line-height:34px"
+                        v-text="list.name"
+                      ></span>
+                      <span
+                        style="display: inline-block;width:45%;line-height:34px"
+                        v-text="list.code"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+                <div style="width:49%;float:left;margin-left:5px">
+                  <div class="fy-box">
+                    <div v-for="(list,index) in item.bbinfoList" :key="index">
+                      <span
+                        style="display: inline-block;width:20%;line-height:34px"
+                        v-text="list.name"
+                      ></span>
+                      <span
+                        style="display: inline-block;width:45%;line-height:34px"
+                        v-text="list.code"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="offer-right">
+                <div class="dialog-ts">
+                  <!-- <span v-for="(item,index) in costInfo" :key="index" v-text="item.content"></span> -->
+                </div>
+              </div>
+            </div>
+            <el-table :data="item.tableList" style="width:99%" max-height="350">
+              <el-table-column prop="brandName" label="品牌"></el-table-column>
+              <el-table-column prop="productName" label="品名"></el-table-column>
+              <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+              <el-table-column prop="weight" label="重量(KG)"></el-table-column>
+              <el-table-column prop="quantity" label="数量"></el-table-column>
+              <el-table-column prop="wbdjZkq" label="外币单价"></el-table-column>
+              <el-table-column prop="zk" label="折扣"></el-table-column>
+              <el-table-column prop="wbdjZkh" label="采购单价"></el-table-column>
+              <el-table-column prop="gs" label="关税"></el-table-column>
+              <el-table-column prop="rmbdj" label="人民币单价"></el-table-column>
+            </el-table>
+          </div>
+          <span class="table-footer">
+            <el-button @click="hidenView">关闭</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import { bjdCzjlQuerydjmxById, xbjCzjlQuerydjmxById ,jxcXsddCzjlQuerydjmxById} from "@/api/crm/xsbjd";
+import createView from "./createView";
+import sections from "./sections";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      tabsData: [],
+      loading: false,
+      bjlxType: 0,
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    lsjlMxData() {
+      if (this.widowData.type == "crm_bjd") {
+        bjdCzjlQuerydjmxById({
+          id: this.widowData.id,
+        })
+          .then((res) => {
+            this.tabsData = [];
+            let list = [];
+            let bjlx = "";
+            let djmxid = "";
+            for (var i in res.data) {
+              for (var k in res.data[i]) {
+                if (res.data[i][k].bjlx == null) {
+                  bjlx = 1;
+                  this.bjlxType = 1;
+                } else {
+                  bjlx = res.data[i][k].bjlx;
+                  this.bjlxType = res.data[i][k].bjlx;
+                }
+              }
+              this.tabsData.push({
+                activeName: i,
+                id: "",
+                djmxid: res.data[i][0].djmxid,
+                bjlx: res.data[i][0].bjlx,
+                bjlxList: [
+                  {
+                    name: "大货",
+                    code: 1,
+                  },
+                  {
+                    name: "单独",
+                    code: 2,
+                  },
+                  {
+                    name: "国内",
+                    code: 3,
+                  },
+                ],
+                bzmc: res.data[i][0].bzmc,
+                zwbcb: res.data[i][0].zwbcb,
+                zrmbcb: res.data[i][0].zrmbcb,
+                gwyzf: res.data[i][0].gwyzf,
+                gjyf: res.data[i][0].gjyf,
+                wbbz: res.data[i][0].mrbz,
+                wbbzList: [],
+                hl: res.data[i][0].hl,
+                zzs: 1.13,
+                hq: res.data[i][0].hq,
+                yhzzf: 0,
+                wbinfo: {},
+                wbinfoList: res.data[i][0].wbinfo,
+                bbinfo: {},
+                bbinfoList: res.data[i][0].bbinfo,
+                wbcount: 0, //个数
+                bbcount: 0,
+                wbsum: 0, //总和
+                bbsum: 0,
+                tableList: res.data[i],
+                remark: res.data[i][0].remark == 0 ? "" : res.data[i][0].remark,
+                gysid: res.data[i][0].gysid == 0 ? "" : res.data[i][0].gysid,
+              });
+              list.push(i);
+            }
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "crm_xbj") {
+        xbjCzjlQuerydjmxById({
+          id: this.widowData.id,
+        })
+          .then((res) => {
+            this.tabsData = [];
+            let list = [];
+            let bjlx = "";
+            let djmxid = "";
+            for (var i in res.data) {
+              for (var k in res.data[i]) {
+                if (res.data[i][k].bjlx == null) {
+                  bjlx = 1;
+                  this.bjlxType = 1;
+                } else {
+                  bjlx = res.data[i][k].bjlx;
+                  this.bjlxType = res.data[i][k].bjlx;
+                }
+              }
+              this.tabsData.push({
+                activeName: i,
+                id: "",
+                djmxid: res.data[i][0].djmxid,
+                bjlx: res.data[i][0].bjlx,
+                bjlxList: [
+                  {
+                    name: "大货",
+                    code: 1,
+                  },
+                  {
+                    name: "单独",
+                    code: 2,
+                  },
+                  {
+                    name: "国内",
+                    code: 3,
+                  },
+                ],
+                bzmc: res.data[i][0].bzmc,
+                zwbcb: res.data[i][0].zwbcb,
+                zrmbcb: res.data[i][0].zrmbcb,
+                gwyzf: res.data[i][0].gwyzf,
+                gjyf: res.data[i][0].gjyf,
+                wbbz: res.data[i][0].mrbz,
+                wbbzList: [],
+                hl: res.data[i][0].hl,
+                zzs: 1.13,
+                hq: res.data[i][0].hq,
+                yhzzf: 0,
+                wbinfo: {},
+                wbinfoList: res.data[i][0].wbinfo,
+                bbinfo: {},
+                bbinfoList: res.data[i][0].bbinfo,
+                wbcount: 0, //个数
+                bbcount: 0,
+                wbsum: 0, //总和
+                bbsum: 0,
+                tableList: res.data[i],
+                remark: res.data[i][0].remark == 0 ? "" : res.data[i][0].remark,
+                gysid: res.data[i][0].gysid == 0 ? "" : res.data[i][0].gysid,
+              });
+              list.push(i);
+            }
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "jxc_xsdd") {
+        jxcXsddCzjlQuerydjmxById({
+          id: this.widowData.id,
+        })
+          .then((res) => {
+            this.tabsData = [];
+            let list = [];
+            let bjlx = "";
+            let djmxid = "";
+            for (var i in res.data) {
+              for (var k in res.data[i]) {
+                if (res.data[i][k].bjlx == null) {
+                  bjlx = 1;
+                  this.bjlxType = 1;
+                } else {
+                  bjlx = res.data[i][k].bjlx;
+                  this.bjlxType = res.data[i][k].bjlx;
+                }
+              }
+              this.tabsData.push({
+                activeName: i,
+                id: "",
+                djmxid: res.data[i][0].djmxid,
+                bjlx: res.data[i][0].bjlx,
+                bjlxList: [
+                  {
+                    name: "大货",
+                    code: 1,
+                  },
+                  {
+                    name: "单独",
+                    code: 2,
+                  },
+                  {
+                    name: "国内",
+                    code: 3,
+                  },
+                ],
+                bzmc: res.data[i][0].bzmc,
+                zwbcb: res.data[i][0].zwbcb,
+                zrmbcb: res.data[i][0].zrmbcb,
+                gwyzf: res.data[i][0].gwyzf,
+                gjyf: res.data[i][0].gjyf,
+                wbbz: res.data[i][0].mrbz,
+                wbbzList: [],
+                hl: res.data[i][0].hl,
+                zzs: 1.13,
+                hq: res.data[i][0].hq,
+                yhzzf: 0,
+                wbinfo: {},
+                wbinfoList: res.data[i][0].wbinfo,
+                bbinfo: {},
+                bbinfoList: res.data[i][0].bbinfo,
+                wbcount: 0, //个数
+                bbcount: 0,
+                wbsum: 0, //总和
+                bbsum: 0,
+                tableList: res.data[i],
+                remark: res.data[i][0].remark == 0 ? "" : res.data[i][0].remark,
+                gysid: res.data[i][0].gysid == 0 ? "" : res.data[i][0].gysid,
+              });
+              list.push(i);
+            }
+          })
+          .catch((res) => {});
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.lsjlMxData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.table-footer {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+}
+.offer {
+  width: 100%;
+  margin: 20px;
+  .offer-left {
+    width: 50%;
+    float: left;
+    .dialog-box {
+      width: 50%;
+      margin-top: 10px;
+      float: left;
+      .input-label {
+        width: 100px;
+        display: inline-block;
+        line-height: 34px;
+      }
+      .el-input {
+        width: 45%;
+        input {
+          height: 20px !important;
+        }
+        .el-input__inner {
+          height: 20px !important;
+        }
+      }
+      .el-select {
+        width: 45%;
+      }
+    }
+    .fy-box {
+      width: 100%;
+      max-height: 135px;
+      overflow: auto;
+      display: inline-block;
+      margin-top: 10px;
+      .el-input {
+        width: 42%;
+      }
+    }
+  }
+  .offer-right {
+    width: 50%;
+    float: right;
+  }
+}
+</style>

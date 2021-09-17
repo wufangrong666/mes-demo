@@ -1,0 +1,293 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="客户名称/订单单号" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="xsddDh" label="销售订单单号" width="125px">
+        <template slot-scope="scope">
+          <span
+            style="color:#3E84E9; cursor: pointer"
+            @click="xsddDhClick(scope.row)"
+            v-text="scope.row.xsddDh"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="hq" label="货期"></el-table-column>
+      <el-table-column prop="createDate" label="创建日期">
+        <template slot-scope="scope">{{scope.row.createDate.substring(0,10)}}</template>
+      </el-table-column>
+      <el-table-column prop="jhrq" label="交货日期" width="125px"></el-table-column>
+      <el-table-column prop="customerName" label="客户名称" min-width="125px"></el-table-column>
+      <el-table-column prop="code" label="客户编码" width="120px"></el-table-column>
+      <el-table-column prop="cbzje" label="成本金额"></el-table-column>
+      <el-table-column prop="lrl" label="利润率"></el-table-column>
+      <el-table-column prop="ywyName" label="业务员"></el-table-column>
+      <el-table-column prop="zy" label="摘要"></el-table-column>
+      <el-table-column prop="zdzk" label="整单折扣(%)"></el-table-column>
+      <el-table-column prop="ckName" label="仓库"></el-table-column>
+      <el-table-column prop="brandName" label="品牌"></el-table-column>
+      <el-table-column prop="commName" label="品名"></el-table-column>
+      <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+      <el-table-column v-if="zdyName1 != ''" :label="zdyName1" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd1"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName2 != ''" :label="zdyName2" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd2"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName3 != ''" :label="zdyName3" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd3"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName4 != ''" :label="zdyName4" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd4"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName5 != ''" :label="zdyName5" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd5"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName6 != ''" :label="zdyName6" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd6"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName7 != ''" :label="zdyName7" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd7"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName8 != ''" :label="zdyName8" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd8"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName9 != ''" :label="zdyName9" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd9"></div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="zdyName10 != ''" :label="zdyName10" width="100px">
+        <template slot-scope="scopr">
+          <div v-text="scopr.row.ylzd10"></div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="measureName" label="计量单位"></el-table-column>
+      <el-table-column prop="quantity" label="销售数量"></el-table-column>
+      <el-table-column prop="yfsl" label="已发数量"></el-table-column>
+      <el-table-column prop="wfsl" label="未发数量"></el-table-column>
+      <el-table-column prop="wsdj" label="未税单价"></el-table-column>
+      <el-table-column prop="productSl" label="税率"></el-table-column>
+      <el-table-column prop="hsdj" label="含税单价"></el-table-column>
+      <el-table-column prop="hj" label="价税合计"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { reportXsddtj } from "@/api/jxc/jxc";
+import { adminYszdGetYlzdSetByType } from "@/api/crm/xbjTable";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  computed: {},
+  data() {
+    return {
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        dddh: "",
+        ywy: "",
+        ddlx: "",
+        search: "",
+      },
+      ywyName: "",
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      dialogStatus: false,
+      treeId: "",
+      listType: "jxc_gsxsbb_xsddtj",
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.loginData();
+  },
+  methods: {
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.customerName = "";
+      this.from.dddh = "";
+      this.from.ddlx = "";
+      this.from.ywy = "";
+      for (var i in list) {
+        if (list[i].name == "khmc") {
+          this.$set(this.from, "customerName", list[i].value);
+        } else if (list[i].name == "dddh") {
+          this.$set(this.from, "dddh", list[i].value);
+        } else if (list[i].name == "ddlx") {
+          this.$set(this.from, "ddlx", list[i].value);
+        } else if (list[i].name == "ywy") {
+          this.$set(this.from, "ywy", list[i].value);
+        }
+      }
+      this.loginData();
+    },
+    xsddDhClick(row) {
+      this.windowOpen("/xsddDhmx", {
+        id: this.encode(row.xsddId),
+        type: "lookCard",
+      });
+    },
+    //获取列表数据
+    loginData() {
+      reportXsddtj(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+.c-container .el-date-editor .el-range-separator {
+  line-height: 28px;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+</style>

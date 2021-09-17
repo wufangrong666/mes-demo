@@ -1,0 +1,257 @@
+ <template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <div class="input-box">
+      <label class="input-label">选择邮箱</label>
+      <el-select v-model="from.zh" placeholder="请选择">
+        <el-option v-for="item in options" :key="item.zhanghao" :label="item.zhanghao" :value="item.zhanghao"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <label class="input-label">邮件主题</label>
+      <el-input placeholder="可输入邮件主题包含文字" clearable v-model="from.zt"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">邮件内容</label>
+      <el-input placeholder="可输入邮件内容关键字" clearable v-model="from.nr"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">邮件所属人</label>
+      <el-input :readonly="true" clearable placeholder="邮件所属人" v-model="ssrName">
+        <el-button @click="ssrDialog" slot="append" icon="el-icon-plus"></el-button>
+      </el-input>
+    </div>
+    <div class="input-box" style="width:120px">
+      <el-button @click="search" type="primary">查询</el-button>
+      <el-button @click="reset">重置</el-button>
+    </div>
+
+    <div class="right-container">
+      <el-dropdown trigger="click" v-if="moreTypes.length > 0" @command="handleTypeDrop">
+        <flexbox class="right-more-item">
+          <div>更多</div>
+          <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+        </flexbox>
+        <el-dropdown-menu style="height:100px" slot="dropdown">
+          <el-dropdown-item
+            v-for="(item, index) in moreTypes"
+            :key="index"
+            :command="item.type"
+          >{{item.name}}</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+    <el-table id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="fjr" label="发件人"></el-table-column>
+      <el-table-column prop="zh" label="账户"></el-table-column>
+      <el-table-column prop="yjzt" label="邮箱主题"></el-table-column>
+      <el-table-column prop="file" label="附件"></el-table-column>
+      <el-table-column prop="syz" label="所有者"></el-table-column>
+      <el-table-column prop="jssj" label="接收时间"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+  </div>
+</template>
+
+<script type="text/javascript">
+import {
+  gsMailQueryReceiveMailList,
+  gsMailFindMail,
+} from "@/api/email/email";
+import gxrDialog from "../../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    gxrDialog,
+  },
+  data() {
+    return {
+      ssrName: "",
+      gxrDialogStatus: false,
+      value: "",
+      options: [],
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 194, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        zh: "",
+        zt: "",
+        nr: "",
+        ssr: "",
+      },
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.moreTypes.push({ type: "enter", name: "导入" });
+    this.moreTypes.push({ type: "out", name: "导出" });
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.loginData();
+  },
+  methods: {
+    ssrDialog() {
+      this.gxrDialogStatus = true;
+    },
+    gxrDialogTreeData(id, name) {
+      this.from.ssr = id;
+      this.ssrName = name;
+    },
+    //查询
+    search() {
+      this.loginData();
+    },
+    reset() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.zh = "";
+      this.from.zt = "";
+      this.from.nr = "";
+      this.from.ssr = "";
+      this.ssrName = "";
+      this.loginData();
+    },
+    //获取列表数据
+    loginData() {
+      if (this.item.length) {
+        this.from.beginDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      gsMailQueryReceiveMailList(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+      gsMailFindMail()
+        .then((res) => {
+          this.options = res.data
+        })
+        .catch((res) => {});
+    },
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+@import "../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    width: 15%;
+    margin: 20px 0 0 15px;
+    height: 35px;
+    .input-label {
+      width: 70px;
+      line-height: 35px;
+    }
+    .el-date-editor {
+      width: 400px;
+    }
+  }
+  .input-dialog {
+    width: 100%;
+    .input-label {
+      float: left;
+      width: 30%;
+      line-height: 40px;
+    }
+    .el-input {
+      line-height: 40px;
+      width: 60%;
+    }
+    .el-select {
+      line-height: 40px;
+      width: 60%;
+    }
+  }
+  .right-container {
+    margin-right: -10px;
+    float: right;
+    margin: 12px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

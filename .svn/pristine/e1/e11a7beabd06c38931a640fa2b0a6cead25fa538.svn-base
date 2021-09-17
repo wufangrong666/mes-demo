@@ -1,0 +1,100 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="明细信息">
+          <div class="input-box">
+            <label class="input-label">预收款单号</label>
+            <div style="float:left" v-text="list.yskddh"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <div style="float:left" v-text="list.customerName"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="list.dwttName"></div>
+          </div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="xsddDh" label="销售订单单号">
+              <template slot-scope="scope">
+                <span
+                  style="color: #3E84E9;cursor:pointer"
+                  v-text="scope.row.xsddDh"
+                  @click="skdDhClick(scope.row)"
+                ></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="je" label="核销金额"></el-table-column>
+            <el-table-column prop="djStatus" label="核销方式"></el-table-column>
+            <el-table-column prop="hxsj" label="核销时间"></el-table-column>
+            <el-table-column prop="shrName" label="核销(认领)人员"></el-table-column>
+          </el-table>
+          <div class="handle-bar" style="margin-top:20px">
+            <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../components/createView";
+import sections from "../../../components/sections";
+import { yskdQueryHxjeByYskdId } from "@/api/finance/finance";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      tableData: [],
+      list: {},
+    };
+  },
+
+  methods: {
+    hidenView() { 
+      window.top.close();
+    },
+    skdDhClick(row) {
+      this.windowOpen("/xsddDhmx", {
+        id: this.encode(row.xsddId),
+        type: "toView",
+      });
+    },
+    hxjeData() {
+      yskdQueryHxjeByYskdId({
+        yskdId: this.list.yskdId,
+      })
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.list = JSON.parse(this.$route.query.list);
+    console.log(this.list);
+    this.hxjeData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+</style>

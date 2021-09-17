@@ -1,0 +1,19 @@
+import Layout from '@/views/layout/oaLayout'
+
+import {
+  childrenMenu
+} from './oa'
+
+const oaRouter = {
+  path: '/oa',
+  component: Layout,
+  redirect: '/oa/changePassword',
+  name: 'oa',
+  meta: {
+    icon: 'workbench',
+    title: '办公管理'
+  },
+  children: childrenMenu
+}
+
+export default oaRouter

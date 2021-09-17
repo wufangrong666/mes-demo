@@ -1,0 +1,181 @@
+<template>
+  <div>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品名"
+      :visible.sync="dialogComname"
+      width="50%"
+      :before-close="handleComname"
+    >
+      <div style="float:left;height:400px;width:100%">
+        <div style="width:30%;float:left;height:400px;">
+          <el-input style="width:50%;" placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
+          <el-button @click="searchComname" type="primary">搜索</el-button>
+          <el-button @click="restComname" type="info" plain>重置</el-button>
+          <div style="width:100%;height:356px;overflow: auto;margin-top:10px">
+            <ul class="tree">
+              <li
+                :class="{'comnameStyle' : item.flag}"
+                @click="comnameClick(item)"
+                v-for="(item,index) in comnameData"
+                :key="index"
+              >{{item.name}}</li>
+            </ul>
+          </div>
+        </div>
+        <ul class="comnameRight">
+          <li>
+            <span>品名:</span>
+            <span v-text="comnameList.nameCn"></span>
+          </li>
+          <li>
+            <span>英文品名:</span>
+            <span v-text="comnameList.nameEn"></span>
+          </li>
+          <li>
+            <span>创建人:</span>
+            <span v-text="comnameList.creator"></span>
+          </li>
+          <li>
+            <span>创建日期:</span>
+            <span v-text="comnameList.createDate"></span>
+          </li>
+          <li>
+            <span>关税(%):</span>
+            <span v-text="comnameList.tariff"></span>
+          </li>
+          <li>
+            <span>海关编码:</span>
+            <span v-text="comnameList.hgbm"></span>
+          </li>
+          <li>
+            <span>最后修改日期:</span>
+            <span v-text="comnameList.lastEdittime"></span>
+          </li>
+          <li>
+            <span>功能:</span>
+            <span v-text="comnameList.function"></span>
+          </li>
+          <li>
+            <span>原理:</span>
+            <span v-text="comnameList.theory"></span>
+          </li>
+          <li>
+            <span>用途:</span>
+            <span v-text="comnameList.usage"></span>
+          </li>
+          <li>
+            <span>德国HS CODE:</span>
+            <span v-text="comnameList.hsCode"></span>
+          </li>
+        </ul>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleComname">关闭</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { findAllComnameNameAndId } from "@/api/crm/cpxx";
+import { crmProductComnameQueryById } from "@/api/crm/pmgl";
+
+export default {
+  name: "",
+  props: ["dialogComname"],
+
+  data() {
+    return {
+      filterText: "",
+      comnameList: {},
+      comnameData: [],
+      submitList: {},
+    };
+  },
+
+  methods: {
+    handleComname() {
+      this.$emit("colse");
+    },
+    submit() {
+      this.$emit("pmSubit", this.submitList);
+      this.handleComname()
+    },
+    searchComname() {
+      this.pmData();
+    },
+    restComname() {
+      this.filterText = "";
+      this.pmData();
+    },
+    comnameClick(data) {
+      this.submitList = data;
+      for (var i in this.comnameData) {
+        if (this.comnameData[i].id == data.id) {
+          this.comnameData[i].flag = true;
+        } else {
+          this.comnameData[i].flag = false;
+        }
+      }
+      this.crmProductData(data.id);
+    },
+    crmProductData(val) {
+      crmProductComnameQueryById({
+        id: val,
+      })
+        .then((res) => {
+          this.comnameList = res.data;
+        })
+        .catch((res) => {});
+    },
+    pmData() {
+      findAllComnameNameAndId({
+        name: this.filterText,
+      })
+        .then((res) => {
+          this.comnameData = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.pmData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.tree {
+  width: 100%;
+  li {
+    line-height: 30px;
+  }
+}
+.comnameStyle {
+  background: #3e84e9;
+  color: #fff;
+}
+.comnameRight {
+  width: 70%;
+  float: right;
+  height: 400px;
+  padding: 0 20px;
+  li {
+    width: 50%;
+    float: left;
+    line-height: 50px;
+    span:nth-child(1) {
+      width: 32%;
+      float: left;
+    }
+    span:nth-child(2) {
+      width: 68%;
+      float: right;
+    }
+  }
+}
+</style>

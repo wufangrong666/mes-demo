@@ -1,0 +1,345 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div>
+          <el-tabs v-model="tabType" @tab-click="handleClick">
+            <el-tab-pane label="外币币种管理" name="currency">
+              <div class="handle-bar">
+                <div class="input-box">
+                  <label class="input-label">币种编码</label>
+                  <el-input v-model="bzbm" placeholder="请输入币种编码" clearable></el-input>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">币种名称</label>
+                  <el-input v-model="bzmc" placeholder="请输入币种名称" clearable></el-input>
+                </div>
+                <el-button type="primary" @click="search">搜索</el-button>
+                <el-button type="primary" @click="reset">重置</el-button>
+                <div style="float:right">
+                  <el-button type="primary" @click="addBz">新增</el-button>
+                </div>
+              </div>
+              <div class="content">
+                <el-table :data="tableData" stripe style="width: 100%">
+                  <el-table-column prop="bzid" sortable label="币种ID"></el-table-column>
+                  <el-table-column prop="bzbm" sortable label="币种编码"></el-table-column>
+                  <el-table-column prop="bzmc" sortable label="币种名称"></el-table-column>
+                  <el-table-column prop="bzms" sortable show-overflow-tooltip label="币种描述"></el-table-column>
+                  <el-table-column prop="zxhl" sortable label="最新汇率"></el-table-column>
+                  <el-table-column prop="lastUpdatetime" sortable label="本次跟新时间"></el-table-column>
+                  <el-table-column sortable label="默认币种">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.mrbz=='1'">是</span>
+                      <span v-else>否</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作">
+                    <template slot-scope="scope">
+                      <el-button type="text" size="small" @click="bzEdit(scope.row)">编辑</el-button>
+                      <el-button type="text" size="small" @click="bzDelete(scope.row)">删除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <div class="p-contianer">
+                  <el-pagination
+                    class="p-bar"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="page"
+                    :page-sizes="pageSizes"
+                    :page-size.sync="limit"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total"
+                  ></el-pagination>
+                </div>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane label="汇率更新时间" name="item">
+              <div class="timeStyle">
+                <span>每天汇率更新时间</span>
+                <el-time-picker value-format="HH:mm:ss" v-model="timeMain" placeholder="任意时间点"></el-time-picker>
+                <el-time-picker value-format="HH:mm:ss" v-model="timeSecond" placeholder="任意时间点"></el-time-picker>
+                <el-button type="primary" @click="itemUpdate">保存</el-button>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+      </div>
+    </div>
+    <el-dialog title="币种基本信息" :visible.sync="dialogVisible" width="30%" :before-close="handleClose">
+      <el-checkbox @change="checkboxChange" v-model="checkbox">默认币种</el-checkbox>
+      <div class="diaInput" style="margin-top:10px" v-if="formData.bzid">
+        <label class="input-label">币种ID</label>
+        <el-input v-model="formData.bzid" placeholder="请输入币种ID" clearable></el-input>
+      </div>
+      <div class="diaInput" style="margin-top:10px">
+        <label class="input-label">币种编码</label>
+        <el-input v-model="formData.bzbm" placeholder="请输入币种编码" clearable></el-input>
+      </div>
+      <div class="diaInput">
+        <label class="input-label">币种名称</label>
+        <el-input v-model="formData.bzmc" placeholder="请输入币种名称" clearable></el-input>
+      </div>
+      <div class="diaInput">
+        <label class="input-label">币种描述</label>
+        <el-input v-model="formData.bzms" placeholder="请输入币种描述" clearable></el-input>
+      </div>
+      <div class="diaInput">
+        <label class="input-label">最新汇率</label>
+        <el-input v-model="formData.zxhl" placeholder="最新汇率" clearable></el-input>
+        <el-button style="margin-left:10px" type="success" @click="getExchangeRate" plain>获取汇率</el-button>
+      </div>
+      <div class="diaInput">
+        <label class="input-label">本次汇率跟新时间</label>
+        <el-input v-model="formData.lastUpdatetime" placeholder="本次汇率跟新时间" clearable></el-input>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUpdate">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import {
+  queryPageList,
+  addOrUpdate,
+  getExchangeRate,
+  delBzhlById,
+  findBzhlById,
+  setUpdatetime,
+  bzhlGetBzhlTime,
+  bzhlFindDefaultBz
+} from "@/api/manage/crmsetting/bzhlsz";
+export default {
+  name: "bzhlsz",
+
+  components: {},
+
+  data() {
+    return {
+      checkbox: false,
+      title: "",
+      addAndEdit: "",
+      tabType: "currency",
+      bzbm: "",
+      bzmc: "",
+      tableData: [],
+      page: 1,
+      limit: 15,
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      total: 0, //总共页数
+      dialogVisible: false,
+      formData: {
+        bzid: "",
+        bzbm: "",
+        bzmc: "",
+        bzms: "",
+        zxhl: "",
+        mrbz: "",
+        lastUpdatetime: ""
+      },
+      timeMain: "",
+      timeSecond: ""
+    };
+  },
+
+  created() {},
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+  activated() {
+    this.querList();
+  },
+  methods: {
+    checkboxChange(val) {
+      if (val) {
+        bzhlFindDefaultBz()
+          .then(res => {
+          })
+          .catch(res => {
+            this.checkbox = false
+          });
+      }
+    },
+    itemUpdate() {
+      setUpdatetime({
+        timeMain: this.timeMain,
+        timeSecond: this.timeSecond
+      })
+        .then(res => {
+          this.msgSuccess("设置成功");
+          this.handleClick();
+        })
+        .catch(res => {});
+    },
+    handleClick() {},
+    //获取汇率
+    getExchangeRate() {
+      if (this.formData.bzbm == "") {
+        this.msgInfo("请输入币种编码");
+        return;
+      }
+      if (this.formData.bzmc == "") {
+        this.msgInfo("请输入币种名称");
+        return;
+      }
+      getExchangeRate({
+        name: this.formData.bzmc
+      })
+        .then(res => {
+          this.formData.zxhl = res.zbhl;
+          this.formData.lastUpdatetime = res.lastUpdatetime;
+        })
+        .catch(res => {});
+    },
+    //搜索
+    search() {
+      this.querList();
+    },
+    //重置
+    reset() {
+      this.bzbm = "";
+      this.bzmc = "";
+      this.querList();
+    },
+    //删除币种
+    bzDelete(row) {
+      this.$confirm("此操作将删除该币种, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          delBzhlById({
+            bzid: row.bzid
+          })
+            .then(res => {
+              this.msgSuccess("删除成功");
+              this.querList();
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    //编辑币种
+    bzEdit(row) {
+      this.addAndEdit = false;
+      findBzhlById({
+        bzid: row.bzid
+      })
+        .then(res => {
+          if (res.data.mrbz == 1) {
+            this.checkbox = true;
+          } else {
+            this.checkbox = false;
+          }
+          Object.assign(this.formData, res.data);
+        })
+        .catch(res => {});
+
+      this.dialogVisible = true;
+    },
+    //新增币种
+    addBz() {
+      this.addAndEdit = true;
+      this.checkbox = "";
+      this.resetForm(this.formData);
+      this.dialogVisible = true;
+    },
+    //新增确认
+    addUpdate() {
+      if (this.checkbox) {
+        this.formData.mrbz = 1;
+      } else {
+        this.formData.mrbz = 0;
+      }
+      addOrUpdate(this.formData)
+        .then(res => {
+          if (this.addAndEdit) {
+            this.msgSuccess("新增成功");
+          } else {
+            this.msgSuccess("编辑成功");
+          }
+          this.querList();
+          this.dialogVisible = false;
+        })
+        .catch(res => {});
+    },
+    handleClose(done) {
+      this.dialogVisible = false;
+    },
+    querList() {
+      queryPageList({
+        page: this.page,
+        limit: this.limit,
+        data: {
+          bzmc: {
+            value: this.bzmc,
+            name: "bzmc",
+            formType: "text",
+            condition: "contains"
+          },
+          bzbm: {
+            value: this.bzbm,
+            name: "bzbm",
+            formType: "text",
+            condition: "contains"
+          }
+        }
+      })
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+      bzhlGetBzhlTime()
+        .then(res => {
+          this.timeMain = res.timeMain;
+          console.log(this.timeMain);
+          this.timeSecond = res.timeSecond;
+        })
+        .catch(res => {});
+    },
+    // 更改每页展示数量
+    handleSizeChange(val) {
+      this.limit = val;
+      this.querList();
+    },
+    // 更改当前页数
+    handleCurrentChange(val) {
+      this.page = val;
+      this.querList();
+    }
+  }
+};
+</script>
+
+<style rel="stylesheet/scss" lang="scss" scoped>
+@import "../../styles/table.scss";
+.content {
+  padding: 10px;
+}
+.handle-bar {
+  padding: 15px 20px 5px 20px;
+}
+.main-container {
+  flex: 1;
+  background-color: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+}
+.timeStyle {
+  margin: 20px;
+}
+</style>

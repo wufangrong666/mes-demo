@@ -1,0 +1,89 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">在下列模块中启用预留字段:</div>
+        <div class="rightStatus">
+          <el-checkbox
+            v-for="item in from.moduleSet"
+            :key="item.moduleName"
+            :value="item.status == 1?true:false"
+            @change="val => $set(item,'status',val?1:0)"
+          >{{item.moduleName == 'xs'?'销售模块':item.moduleName == 'cg'?'采购模块':'仓库模块'}}</el-checkbox>
+          <el-button style="margin-left:25px" type="primary" @click="submit">保存</el-button>
+        </div>
+      </div>
+      <div class="topStatus" v-for="(item,index) in from.yszdSet" :key="index">
+        <div class="leftStatus" v-text="item.zdyName"></div>
+        <div class="rightStatus">
+          <el-radio v-model="item.status" :label="0">否</el-radio>
+          <el-radio v-model="item.status" :label="1">是</el-radio>
+          <span>名称</span>
+          <el-input style="width:130px" v-model="item.zdyName" placeholder="请输入内容"></el-input>
+          <span>值取自</span>
+          <el-radio v-model="item.from" :label="1">产品信息</el-radio>
+          <el-radio v-model="item.from" :label="2">单据信息</el-radio>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminYszdQueryYlzdSet,
+  adminYszdUpdateYlzdSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    ylzdData() {
+      adminYszdQueryYlzdSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((res) => {});
+    },
+    submit() {
+      adminYszdUpdateYlzdSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.ylzdData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.ylzdData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+}
+</style>

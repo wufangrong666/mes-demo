@@ -1,0 +1,86 @@
+<template>
+  <div>
+    <el-table :data="tableData" height="630" border style="width: 100%">
+      <el-table-column prop="khlx" label="客户类型"></el-table-column>
+      <el-table-column prop="customerName" label="客户名称"></el-table-column>
+      <el-table-column prop="contactName" label="客户联系人"></el-table-column>
+      <el-table-column prop="jwr" label="交往人"></el-table-column>
+      <el-table-column prop="content" label="交往内容"></el-table-column>
+      <el-table-column prop="dp" label="点评内容"></el-table-column>
+      <el-table-column prop="jwtimeStart" label="开始时间"></el-table-column>
+      <el-table-column prop="jwtimeEnd" label="结束时间"></el-table-column>
+      <el-table-column prop="creator" label="创建人"></el-table-column>
+      <el-table-column prop="createDate" label="创建日期"></el-table-column>
+    </el-table>
+    <el-pagination
+      style="text-align:right"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="page"
+      :page-sizes="[15, 30, 50, 100]"
+      :page-size="limit"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+    ></el-pagination>
+  </div>
+</template>
+
+<script>
+import { crmContactRecordQueryPageList } from "@/api/crm/jwjl";
+export default {
+  name: "",
+  data() {
+    return {
+      tableData: [],
+      page: 1,
+      limit: 15,
+      total: 0,
+    };
+  },
+  props: ["activeName","customerName"],
+  watch: {
+    activeName: {
+      handler() {
+        if (this.activeName == "third") {
+          this.loginDataJwjl();
+        }
+      },
+    },
+  },
+  methods: {
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginData();
+    },
+    loginDataJwjl() {
+      crmContactRecordQueryPageList({
+        page: this.page,
+        limit: this.limit,
+        data: {
+          customerName: {
+            condition: "is",
+            value: this.customerName,
+            formType: "text",
+            name: "customerName",
+          },
+        },
+      })
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+</style>

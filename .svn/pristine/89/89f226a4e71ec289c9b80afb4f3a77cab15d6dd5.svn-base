@@ -1,0 +1,136 @@
+<template>
+  <div>
+    <!-- 客户选择 -->
+    <el-dialog
+      title="供应商列表"
+      :visible.sync="dialogVisibleGys"
+      width="60%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">供应商名称/联系人邮箱</label>
+        <el-input placeholder="请输入搜索信息" clearable v-model="dialogFrom.search"></el-input>
+      </div> 
+      <!-- <div class="dialog-box">
+        <label class="input-label">供应商名称</label>
+        <el-input placeholder="请输入客户名称" clearable v-model="dialogFrom.data.name.value"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">联系人邮箱</label>
+        <el-input placeholder="请输入客户编码" clearable v-model="dialogFrom.data.contactEmail.value"></el-input>
+      </div>-->
+      <div class="dialog-box">
+        <el-button style="margin-left:175px" type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+      <div class="table-box">
+        <el-table :data="tableData" style="width: 100%" height="500">
+          <el-table-column label="供应商名称">
+            <template slot-scope="scope">
+              <span
+                @click="queryName(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.gysName"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="供应商编码"></el-table-column>
+        </el-table>
+      </div>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="dialogFrom.page"
+          :page-size="dialogFrom.limit"
+          :page-sizes="[15, 30, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleClose">取 消</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { xbjQueryGys } from "@/api/crm/xbjTable";
+
+export default {
+  name: "",
+  props: ["dialogVisibleGys"],
+  watch: {
+    dialogVisibleGys: {
+      handler() {
+        if (this.dialogVisibleGys) {
+          this.dialogData();
+        }
+      },
+    },
+  },
+  data() {
+    return {
+      tableData: [],
+      total: 0,
+      dialogFrom: {
+        limit: 15,
+        page: 1,
+        search:''
+      },
+    };
+  },
+
+  methods: {
+    queryName(row) {
+      this.$emit("gysDialog", row.gysId, row.gysName);
+      this.handleClose();
+    },
+    handleClose() {
+      this.$emit("close");
+    },
+    search() {
+      this.dialogData();
+    },
+    reset() {
+      this.dialogFrom.search = ''
+      // this.dialogFrom.data.name.value = "";
+      // this.dialogFrom.data.contactEmail.value = "";
+      this.dialogData();
+    },
+    dialogData() {
+      xbjQueryGys(this.dialogFrom)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+  },  
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../manage/styles/table.scss";
+@import "../../styles/detail.scss";
+.dialog-box {
+  width: 400px;
+  .input-label {
+    width: 175px;
+  }
+}
+</style>

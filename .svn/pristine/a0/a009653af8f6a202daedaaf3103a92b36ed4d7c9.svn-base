@@ -1,0 +1,156 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">单位名称</label>
+            <div style="float:left" v-text="from.nameCn"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位英文名称</label>
+            <div style="float:left" v-text="from.nameEn"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">电话</label>
+            <div style="float:left" v-text="from.tele"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">传真</label>
+            <div style="float:left" v-text="from.cz"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">邮编</label>
+            <div style="float:left" v-text="from.postcode"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">地址</label>
+            <div style="float:left" v-text="from.location"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">网站</label>
+            <div style="float:left" v-text="from.website"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">电子信箱</label>
+            <div style="float:left" v-text="from.email"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">开户行</label>
+            <div style="float:left" v-text="from.banks"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">账号</label>
+            <div style="float:left" v-text="from.bankofaccount"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">税号</label>
+            <div style="float:left" v-text="from.taxofaccount"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">法定代表人</label>
+            <div style="float:left" v-text="from.legalperson"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">委托代理人</label>
+            <div style="float:left" v-text="from.entrustperson"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购单据增值税率</label>
+            <div style="float:left">{{from.purchaseZzsl + '%'}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购单据普通税率</label>
+            <div style="float:left">{{from.purchasePtsl + '%'}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售单据增值税率</label>
+            <div style="float:left">{{from.saleZzsl + '%'}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售单据普通税率</label>
+            <div style="float:left">{{from.salePtsl + '%'}}</div>
+          </div>
+          <div class="input-box" style="margin-top:20px">
+            <el-button style="margin-left:200px" @click="handView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { companyAddOrUpdate, customerRead } from "@/api/manage/SystemConfig";
+export default {
+  components: { createView, sections },
+  name: "",
+  data() {
+    return {
+      loading: false,
+      from: {
+        id: "",
+        nameCn: "",
+        nameEn: "",
+        tele: "",
+        cz: "",
+        postcode: "",
+        location: "",
+        website: "",
+        email: "",
+        banks: "",
+        bankofaccount: "",
+        taxofaccount: "",
+        legalperson: "",
+        entrustperson: "",
+        purchaseZzsl: "0",
+        purchasePtsl: "0",
+        saleZzsl: "0",
+        salePtsl: "0",
+        isdefault: 0,
+      },
+    };
+  },
+
+  methods: {
+    comData() {
+      customerRead({
+        companyId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((res) => {});
+    },
+    handView() {
+      window.top.close();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.comData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 100%;
+  .el-input {
+    width: 20%;
+  }
+  div {
+    width: 20%;
+  }
+  .el-checkbox {
+    margin-left: 15px;
+  }
+}
+</style>

@@ -1,0 +1,311 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <div
+              style="float:left;overflow: hidden;white-space: nowrap"
+              :title="from.customerName"
+              v-text="from.customerName"
+            ></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <div style="float:left">{{from.fylb== 1?"银行汇款":"现金"}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div style="float:left" v-text="from.creatorName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="from.dwttNmae"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款方式</label>
+            <div style="float:left" v-text="from.skfsName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款日期</label>
+            <div style="float:left" v-text="from.skrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款账户</label>
+            <div style="float:left" v-text="from.accountName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售收款单号</label>
+            <div style="float:left" v-text="from.skdDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">提醒日期</label>
+            <div style="float:left"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款类型</label>
+            <div style="float:left" v-text="from.skfsName"></div>
+          </div>
+          <el-table :data="tableData" :show-summary="true" stripe style="width: 100%">
+            <el-table-column prop="xsddDh" label="销售订单单号">
+              <template slot-scope="scope">
+                <span
+                  @click="dhClick(scope.row)"
+                  style="color: #3E84E9;cursor:pointer"
+                  v-text="scope.row.xsddDh"
+                ></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="总额">
+              <template slot-scope="scope">
+                <span v-text="scope.row.zkhZje"></span>
+              </template>
+            </el-table-column>
+            <el-table-column label="已收款">
+              <template slot-scope="scope">
+                <span v-text="scope.row.ysk"></span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="wsk" label="未收款"></el-table-column>
+            <el-table-column prop="wskkcwsh" label="未收款(扣除未审核)"></el-table-column>
+            <el-table-column prop="bcsk" label="本次收款"></el-table-column>
+          </el-table>
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box" style="width:98%">
+            <label class="input-label">审核原因</label>
+            <div style="float:left;width:80%" v-text="from.nopassReason"></div>
+          </div>
+          <div class="bottom">
+            <el-button v-show="btnStatus" @click="auditY" type="success">审核通过</el-button>
+            <el-button v-show="btnStatus" @click="auditN" type="info" plain>审核不通过</el-button>
+            <el-button @click="hidenView" type="info">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+
+      <el-dialog
+        title="审核不通过原因"
+        :visible.sync="dialogVisible"
+        width="30%"
+        :before-close="handleClose"
+        :modal-append-to-body="false"
+      >
+        <span>
+          <el-input v-model="message" placeholder="请输入内容"></el-input>
+        </span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submit">确 定</el-button>
+        </span>
+      </el-dialog>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../components/createView";
+import sections from "../../../components/sections";
+import {
+  yskdQuerySkfs,
+  yskdQueryAccount,
+  skdCheckStatus,
+  skdQueryById,
+} from "@/api/finance/finance";
+import { bjdQueryDwtt } from "@/api/crm/xsbjd";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+
+export default {
+  components: {
+    createView,
+    sections,
+  },
+  name: "",
+  watch: {},
+  computed: {},
+  props: {},
+  data() {
+    return {
+      message: "",
+      dwttName: "",
+      btnStatus: false,
+      dialogVisible: false,
+      loading: false,
+      dwttList: [],
+      skfsList: [],
+      bankaccountList: [],
+      tableData: [],
+      fylbList: [
+        { name: "银行汇款", id: 1 },
+        { name: "现金", id: 2 },
+      ],
+      createDate: "",
+      from: {
+        yskdId: "",
+        yskddh: "",
+        customerId: "",
+        customerName: "",
+        skfs: "",
+        bankaccount: "",
+        je: "",
+        dwtt: "",
+        fylb: 1,
+        skrq: "",
+      },
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: "",
+      },
+      total: 0,
+    };
+  },
+
+  methods: {
+    dhClick(row) {
+      this.windowOpen("/xsddDhmx", {
+        id: this.encode(row.xsddId),
+        type: "toView",
+      });
+    },
+    submit() {
+      skdCheckStatus({
+        skdId: this.widowData.id,
+        type: 2,
+        message: this.message,
+      })
+        .then((res) => {
+          this.dialogVisible = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    auditY() {
+      this.$confirm("请确认审核信息, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          skdCheckStatus({
+            skdId: this.widowData.id,
+            type: 1,
+            message: "",
+          })
+            .then((res) => {
+              this.loading = true;
+              this.$message({
+                message: "审核通过",
+                type: "success",
+                onClose: () => {
+                  window.opener.postMessage("child", window.location);
+                  window.top.close();
+                  this.loading = false;
+                },
+              });
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消审核");
+        });
+    },
+    auditN() {
+      this.dialogVisible = true;
+    },
+    hidenView() {
+      window.top.close();
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    queryData() {
+      bjdQueryDwtt()
+        .then((res) => {
+          for (var i in res.data) {
+            if (res.data[i].id == this.from.dwtt) {
+              this.dwttName = res.data[i].nameCn;
+            }
+          }
+        })
+        .catch((res) => {});
+      yskdQuerySkfs()
+        .then((res) => {
+          this.skfsList = res.data;
+          this.from.skfs = res.data[0].id;
+        })
+        .catch((res) => {});
+      yskdQueryAccount()
+        .then((res) => {
+          this.bankaccountList = res.data;
+          this.from.bankaccount = res.data[0].accountId;
+        })
+        .catch((res) => {});
+      skdQueryById({
+        skdId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+          this.tableData = res.data.xsddList;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    if (this.widowData.type == "audit") {
+      this.btnStatus = true;
+    } else {
+      this.btnStatus = false;
+    }
+    console.log(this.from);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../manage/styles/table.scss";
+@import "../../../../styles/detail.scss";
+.bottom {
+  float: left;
+  width: 100%;
+  text-align: center;
+  margin-top: 40px;
+}
+</style>

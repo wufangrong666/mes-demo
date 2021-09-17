@@ -1,0 +1,229 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="品名基本信息：	注：品名、关税、海关编码必填">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>品名
+            </label>
+            <span v-if="lookCard" v-text="form.nameCn"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入品名" v-model="form.nameCn"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">英文品名</label>
+            <span v-if="lookCard" v-text="form.nameEn"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入英文品名" v-model="form.nameEn"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>关税(%)
+            </label>
+            <span v-if="lookCard" v-text="form.tariff"></span>
+            <el-input @keyup.native="form.tariff = form.tariff.replace(/[^\d.]/g,'')" v-else :disabled="flag" placeholder="请输入关税(%)" v-model="form.tariff"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>海关编码
+            </label>
+            <span v-if="lookCard" v-text="form.hgbm"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入海关编码" v-model="form.hgbm"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">德国HS CODE</label>
+            <span v-if="lookCard" v-text="form.hsCode"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入德国HS CODE" v-model="form.hsCode"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">功能</label>
+            <span v-if="lookCard" v-text="form.function"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入功能" v-model="form.function"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">原理</label>
+            <span v-if="lookCard" v-text="form.theory"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入原理" v-model="form.theory"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">用途</label>
+            <span v-if="lookCard" v-text="form.theory"></span>
+            <el-input v-else :disabled="flag" placeholder="请输入用途" v-model="form.usage"></el-input>
+          </div>
+          <ul class="ulStyle">
+            <li v-for="(item,index) in listData" :key="index">
+              <span>
+                <span style="float:left;width:100%" v-if="lookCard" v-text="item.sxmc"></span>
+                <el-input v-else v-model="item.sxmc" placeholder="请输入事项名称"></el-input>
+              </span>
+              <span>
+                <span style="float:left;width:100%" v-if="lookCard" v-text="item.sxnr"></span>
+                <el-input v-else v-model="item.sxnr" placeholder="请输入事项内容"></el-input>
+              </span>
+              <el-button v-if="!lookCard" @click="deleteSx(index)" type="text">删除</el-button>
+            </li>
+          </ul>
+          <div class="handle-bar">
+            <el-button v-if="!lookCard" icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+            <el-button v-if="!lookCard" type="primary" @click="dialogAdd">保存</el-button>
+            <el-button type="info" @click="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  crmProductComnameAddOrUpdate,
+  crmProductComnameQueryById
+} from "@/api/crm/pmgl";
+export default {
+  components: {
+    createView,
+    sections
+  },
+  name: "",
+  data() {
+    return {
+      form: {
+        id: "",
+        nameCn: "",
+        nameEn: "",
+        tariff: "",
+        hgbm: "",
+        hsCode: "",
+        function: "",
+        theory: "",
+        usage: ""
+      },
+      listData: [{ sxmc: "", sxnr: "" }],
+      flag: false,
+      loading: false,
+      lookCard: false
+    };
+  },
+
+  methods: {
+    deleteSx(index) {
+      this.listData.splice(index, 1);
+    },
+    appendClick() {
+      this.listData.push({ sxmc: "", sxnr: "" });
+    },
+    dialogAdd() {
+      if (this.form.nameCn == "") {
+        this.msgInfo("品名不能为空!");
+        return;
+      }
+      if (this.form.tariff == "") {
+        this.msgInfo("关税不能为空!");
+        return;
+      }
+      if (this.form.hgbm == "") {
+        this.msgInfo("海关编码不能为空!");
+        return;
+      }
+      this.form.others = this.listData;
+      crmProductComnameAddOrUpdate({
+        data: this.form
+      })
+        .then(res => {
+          if (this.widowData.type == "add") {
+            this.loading = true;
+            this.message("新增成功");
+          } else if (this.widowData.type == "edit") {
+            this.loading = true;
+            this.message("编辑成功");
+          }
+        })
+        .catch(res => {
+          this.loading = false;
+        });
+    },
+    message(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          this.resetGetList();
+          this.hidenView();
+          this.loading = false;
+        }
+      });
+    },
+    resetGetList() {
+      window.opener.postMessage("pm", window.location);
+    },
+    hidenView() {
+      window.top.close();
+    },
+    pmEditData() {
+      crmProductComnameQueryById({
+        id: this.widowData.id
+      })
+        .then(res => {
+          this.form = res.data;
+          this.listData = res.data.others;
+          console.log(this.listData);
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    if (this.widowData.type == "edit") {
+      this.pmEditData();
+    } else if (this.widowData.type == "lookCard") {
+      this.pmEditData();
+      this.lookCard = true;
+    }
+  }
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  height: 25px;
+}
+.create-flex .el-input-group__append {
+  line-height: 23px;
+}
+.create-flex .el-input__icon {
+  line-height: 25px;
+}
+.el-dialog__body {
+  padding-top: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.ulStyle {
+  width: 100%;
+  float: left;
+  li {
+    height: 40px;
+    width: 50%;
+    span:nth-child(1) {
+      float: left;
+      width: 20%;
+      line-height: 40px;
+    }
+    span:nth-child(2) {
+      float: left;
+      width: 75%;
+      line-height: 40px;
+    }
+    .el-button {
+      margin: 5px 0 0 10px;
+      color: red;
+    }
+  }
+}
+</style>

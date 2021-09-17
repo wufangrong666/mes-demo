@@ -1,0 +1,1593 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">客户</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="customerName">
+              <el-button @click="dialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人</label>
+            <el-input placeholder="请选择" :readonly="true" clearable v-model="from.contactName">
+              <el-button @click="contactDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">发票类型</label>
+            <el-select v-model="from.fplx" placeholder="请选择">
+              <el-option
+                v-for="item in fplxList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售单编号</label>
+            <el-input placeholder="报价单编号" :readonly="true" v-model="from.xsddDh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货地址</label>
+            <el-input placeholder="请输入收货地址" clearable v-model="from.shdz"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">联系人电话</label>
+            <el-input placeholder="请输入联系人电话" clearable v-model="from.contactPhone"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交货日期</label>
+            <el-date-picker
+              v-model="from.jhrq"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div v-text="creator"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <el-input placeholder="请输入备注" clearable v-model="from.remark"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">业务员:</label>
+            <el-input :readonly="true" clearable placeholder="请选择业务员" v-model="ywyName">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收款期限</label>
+            <el-date-picker
+              v-model="from.skqx"
+              value-format="yyyy-MM-dd"
+              type="date"
+              placeholder="选择日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div v-text="createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">货期</label>
+            <el-input placeholder="请输入货期" clearable v-model="from.hq"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <el-select v-model="from.dwtt" placeholder="请选择" @change="dwttChange">
+              <el-option
+                v-for="item in dwttList"
+                :key="item.id"
+                :label="item.nameCn"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <el-radio v-model="from.sfbd" label="是">是</el-radio>
+            <el-radio v-model="from.sfbd" label="否">否</el-radio>
+          </div>
+          <div class="input-box">
+            <label class="input-label">整单折扣(%)</label>
+            <el-input
+              @keyup.native="from.zdzk = from.zdzk.replace(/[^\d]/g,'')"
+              placeholder="请输入整单折扣"
+              clearable
+              v-model="from.zdzk"
+            ></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">共享人</label>
+            <el-input :readonly="true" clearable placeholder="请选择共享人" v-model="gxrName">
+              <el-button @click="gxrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">仓库</label>
+            <el-select v-model="from.ck" placeholder="请选择">
+              <el-option
+                v-for="item in ckList"
+                :key="item.ckId"
+                :label="item.ckName"
+                :value="item.ckId"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售订单类型</label>
+            <el-select v-model="from.xsddlx" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in xsddlxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">跟单状态</label>
+            <el-select v-model="from.gdzt" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in gdztList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <el-button @click="xzBjd" type="primary">选择报价单</el-button>
+          <el-table
+            max-height="340px"
+            :data="tableList"
+            style="width: 100%"
+            :summary-method="getSummaries"
+            show-summary
+          >
+            <el-table-column label="品牌">
+              <template slot-scope="scopr">
+                <el-input
+                  placeholder="请选择"
+                  :readonly="true"
+                  clearable
+                  v-model="scopr.row.brandName"
+                >
+                  <el-button
+                    @click="customerCliuck(scopr.$index)"
+                    slot="append"
+                    icon="el-icon-plus"
+                  ></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="品名">
+              <template slot-scope="scopr">
+                <el-input placeholder="请选择" :readonly="true" v-model="scopr.row.comname" clearable>
+                  <el-button @click="comnameIdClick(scopr)" slot="append" icon="el-icon-plus"></el-button>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格型号">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.productModelnum" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName1 != ''" :label="zdyName1">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType1 == '1'" v-model="scopr.row.ylzd1" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName2 != ''" :label="zdyName2">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType2 ==1" v-model="scopr.row.ylzd2" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName3 != ''" :label="zdyName3">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType3 ==1" v-model="scopr.row.ylzd3" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName4 != ''" :label="zdyName4">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType4 ==1" v-model="scopr.row.ylzd4" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName5 != ''" :label="zdyName5">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType5 ==1" v-model="scopr.row.ylzd5" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName6 != ''" :label="zdyName6">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType6 ==1" v-model="scopr.row.ylzd6" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName7 != ''" :label="zdyName7">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType7 ==1" v-model="scopr.row.ylzd7" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName8 != ''" :label="zdyName8">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType8 ==1" v-model="scopr.row.ylzd8" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName9 != ''" :label="zdyName9">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType9 == 1" v-model="scopr.row.ylzd9" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="zdyName10 != ''" :label="zdyName10">
+              <template slot-scope="scopr">
+                <el-input :readonly="ylzdType10 == 1" v-model="scopr.row.ylzd10" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="计量单位">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.measureName" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="未税单价" :render-header="wsdjHeader">
+              <template slot-scope="scopr">
+                <el-input
+                  @keyup.native="scopr.row.wsdj = scopr.row.wsdj.replace(/[^\d]./g,'')"
+                  v-model="scopr.row.wsdj"
+                  clearable
+                >{{wsdjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量">
+              <template slot-scope="scopr">
+                <el-input
+                  @keyup.native="scopr.row.quantity = scopr.row.quantity.replace(/[^\d]/g,'')"
+                  v-model="scopr.row.quantity"
+                  clearable
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="税率(%)">
+              <template slot-scope="scopr">
+                <el-input
+                  @keyup.native="scopr.row.productSl = scopr.row.productSl.replace(/[^\d.]/g,'')"
+                  v-model="scopr.row.productSl"
+                  clearable
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hsdj" label="含税单价" :render-header="hsdjHeader">
+              <template slot-scope="scopr">
+                <el-input
+                  @keyup.native="scopr.row.hsdj = scopr.row.hsdj.replace(/[^\d.]/g,'')"
+                  v-model="scopr.row.hsdj"
+                  clearable
+                >{{hsdjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="sj" label="税金">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.sj" clearable>{{sjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hk" label="货款">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.hk" clearable>{{hkComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hj" label="合计">
+              <template slot-scope="scopr">
+                <el-input :readonly="true" v-model="scopr.row.hj" clearable>{{hjComputed(scopr)}}</el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="摘要">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.zy" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scopr">
+                <el-button style="color:#f56c6c" @click="deletClick(scopr.$index)" type="text">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <ul class="tableButton">
+            <li
+              :style="{'width':width}"
+              v-for="index of widthList"
+              :key="index"
+            >{{index == 1?'折扣后合计':index == widthList-2?from.zkhzje:''}}</li>
+          </ul>
+
+          <el-button icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+        </sections>
+        <div class="conditions">
+          <div class="conditions-top">
+            <div style="width:20%;float:left">
+              <span>合同条款主题</span>
+              <el-select
+                v-model="from.typeofcontract"
+                placeholder="请选择"
+                @change="typeofcontactChange"
+              >
+                <el-option
+                  v-for="item in typeofcontactList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+            </div>
+            <div style="width:70%;float:left;text-align: center;">合同条款内容</div>
+            <div style="width:10%;float:left">操作</div>
+          </div>
+          <div class="conditions-center">
+            <div style="float:left;width:100%" v-for="(item,index) in jxcXsddHttkList" :key="index">
+              <div style="width:20%;float:left">
+                <el-input v-model="item.htzt"></el-input>
+              </div>
+              <div style="width:70%;float:left;text-align: center;">
+                <el-input v-model="item.htnr"></el-input>
+              </div>
+              <div style="width:10%;float:left">
+                <el-button @click="deleteHttk(index)" type="text">删除</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="handle-bar" style="margin-top:20px">
+        <!-- <el-button
+          style="float:left"
+          icon="el-icon-plus"
+          @click="typeofcontactClick"
+          type="text"
+        >添加一行</el-button>-->
+        <el-button type="primary" @click="successClick(-1)">保存</el-button>
+        <el-button
+          v-if="widowData.type == 'bjdXtui'?false:widowData.type == 'add'?false:widowData.type == 'xjdXtui'?false:true"
+          type="success"
+          @click="successClick(0)"
+        >提交</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <!-- 客户选择 -->
+    <el-dialog
+      title="客户选择"
+      :visible.sync="dialogCustomer"
+      width="30%"
+      :before-close="handleCloseCustomer"
+      :modal-append-to-body="false"
+    >
+      <div>
+        <div
+          @click="customersIdClick(item)"
+          style="display: inline-block;margin:10px;cursor: pointer"
+          v-for="item in customersList"
+          :key="item.customerId"
+        >
+          <span v-text="item.name"></span>
+        </div>
+      </div>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogCustomer = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <treeDlalog
+      @dialogTreeData="dialogTreeData"
+      :trddId="treeId"
+      @close="dialogStatus = false"
+      :dialogStatus="dialogStatus"
+    ></treeDlalog>
+
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+
+    <xzpp
+      @customerClick="customerClick"
+      @customerAdd="customerAdd"
+      @colse="customerVisible = false"
+      :customerVisible="customerVisible"
+    ></xzpp>
+    <khDialog @hkDialog="hkDialog" @colse="dialogVisible = false" :dialogVisible="dialogVisible"></khDialog>
+    <lxrDialog
+      @lxrDialog="lxrDialog"
+      @colse="lxrdialogVisible = false"
+      :customerId="from.customerId"
+      :lxrdialogVisible="lxrdialogVisible"
+    ></lxrDialog>
+    <pmDialog @pmSubit="pmSubit" @colse="dialogComname = false" :dialogComname="dialogComname"></pmDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  jxcXsddQueryForAdd,
+  jxcXsddQueryck,
+  jxcXsddAddOrUpdate,
+  jxcXsddQueryForEditById,
+} from "@/api/jxc/jxc";
+import {
+  bjdQueryDwtt,
+  httkQueryTypeOfContact,
+  bjdQueryForEdit,
+} from "@/api/crm/xsbjd";
+import {
+  xbjXjdToXsdd,
+  xbjQueryComname,
+  xbjQueryCustomerContact,
+} from "@/api/crm/xbjTable";
+import { crmCustomerqueryById } from "@/api/crm/ggkhc";
+import {
+  xbjQueryCustomer,
+  xbjQueryProduct,
+  xbjQueryBrandTree,
+  jxcXsddFileQueryByXsddId,
+  adminYszdGetYlzdSetByType,
+} from "@/api/crm/xbjTable";
+import { jxcXsddFileUpload } from "@/api/common";
+import Lockr from "lockr";
+import treeDlalog from "../../components/treeDlalog";
+import gxrDialog from "../../components/gxrDialog";
+import xzpp from "../../components/xzpp";
+import pmDialog from "../../components/pmDialog";
+import khDialog from "../../components/khDialog";
+import lxrDialog from "../../components/lxrDialog";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    treeDlalog,
+    gxrDialog,
+    xzpp,
+    pmDialog,
+    khDialog,
+    lxrDialog
+  },
+  watch: {
+    "from.zje": {
+      handler() {
+        this.from.zkhzje = (
+          Number(this.from.zje) *
+          (Number(this.from.zdzk) * 0.01)
+        ).toFixed(2);
+      },
+    },
+    "from.zdzk": {
+      handler() {
+        this.from.cbzkhzjeje = (
+          Number(this.from.zje) *
+          (Number(this.from.zdzk) * 0.01)
+        ).toFixed(2);
+      },
+    },
+  },
+  computed: {
+    wsdjComputed() {
+      return (data) => {
+        if (!this.wsdjCheckbox) {
+          let num = 0;
+          if (
+            this.tableList[data.$index].hsdj != "" &&
+            this.tableList[data.$index].productSl != ""
+          ) {
+            num = (
+              this.tableList[data.$index].hsdj /
+              (1 + this.tableList[data.$index].productSl * 0.01)
+            ).toFixed(2);
+          } else {
+            num = 0;
+          }
+          this.tableList[data.$index].wsdj = num;
+        }
+      };
+    },
+    hsdjComputed() {
+      return (data) => {
+        if (!this.hsdjCheckbox) {
+          let num = 0;
+          if (
+            this.tableList[data.$index].wsdj != "" &&
+            this.tableList[data.$index].productSl != ""
+          ) {
+            num = (
+              this.tableList[data.$index].wsdj *
+              (1 + this.tableList[data.$index].productSl * 0.01)
+            ).toFixed(2);
+          } else {
+            num = 0;
+          }
+          this.tableList[data.$index].hsdj = num;
+        }
+      };
+    },
+    sjComputed() {
+      return (data) => {
+        if (
+          this.tableList[data.$index].wsdj != "" &&
+          this.tableList[data.$index].hsdj != ""
+        ) {
+          this.tableList[data.$index].sj = (
+            (this.tableList[data.$index].hsdj -
+              this.tableList[data.$index].wsdj) *
+            this.tableList[data.$index].quantity
+          ).toFixed(2);
+        } else {
+          this.tableList[data.$index].sj = 0;
+        }
+      };
+    },
+    hkComputed() {
+      return (data) => {
+        if (this.tableList[data.$index].wsdj != "") {
+          this.tableList[data.$index].hk = (
+            this.tableList[data.$index].wsdj *
+            this.tableList[data.$index].quantity
+          ).toFixed(2);
+        } else {
+          this.tableList[data.$index].hk = 0;
+        }
+      };
+    },
+    hjComputed() {
+      return (data) => {
+        if (this.tableList[data.$index].hsdj != "") {
+          this.tableList[data.$index].hj = (
+            this.tableList[data.$index].hsdj *
+            this.tableList[data.$index].quantity
+          ).toFixed(2);
+        } else {
+          this.tableList[data.$index].hj = 0;
+        }
+      };
+    },
+  },
+  data() {
+    return {
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      productList: [],
+      customersList: [],
+      dialogCustomer: false,
+      xsddTitle: "",
+      typeofcontactList: [],
+      dialogVisible: false,
+      customerVisible: false,
+      jxcXsddHttkList: [],
+      options: [],
+      customerList: [],
+      props: {
+        value: "name",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      customerFrom: {
+        page: 1,
+        limit: 15,
+        brandName: "",
+        productModelnum: "",
+        productName: "",
+      },
+      cascaderIds: [],
+      dwttList: [],
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: "",
+      },
+      creator: "",
+      createDate: "",
+      loading: false,
+      customerName: "",
+      dialogVisible: false,
+      customerId: "",
+      from: {
+        xsddId: "",
+        xsddDh: "",
+        xjdId: "",
+        bjdId: "",
+        customerId: "",
+        contactId: "",
+        contactName: "",
+        dwtt: "",
+        hq: "",
+        fplx: 1,
+        zje: "",
+        zdzk: 100,
+        zkhZje: "",
+        cbzje: "",
+        pricelx: "",
+        typeofcontract: "",
+        remark: "",
+        jhrq: "",
+        skqx: "",
+        shdz: "",
+        ck: "",
+        contactPhone: "",
+        xsddlx: "",
+        gdzt: "",
+        sfbd: "否",
+        zkhzje: "",
+      },
+      tableList: [
+        {
+          xsddmxId: "",
+          xjdmxId: "",
+          bjdmxId: "",
+          productId: "",
+          commnameId: "",
+          brandId: "",
+          quantity: "",
+          measureUnitid: "",
+          wsdj: "",
+          measureName: "",
+          comname: "",
+          brandName: "",
+          productName: "",
+          hsdj: "",
+          productSl: "",
+          productModelnum: "",
+          sj: "",
+          hk: "",
+          hj: "",
+          zy: "",
+        },
+      ],
+      xsddlxList: [
+        { name: "外销类" },
+        { name: "样品" },
+        { name: "施工单" },
+        { name: "设备销售" },
+        { name: "刷卡" },
+        { name: "服务销售" },
+        { name: "直接销售" },
+        { name: "样品销售" },
+        { name: "代理商销售" },
+        { name: "淘宝订单" },
+        { name: "官方订单" },
+      ],
+      gdztList: [{ name: "正在跟进" }, { name: "跟单已结束" }],
+      ckList: [],
+      tableData: [],
+      contactList: [],
+      total: 0,
+      fplxList: [
+        {
+          name: "增值税发票",
+          id: 1,
+        },
+        {
+          name: "普通发票",
+          id: 2,
+        },
+        {
+          name: "收据",
+          id: 3,
+        },
+      ],
+      wsdjCheckbox: false,
+      hsdjCheckbox: true,
+      fileList: [],
+      ywyName: "",
+      dialogStatus: false,
+      treeId: "",
+      gxrDialogStatus: false,
+      gxrName: "",
+      width: "",
+      widthList: 0,
+      dialogComname: false,
+      widowData: {},
+      lxrdialogVisible:false
+    };
+  },
+
+  methods: {
+    lxrDialog(id, name, phone) {
+      this.from.contactName = name;
+      this.contactName = name;
+      this.from.contactPhone = phone;
+      this.from.contactId = id;
+    },
+    hkDialog(name, id) {
+      this.customerName = name;
+      this.from.customerId = id;
+      xbjQueryCustomerContact({
+        customerId: id,
+      })
+        .then((res) => {
+          this.contactList = res.data;
+          this.from.contactName = res.data[0].contactName;
+          this.from.contactPhone = res.data[0].contactPhone;
+          this.from.contactId = res.data[0].contactId;
+        })
+        .catch((res) => {});
+    },
+    contactDialog() {
+      if (this.from.contactId == "") {
+        this.msgInfo("请选择客户");
+        return;
+      }
+      this.lxrdialogVisible = true;
+    },
+    xzBjd() {
+      this.windowOpen("/xsddDetailTable", {
+        name: this.customerName,
+        type: "xzbjd",
+      });
+    },
+    pmSubit(data) {
+      this.$set(this.tableList[this.tableIndex], "comname", data.name);
+      this.$set(this.tableList[this.tableIndex], "commnameId", data.id);
+      if (this.widowData.type == "bjdXtui") {
+        this.$set(this.tableList[this.tableIndex], "xjdmxId", "");
+        this.$set(this.tableList[this.tableIndex], "bjdmxId", "");
+      } else {
+        this.$set(this.tableList[this.tableIndex], "xjdmxId", "");
+      }
+    },
+    comnameIdClick(scope) {
+      this.tableIndex = scope.$index;
+      this.dialogComname = true;
+    },
+    gxrDialogTreeData(id, name) {
+      this.gxrName = name;
+      this.from.gxr = id;
+    },
+    gxrDialog() {
+      this.gxrDialogStatus = true;
+    },
+    dialogTreeData(id, name) {
+      this.from.ywy = id;
+      this.ywyName = name;
+    },
+    ywyDialog() {
+      this.dialogStatus = true;
+    },
+    queryPhone(val) {
+      for (var i in this.contactList) {
+        if (this.contactList[i].contactId == val) {
+          this.from.contactPhone = this.contactList[i].contactPhone;
+        }
+      }
+    },
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      jxcXsddFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    customersIdClick(item) {
+      this.customerName = item.name;
+      this.from.customerId = item.customerId;
+      this.contactList = item.contactList;
+      this.from.contactId = item.contactList[0].contactId;
+      this.from.contactPhone = item.contactList[0].contactPhone;
+      this.dialogCustomer = false;
+    },
+    handleCloseCustomer() {
+      this.dialogCustomer = false;
+    },
+    customerCliuck(val) {
+      this.customerIndex = val;
+      this.customerVisible = true;
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handleCloseVisible() {
+      this.customerVisible = false;
+    },
+    search() {
+      this.dialogData();
+    },
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    hidenView() {
+      window.top.close();
+    },
+    customerData() {
+      xbjQueryProduct(this.customerFrom)
+        .then((res) => {
+          this.customerList = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    successClick(status) {
+      if (this.from.customerId == "") {
+        this.msgInfo("请选择客户!");
+        return;
+      }
+      if (this.wsdjCheckbox && this.hsdjCheckbox) {
+        this.msgInfo("请选择一个单价类型!");
+        return;
+      } else if (!this.wsdjCheckbox && !this.hsdjCheckbox) {
+        this.msgInfo("请选择单价类型!");
+        return;
+      } else if (this.from.fplx == "") {
+        this.msgInfo("请选择发票类型");
+        return;
+      }
+      for (var i in this.tableList) {
+        if (this.tableList[i].brandId == "") {
+          this.msgInfo("请选择品牌!");
+          return;
+        }
+        if (this.tableList[i].quantity == "") {
+          this.msgInfo("请输入数量!");
+          return;
+        }
+        if (this.tableList[i].quantity <= 0) {
+          this.msgInfo("请输入有效数量!");
+          return;
+        }
+        console.log(this.tableList[i].hsdj);
+        if (this.tableList[i].hsdj == "" || this.tableList[i].hsdj == null) {
+          this.msgInfo("请输入含税单价!");
+          return;
+        }
+      }
+      this.from.zkhZje = this.from.zje * (this.from.zdzk / 100);
+      if (this.wsdjCheckbox) {
+        this.from.pricelx = 1;
+      } else if (this.hsdjCheckbox) {
+        this.from.pricelx = 2;
+      }
+      for (var i in this.jxcXsddHttkList) {
+        this.jxcXsddHttkList[i].px = Number(i) + 1;
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.fileIds = arr.join(",");
+      this.from.status = status;
+      this.from.jxcXsddmxList = this.tableList;
+      this.from.jxcXsddHttkList = this.jxcXsddHttkList;
+      for (var i in this.ylzdList) {
+        let num = this.ylzdList[i].ylzdName.substring(
+          this.ylzdList[i].ylzdName.indexOf("d") + 1,
+          this.ylzdList[i].ylzdName.length
+        );
+        if (this.ylzdList[i].from == 1) {
+          if (num == 1) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd1;
+            }
+          } else if (num == 2) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd2;
+            }
+          } else if (num == 3) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd3;
+            }
+          } else if (num == 4) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd4;
+            }
+          } else if (num == 5) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd5;
+            }
+          } else if (num == 6) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd6;
+            }
+          } else if (num == 7) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd7;
+            }
+          } else if (num == 8) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd8;
+            }
+          } else if (num == 9) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd9;
+            }
+          } else if (num == 10) {
+            for (var k in this.tableList) {
+              delete this.tableList[k].ylzd10;
+            }
+          }
+        }
+      }
+      if (this.widowData.type == "add") {
+        this.from.cbzje = 0;
+      }
+      jxcXsddAddOrUpdate(this.from)
+        .then((res) => {
+          if (this.widowData.type == "add") {
+            if (res.xsddDh !== this.from.xsddDh) {
+              this.loading = true;
+              this.$message({
+                message: "该单号已占用,已为你生成新单号" + res.xsddDh,
+                type: "success",
+                onClose: () => {
+                  window.opener.postMessage("child", window.location);
+                  window.top.close();
+                  this.loading = false;
+                },
+              });
+            } else {
+              this.loading = true;
+              this.$message({
+                message: "新增成功",
+                type: "success",
+                onClose: () => {
+                  window.opener.postMessage("child", window.location);
+                  window.top.close();
+                  this.loading = false;
+                },
+              });
+            }
+          } else if (this.widowData.type == "edit") {
+            this.loading = true;
+            this.$message({
+              message: "编辑成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage("child", window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          } else {
+            this.loading = true;
+            this.$message({
+              message: "下推成功",
+              type: "success",
+              onClose: () => {
+                window.opener.postMessage("child", window.location);
+                window.top.close();
+                this.loading = false;
+              },
+            });
+          }
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+
+    dialog() {
+      this.dialogVisible = true;
+    },
+    customerAdd() {
+      for (var i in this.selectionList) {
+        this.tableList[Number(i) + this.customerIndex] = Object.assign(
+          {},
+          this.selectionList[i]
+        );
+        this.$set(this.tableList, i, this.tableList[i]);
+      }
+    },
+    customerSearch() {
+      let arr = [];
+      if (this.cascaderIds.length) {
+        for (var i in this.cascaderIds) {
+          arr.push(this.cascaderIds[i][this.cascaderIds[i].length - 1]);
+        }
+        this.customerFrom.brandName = arr.join("|");
+      }
+      this.customerData();
+    },
+    dwttChange(val) {
+      let saleZzsl = 0;
+      for (var i in this.dwttList) {
+        if (this.dwttList[i].id == val) {
+          saleZzsl = this.dwttList[i].saleZzsl;
+        }
+      }
+      for (var i in this.tableList) {
+        this.tableList[i].productSl = saleZzsl;
+      }
+    },
+    deleteHttk(index) {
+      this.jxcXsddHttkList.splice(index, 1);
+    },
+    queryData() {
+      let self = this;
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          this.ylzdList = res.data;
+          for (var i in this.tableList) {
+            for (var k in res.data) {
+              this.$set(this.tableList[i], res.data[k].ylzdName, "");
+            }
+          }
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+      xbjQueryComname()
+        .then((res) => {
+          this.productList = res.data;
+        })
+        .catch((res) => {});
+      jxcXsddQueryck()
+        .then((res) => {
+          this.ckList = res.data;
+          this.from.ck = res.data[0].ckId;
+        })
+        .catch((res) => {});
+      bjdQueryDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.from.dwtt = res.data[0].id;
+          this.tableList[0].productSl = res.data[0].saleZzsl;
+        })
+        .catch((res) => {});
+      httkQueryTypeOfContact({ lx: 2 })
+        .then((res) => {
+          this.typeofcontactList = res.data;
+          this.from.typeofcontract = res.data[0].id;
+        })
+        .catch((res) => {});
+      if (this.widowData.type == "add") {
+        jxcXsddQueryForAdd()
+          .then((res) => {
+            self.from.xsddDh = res.data.xsddDh;
+            self.termsetting = res.data.termsetting;
+            for (var i in self.termsetting) {
+              for (var k in self.termsetting[i]) {
+                self.termsetting[i][k].htzt = self.termsetting[i][k].tkzt;
+                self.termsetting[i][k].htnr = self.termsetting[i][k].tknr;
+                self.termsetting[i][k].typeofcontract =
+                  self.termsetting[i][k].typeofcontact;
+                delete self.termsetting[i][k].tkzt;
+                delete self.termsetting[i][k].tknr;
+                delete self.termsetting[i][k].typeofcontact;
+              }
+            }
+            setTimeout(() => {
+              this.jxcXsddHttkList =
+                res.data.termsetting[self.from.typeofcontract];
+            }, 300);
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "edit") {
+        jxcXsddFileQueryByXsddId({
+          xsddId: this.decode(this.widowData.id),
+        })
+          .then((res) => {
+            this.fileList = res.data;
+          })
+          .catch((res) => {});
+        jxcXsddQueryForEditById({
+          xsddId: this.decode(this.widowData.id),
+        })
+          .then((res) => {
+            self.customerName = res.data.customerName;
+            self.from.xsddId = res.data.xsddId;
+            self.from.customerId = res.data.customerId;
+            self.from.contactId = res.data.contactId;
+            self.from.contactName = res.data.contactName
+            self.from.xsddDh = res.data.xsddDh;
+            self.from.hq = res.data.hq;
+            self.from.dwtt = res.data.dwtt;
+            self.from.fplx = Number(res.data.fplx);
+            self.from.jhrq = res.data.jhrq;
+            self.from.ck = Number(res.data.ck);
+            self.from.zdzk = res.data.zdzk;
+            self.from.remark = res.data.remark;
+            self.from.skqx = res.data.skqx;
+            self.from.shdz = res.data.shdz;
+            self.tableList = res.data.jxcXsddmxList;
+            self.from.typeofcontract = res.data.typeofcontract;
+            self.jxcXsddHttkList = res.data.jxcXsddHttkList;
+            self.from.xsddlx = res.data.xsddlx;
+            self.from.gdzt = res.data.gdzt;
+            self.from.sfbd = res.data.sfbd;
+            self.from.contactPhone = res.data.contactPhone;
+            self.creator = res.data.creatorName;
+            self.createDate = res.data.createDate;
+            self.ywyName = res.data.ywyName;
+            self.from.xsddlx = res.data.xsddlx;
+            self.from.gdzt = res.data.gdzt;
+            self.gxrName =
+              res.data.gxrName == "" ? "" : res.data.gxrName.join(",");
+
+            if (res.data.pricelx == 1) {
+              this.wsdjCheckbox = true;
+              this.hsdjCheckbox = false;
+            } else {
+              this.hsdjCheckbox = true;
+              this.wsdjCheckbox = false;
+            }
+            crmCustomerqueryById({
+              customerId: res.data.customerId,
+            })
+              .then((res) => {
+                self.contactList = res.data.customerContact;
+              })
+              .catch((res) => {});
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "bjdXtui") {
+        bjdQueryForEdit({
+          bjdId: this.decode(this.widowData.id),
+        })
+          .then((res) => {
+            crmCustomerqueryById({
+              customerId: res.data.baseMsg[0].customerId,
+            })
+              .then((res) => {
+                self.contactList = res.data.customerContact;
+              })
+              .catch((res) => {});
+            self.tableList = res.data.djmxList;
+            self.customerName = res.data.baseMsg[0].customerName;
+            self.from.fplx = Number(res.data.baseMsg[0].fplx);
+            self.from.bjdId = res.data.baseMsg[0].bjdId;
+            self.from.xsddId = res.data.baseMsg[0].xsddId;
+            self.from.customerId = res.data.baseMsg[0].customerId;
+            self.from.contactId = res.data.baseMsg[0].contactId;
+            self.ywyName = res.data.baseMsg[0].ywyName;
+            self.from.ywy = res.data.baseMsg[0].ywy;
+            self.from.contactPhone = res.data.baseMsg[0].contactPhone;
+            self.from.contactName = res.data.baseMsg[0].contactName;
+            if (res.data.baseMsg[0].pricelx == 1) {
+              this.wsdjCheckbox = true;
+              this.hsdjCheckbox = false;
+            } else {
+              this.hsdjCheckbox = true;
+              this.wsdjCheckbox = false;
+            }
+            jxcXsddQueryForAdd().then((res) => {
+              self.termsetting = res.data.termsetting;
+              self.from.xsddDh = res.data.xsddDh;
+
+              for (var i in self.termsetting) {
+                for (var k in self.termsetting[i]) {
+                  self.termsetting[i][k].htzt = self.termsetting[i][k].tkzt;
+                  self.termsetting[i][k].htnr = self.termsetting[i][k].tknr;
+                  self.termsetting[i][k].typeofcontract =
+                    self.termsetting[i][k].typeofcontact;
+                  delete self.termsetting[i][k].tkzt;
+                  delete self.termsetting[i][k].tknr;
+                  delete self.termsetting[i][k].typeofcontact;
+                }
+              }
+              setTimeout(() => {
+                this.jxcXsddHttkList =
+                  res.data.termsetting[self.from.typeofcontract];
+              }, 300);
+            });
+          })
+          .catch((res) => {});
+      } else if (this.widowData.type == "xjdXtui") {
+        jxcXsddQueryForAdd().then((res) => {
+          this.from.xsddDh = res.data.xsddDh;
+          this.termsetting = res.data.termsetting;
+          self.termsetting = res.data.termsetting;
+          for (var i in self.termsetting) {
+            for (var k in self.termsetting[i]) {
+              self.termsetting[i][k].htzt = self.termsetting[i][k].tkzt;
+              self.termsetting[i][k].htnr = self.termsetting[i][k].tknr;
+              self.termsetting[i][k].typeofcontract =
+                self.termsetting[i][k].typeofcontact;
+              delete self.termsetting[i][k].tkzt;
+              delete self.termsetting[i][k].tknr;
+              delete self.termsetting[i][k].typeofcontact;
+            }
+          }
+          setTimeout(() => {
+            this.jxcXsddHttkList =
+              res.data.termsetting[self.from.typeofcontract];
+          }, 300);
+        });
+
+        xbjXjdToXsdd({
+          xjdmxIds: this.widowData.id,
+        })
+          .then((res) => {
+            if (res.data.customers.length > 1) {
+              let array = [];
+              array = res.data.customers;
+              array.sort();
+              var re = [array[0]];
+              for (var i = 1; i < array.length; i++) {
+                if (array[i].customerId !== re[re.length - 1].customerId) {
+                  re.push(array[i]);
+                }
+              }
+              if (re.length == 1) {
+                this.customerName = re[0].name;
+                this.from.customerId = re[0].customerId;
+                this.contactList = re[0].contactList;
+                this.from.contactId = re[0].contactList[0].contactId;
+                this.from.contactPhone = re[0].contactList[0].contactPhone;
+              } else {
+                this.dialogCustomer = true;
+                this.customersList = re;
+              }
+            } else {
+              this.customerName = res.data.customers[0].name;
+              this.from.customerId = res.data.customers[0].customerId;
+              this.contactList = res.data.customers[0].contactList;
+              this.from.contactId =
+                res.data.customers[0].contactList[0].contactId;
+              this.from.contactPhone =
+                res.data.customers[0].contactList[0].contactPhone;
+            }
+            this.tableList = res.data.djmxList;
+            for (var i in res.data.djmxList) {
+              this.from.xjdId = res.data.djmxList[i].xjdId;
+              this.$set(
+                this.tableList[i],
+                "comname",
+                res.data.djmxList[i].commName
+              );
+              this.$set(
+                this.tableList[i],
+                "productSl",
+                this.dwttList[0].saleZzsl
+              );
+            }
+          })
+          .catch((res) => {});
+      }
+    },
+    appendClick() {
+      this.tableList.push({
+        xsddmxId: "",
+        xjdmxId: "",
+        bjdmxId: "",
+        productId: "",
+        commnameId: "",
+        brandId: "",
+        quantity: "",
+        measureUnitid: "",
+        wsdj: "",
+        measureName: "",
+        commnameName: "",
+        brandName: "",
+        productName: "",
+        hsdj: "",
+        productSl: "",
+        productModelnum: "",
+        sj: "",
+        hk: "",
+        hj: "",
+        zy: "",
+      });
+    },
+    customerClick(data) {
+      this.customerVisible = false;
+      this.tableList[this.customerIndex].xjdmxId = "";
+      this.tableList[this.customerIndex].brandName = data.brandName;
+      this.tableList[this.customerIndex].brandId = data.brandId;
+      this.tableList[this.customerIndex].commnameId = data.commnameId;
+      this.tableList[this.customerIndex].comname = data.productName;
+      this.tableList[this.customerIndex].measureName = data.measureName;
+      this.tableList[this.customerIndex].measureUnitid = data.measureUnitid;
+      this.tableList[this.customerIndex].productName = data.productName;
+      this.tableList[this.customerIndex].productId = data.productId;
+      this.tableList[this.customerIndex].productModelnum = data.productModelnum;
+    },
+    getSummaries(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        const values = data.map((item) => Number(item[column.property]));
+        if (!values.every((value) => isNaN(value))) {
+          sums[index] = values
+            .reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0)
+            .toFixed(2);
+          sums[index];
+        } else {
+          sums[index] = "";
+        }
+      });
+      this.from.zje = sums[10];
+      return sums;
+    },
+    wsdjHeader(h, { column }) {
+      return h("div", [
+        h("span", column.label),
+        h("el-checkbox", {
+          style: "display:inline-flex;margin-left:5px;",
+          on: {
+            change: ($event, column) => (
+              (this.hsdjCheckbox = !$event), (this.wsdjCheckbox = $event)
+            ), // 选中事件 $event, column，这里$event=true,column是input的dom当在select里打印的时候
+          },
+          props: {
+            value: this.wsdjCheckbox, //文字框的内容取决于这个value，如果value不存在，会报错
+          },
+        }),
+      ]);
+    },
+    hsdjHeader(h, { column }) {
+      return h("div", [
+        h("span", column.label),
+        h("el-checkbox", {
+          style: "display:inline-flex;margin-left:5px;",
+          on: {
+            change: ($event, column) => (
+              (this.hsdjCheckbox = $event), (this.wsdjCheckbox = !$event)
+            ), // 选中事件 $event, column，这里$event=true,column是input的dom当在select里打印的时候
+          },
+          props: {
+            value: this.hsdjCheckbox, //文字框的内容取决于这个value，如果value不存在，会报错
+          },
+        }),
+      ]);
+    },
+    customerReset() {
+      this.customerFrom.page = 1;
+      this.customerFrom.limit = 15;
+      this.cascaderIds = [];
+      this.customerFrom.brandName = "";
+      this.customerFrom.productModelnum = "";
+      this.customerFrom.productModelnum = "";
+      this.customerData();
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    handleSizeChangeA(val) {
+      this.customerFrom.limit = val;
+      this.customerData();
+    },
+    handleCurrentChangeA(val) {
+      this.customerFrom.page = val;
+      this.customerData();
+    },
+    handleSelectionChange(val) {
+      this.selectionList = val;
+    },
+    typeofcontactClick() {
+      this.jxcXsddHttkList.push({
+        htzt: "",
+        htnr: "",
+        typeofcontract: "",
+        id: "",
+      });
+    },
+    typeofcontactChange(val) {
+      this.jxcXsddHttkList = this.termsetting[val];
+    },
+    deletClick(val) {
+      this.tableList.splice(val, 1);
+    },
+    receiveMessage(event) {
+      if (event.data.type == "table") {
+        this.widowData.type = "bjdXtui";
+        this.widowData.id = this.encode(event.data.id);
+        this.queryData();
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    setTimeout(() => {
+      this.width = 100 / $(".el-table__row")[0].cells.length + "%";
+      this.widthList = $(".el-table__row")[0].cells.length;
+    }, 300);
+    this.widowData = this.$route.query;
+    if (this.widowData.type == "xjdXtui") {
+      this.widowData.id = JSON.parse(this.$route.query.list)
+        .map((item) => {
+          return item.xjdmxId;
+        })
+        .join(",");
+    }
+    this.creator = Lockr.get("loginUserInfo").realname;
+    window.addEventListener("message", this.receiveMessage, false);
+    this.createDate = this.getTime();
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  padding-right: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.tableButton {
+  width: 100%;
+  height: 40px;
+  li {
+    float: left;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

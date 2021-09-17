@@ -1,0 +1,149 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="dataStatus">
+          <div class="topStatus">
+            <div class="leftStatus" style="background:#B2D3F5">安全选项</div>
+            <div class="centerStatus" style="background:#B2D3F5">参数</div>
+            <div class="rightStatus" style="background:#B2D3F5">备注</div>
+          </div>
+          <div class="topStatus">
+            <div class="leftStatus">密码定时过期</div>
+            <div class="centerStatus">
+              <el-radio v-model="from.passwordOverdueFlag" :label="1">是</el-radio>
+              <el-radio v-model="from.passwordOverdueFlag" :label="0">否</el-radio>
+            </div>
+            <div class="rightStatus">如果超过了密码的有效期，则在用户登录时将强制用户修改密码。</div>
+          </div>
+          <div class="topStatus">
+            <div class="leftStatus">初始密码登录修改密码</div>
+            <div class="centerStatus">
+              <el-radio v-model="from.initChangepwdFlag" :label="1">是</el-radio>
+              <el-radio v-model="from.initChangepwdFlag" :label="0">否</el-radio>
+            </div>
+            <div class="rightStatus">选择“是”，用户初始密码登录需修改密码。</div>
+          </div>
+          <div class="topStatus">
+            <div class="leftStatus">密码强度</div>
+            <div class="centerStatus">
+              <span>密码长度</span>
+              <el-input style="width:100px" v-model="from.passwordStrongStart" placeholder="请输入内容"></el-input>
+              <span>--</span>
+              <el-input style="width:100px" v-model="from.passwordStrongEnd" placeholder="请输入内容"></el-input>
+              <el-checkbox
+                :value="from.passwordIncludeFlag==1?true:false"
+                @change="val => $set(from,'passwordIncludeFlag',val ? 1 : 0)"
+              ></el-checkbox>
+              <span>密码必须同时包含字母和数字</span>
+            </div>
+            <div class="rightStatus">设置密码强度， 以保证密码的安全性。</div>
+          </div>
+          <div class="topStatus">
+            <div class="leftStatus">登录错误次数限制</div>
+            <div class="centerStatus">
+              <el-radio v-model="from.passwordErrorFlag" :label="1">是</el-radio>
+              <el-radio v-model="from.passwordErrorFlag" :label="0">否</el-radio>
+              <el-input style="width:100px" v-model="from.passwordErrorMinute" placeholder="请输入内容"></el-input>
+              <span>分钟内登录错误</span>
+              <el-input style="width:100px" v-model="from.passwordErrorCs" placeholder="请输入内容"></el-input>
+              <span>次后</span>
+              <el-input style="width:100px" v-model="from.passwordErrorMinute2" placeholder="请输入内容"></el-input>
+              <span>分钟内禁止再次登录</span>
+            </div>
+            <div class="rightStatus">选择“是”，则登录错误重试数次后会被限制数分钟内不能登录。</div>
+          </div>
+          <div class="topStatus">
+            <div class="leftStatus">允许登录时记忆用户名</div>
+            <div class="centerStatus">
+              <el-radio v-model="from.rememberPasswordFlag" :label="1">是</el-radio>
+              <el-radio v-model="from.rememberPasswordFlag" :label="0">否</el-radio>
+            </div>
+            <div class="rightStatus">登录界面记忆上次成功登录的用户名，可能会带来安全隐患。</div>
+          </div>
+          <div class="bottomStatus">
+            <el-button style="margin-top:25px" type="primary" @click="submit">保存</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminXtaqszQueryXtaqszSet,
+  adminXtaqszUpdateXtaqszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  components: {},
+  data() {
+    return {
+      title: "",
+      radio: "",
+      input: "",
+      checked: "",
+      from: {},
+    };
+  },
+
+  methods: {
+    xtaqData() {
+      adminXtaqszQueryXtaqszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((res) => {});
+    },
+    submit() {
+      adminXtaqszUpdateXtaqszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.xtaqData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+  activated() {
+    this.title = this.$route.meta.title;
+  },
+  mounted() {
+    this.xtaqData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.dataStatus {
+  width: 100%;
+  .topStatus {
+    width: 100%;
+    height: 45px;
+    .leftStatus {
+      line-height: 45px;
+      text-align: center;
+      width: 15%;
+      float: left;
+    }
+    .centerStatus {
+      line-height: 45px;
+      width: 45%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 45px;
+      width: 25%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    text-align: center;
+    width: 85%;
+    height: 42px;
+  }
+}
+</style>

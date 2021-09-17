@@ -1,0 +1,161 @@
+<template>
+  <el-container>
+    <el-header class="nav-container">
+      <navbar :navIndex="1" @nav-items-click="navClick"></navbar>
+    </el-header>
+    <el-container>
+      <el-aside width="auto" class="aside-container">
+        <sidebar :items="jxcRouters.children" createButtonTitle="快速创建" mainRouter="jxc">
+          <div slot="add" class="quick-add">
+            <div class="quick-add-content">
+              <p v-for="(item, index) in quickAddList" :key="index" @click="addSkip(item)">
+                <i class="wukong" :class="'wukong-' + item.icon"></i>
+                <span>{{item.lablel}}</span>
+              </p>
+            </div>
+          </div>
+        </sidebar>
+      </el-aside>
+      <el-main id="crm-main-container" style="padding:15px;">
+        <app-main></app-main>
+      </el-main>
+    </el-container>
+    <xsddDetail
+      :xxddType="xxddType"
+      :xsddId="xsddId"
+      @save-success="createSaveSuccess"
+      v-if="xsddDetail"
+      @close="xsddDetail=false"
+    ></xsddDetail>
+  </el-container>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import { childrenMenu } from "@/router/modules/jxc/jxc";
+import { Navbar, Sidebar, AppMain } from "./components";
+import xsddDetail from "../jxc/xsgl/xsddDetail";
+
+export default {
+  name: "Layout",
+  components: {
+    Navbar,
+    Sidebar,
+    AppMain,
+    xsddDetail,
+  },
+  computed: {
+    ...mapGetters(["jxc", "jxcRouters", "operAuth"]),
+    jxcRoutersItems() {
+      for (let index = 0; index < childrenMenu.length; index++) {
+        const routerMenuItem = childrenMenu[index];
+        routerMenuItem.hidden = this.crm[routerMenuItem.meta.subType]
+          ? false
+          : true;
+      }
+      return childrenMenu;
+    },
+    // 快捷添加
+    quickAddList() {
+      var addItems = [];
+      if (this.jxc.xsgl.xsdd) {
+        addItems.push({
+          icon: "log",
+          index: "xsdd",
+          lablel: "销售订单",
+        });
+      }
+
+      // if (this.jxc.xsgl.xskd && this.operAuth.xsglqx.xskdxjqx) {
+      //   addItems.push({
+      //     icon: "task",
+      //     lablel: "销售开单"
+      //   });
+      // }
+      // if (this.jxc.xsgl.xsyd && this.operAuth.xsglqx.xsydxjqx) {
+      //   addItems.push({
+      //     icon: "over",
+      //     lablel: "销售异动"
+      //   });
+      // }
+      return addItems;
+    },
+  },
+  data() {
+    return {
+      titleType: "",
+      isCreate: false,
+      sidebarItems: [],
+      xsddDetail: false,
+      xxddType: "",
+      xsddId: 0,
+    };
+  },
+  created() {
+    this.sidebarItems = childrenMenu;
+  },
+  methods: {
+    navClick(index) {},
+    addSkip(item) {
+      let type = item.index;
+      // if(type=="money"){
+      //     type="receivables"
+      // }
+
+      // console.log(item, "item");
+      // this.createCRMType = type;
+      this.isCreate = true;
+      this.titleType = item.label;
+      if (item.index == "xsdd") {
+        this.windowOpen("/xsddDetail", {
+          id: this.encode(""),
+          type: "add",
+        });
+      }
+    },
+
+    quicklyCreate() {
+      this.isCreate = true;
+    },
+    quickAddOffset() {
+      return Math.round(this.quickAddList.length / 2) * 25;
+    },
+    createSaveSuccess() {
+      this.$router.push({
+        path: "/jxc/buyandsale/saleorder",
+      });
+    },
+  },
+  beforeDestroy() {
+    this.$bus.$off("project-setting");
+    this.$bus.$off("add-project");
+    this.$bus.$off("delete-project");
+    this.$bus.$off("recover-project");
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+@import "./styles/common.scss";
+
+.el-container {
+  min-height: 0;
+}
+.aside-container {
+  position: relative;
+  background-color: #001529;
+  box-sizing: border-box;
+  border-right: solid 1px #e6e6e6;
+  overflow: visible;
+}
+
+.nav-container {
+  padding: 0;
+  // box-shadow: 0px 1px 2px #dbdbdb;
+  z-index: 100;
+  min-width: 1200px;
+}
+.quick-add {
+  height: 178px;
+}
+</style>

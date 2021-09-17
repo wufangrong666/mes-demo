@@ -1,0 +1,168 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="input-box">
+          <label class="input-label">汇报名称</label>
+          <el-input placeholder="请输入汇报名称" clearable v-model="from.reportName"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">汇报日期</label>
+          <el-date-picker
+            v-model="from.reportDate"
+            value-format="yyyy-MM-dd"
+            type="date"
+            placeholder="选择日期"
+          ></el-date-picker>
+        </div>
+        <div class="input-box">
+          <label class="input-label">汇报给谁</label>
+          <el-cascader
+            v-model="toList"
+            :options="selectList"
+            :show-all-levels="false"
+            :props="optionProps"
+            collapse-tags
+            clearable
+          ></el-cascader>
+        </div>
+        <div class="input-box">
+          <label class="input-label">谁汇报的</label>
+          <el-cascader
+            v-model="fromList"
+            :options="selectList"
+            :show-all-levels="false"
+            :props="optionPropsF"
+            collapse-tags
+            clearable
+          ></el-cascader>
+        </div>
+        <div class="input-box">
+          <label class="input-label">汇报内容</label>
+          <el-input type="textarea" :rows="2" placeholder="请输入汇报内容" v-model="from.reportContent"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">评价</label>
+          <el-input type="textarea" :rows="2" placeholder="请输入汇报内容" v-model="from.pj"></el-input>
+        </div>
+        <div class="input-box">
+          <el-button type="primary" @click="release">发布</el-button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import { queryDeptTreeAndUser } from "@/api/crm/ggkhc";
+import { oaReportAddOrUpdate } from "@/api/oa/personCenter";
+export default {
+  name: "",
+  data() {
+    return {
+      title: "",
+      from: {
+        reportName: "",
+        reportContent: "",
+        reportDate: "",
+        userTo: "",
+        userFrom: "",
+        pj: "",
+      },
+      toList: [],
+      fromList: [],
+      selectList: [],
+      optionProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+        multiple: true,
+      },
+      optionPropsF: {
+        value: "id",
+        label: "name",
+        children: "children",
+      },
+    };
+  },
+
+  methods: {
+    release() {
+      if (this.from.reportName == "") {
+        this.msgInfo("请输入汇报名称");
+        return;
+      }
+      if (this.from.reportDate == "") {
+        this.msgInfo("请选择汇报日期");
+        return;
+      }
+      if (!this.toList.length) {
+        this.msgInfo("请选择你需要汇报的人");
+        return;
+      } else {
+        let num = [];
+        for (const key in this.toList) {
+          num.push(this.toList[key][this.toList[key].length - 1]);
+        }
+        this.from.userTo = num.join(",");
+      }
+      if (!this.fromList.length) {
+        this.msgInfo("请选择谁汇报的");
+        return;
+      } else {
+        this.from.userFrom = this.fromList[0][this.fromList.length - 1];
+      }
+      oaReportAddOrUpdate(this.from)
+        .then((res) => {
+          this.msgSuccess("添加成功");
+          this.resetForm(this.from);
+          this.toList = [];
+          this.fromList = [];
+        })
+        .catch((res) => {});
+    },
+    cascader(data) {
+      for (var item in data) {
+        if (data[item].children === undefined) {
+          data[item].children = data[item].user;
+          for (var i in data[item].children) {
+            data[item].children[i].name = data[item].children[i].realname;
+            data[item].children[i].id = data[item].children[i].userId;
+          }
+        } else {
+          this.cascader(data[item].children);
+        }
+      }
+      return data;
+    },
+    loginData() {
+      queryDeptTreeAndUser()
+        .then((res) => {
+          this.selectList = this.cascader(res.data);
+        })
+        .catch(() => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.loginData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  .el-select {
+    width: 70%;
+  }
+  .el-cascader {
+    width: 70%;
+  }
+}
+</style>

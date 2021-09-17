@@ -1,0 +1,230 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <el-input placeholder="供应商" v-model="from.name"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人</label>
+            <el-input :readonly="true" clearable placeholder="请选择共享人" v-model="cjrName">
+              <el-button @click="cjrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" style="width:23%">
+            <label class="input-label">创建日期</label>
+            <el-date-picker
+              value-format="yyyy-MM-dd"
+              v-model="item"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            ></el-date-picker>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核状态</label>
+            <el-select v-model="from.shzt" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in shztList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <el-select v-model="from.dwtt" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in dwttList"
+                :key="item.id"
+                :label="item.nameCn"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <el-button @click="success" type="primary">查询</el-button>
+            <el-button @click="reset" type="info" plain>重置</el-button>
+          </div>
+          <el-table :data="tableData" style="width: 100%" :height="tableHeight">
+            <el-table-column prop="gysName" label="供应商名称"></el-table-column>
+            <el-table-column prop="je" label="金额"></el-table-column>
+            <el-table-column prop="realname" label="创建人"></el-table-column>
+            <el-table-column prop="createDate" label="创建日期"></el-table-column>
+            <el-table-column prop="checkStatus" label="审核状态"></el-table-column>
+          </el-table>
+          <div class="p-contianer">
+            <el-button style="margin:10px 0 0 400px;" @click="hidenView" type="info" plain>关闭</el-button>
+            <el-pagination
+              class="p-bar"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="from.page"
+              :page-sizes="[15,30,50,100]"
+              :page-size.sync="from.limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+            ></el-pagination>
+          </div>
+        </sections>
+      </div>
+      <gxrDialog
+        @gxrDialogTreeData="gxrDialogTreeData"
+        @close="gxrDialogStatus = false"
+        :gxrDialogStatus="gxrDialogStatus"
+      ></gxrDialog>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrGysYfkZj, cgbbGrGysYfkJs, cgddFindDwtt } from "@/api/jxc/jxc";
+import gxrDialog from "../../../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    gxrDialog,
+  },
+  data() {
+    return {
+      loading: false,
+      tableData: [],
+      cjrName: "",
+      item: [],
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        cjr: "",
+        shzt: "",
+        dwtt: "",
+        start: "",
+        end: "",
+      },
+      shztList: [
+        { name: "未审核", id: "0" },
+        { name: "已审核", id: "1" },
+      ],
+      dwttList: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 140, // 表的高度
+      gxrDialogStatus: false,
+    };
+  },
+
+  methods: {
+    success() {
+      this.mxData();
+    },
+    reset() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.cjr = "";
+      this.cjrName = "";
+      this.from.name = "";
+      this.from.shzt = "";
+      this.from.dwtt = "";
+      this.mxData();
+    },
+    gxrDialogTreeData(id, name) {
+      this.cjrName = name;
+      this.from.cjr = id;
+    },
+    cjrDialog() {
+      this.gxrDialogStatus = true;
+    },
+    hidenView() {
+      window.top.close();
+    },
+    mxData() {
+      if (this.item.length) {
+        this.from.start = this.item[0];
+        this.from.end = this.item[1];
+      }
+      this.from.gysId = this.widowData.id
+      if (this.widowData.type == "yfkzj") {
+        cgbbGrGysYfkZj(this.from)
+          .then((res) => {
+            this.tableData = res.data
+            this.total = res.totalRow
+          })
+          .catch((res) => {});
+      } else {
+        cgbbGrGysYfkJs(this.from)
+          .then((res) => {
+            this.tableData = res.data
+            this.total = res.totalRow
+          })
+          .catch((res) => {});
+      }
+    },
+    dwttData() {
+      cgddFindDwtt()
+        .then((res) => {
+          this.dwttList = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.mxData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.mxData();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.dwttData();
+    this.mxData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-container .el-date-editor .el-range-separator {
+  line-height: 20px;
+}
+.create-container .el-range-separator {
+  width: 10%;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../../../manage/styles/table.scss";
+@import "../../../../../styles/detail.scss";
+.p-contianer {
+  text-align: center;
+}
+.input-box {
+  width: 15%;
+  .input-label {
+    width: 60px;
+  }
+}
+</style>

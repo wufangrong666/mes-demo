@@ -1,0 +1,108 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">销售开单审核后:</div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">是否自动生成收款单：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.xskdSkd" :label="1">是</el-radio>
+          <el-radio v-model="from.xskdSkd" :label="0">否</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">是否自动生成销项发票单据：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.xskdXxfp" :label="1">是</el-radio>
+          <el-radio v-model="from.xskdXxfp" :label="0">否</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">采购收货审核后:</div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">是否自动生成付款单：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cgshFkd" :label="1">是</el-radio>
+          <el-radio v-model="from.cgshFkd" :label="0">否</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">是否自动生成进项发票单据：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cgshJxfp" :label="1">是</el-radio>
+          <el-radio v-model="from.cgshJxfp" :label="0">否</el-radio>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminDjxjQueryDjxjSet,
+  adminDjxjUpdateDjxjSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    mrpData() {
+      adminDjxjQueryDjxjSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminDjxjUpdateDjxjSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.mrpData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.mrpData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

@@ -1,0 +1,250 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="客户名称" @dcExcel="dcExcel" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="code" label="客户编号"></el-table-column>
+      <el-table-column prop="khName" label="客户名称"></el-table-column>
+      <el-table-column prop="cshqk" label="初始化欠款"></el-table-column>
+      <el-table-column prop="qcysye" label="期初应收余额"></el-table-column>
+      <el-table-column label="当期应收款情况">
+        <el-table-column prop="dqysze" label="应收总额">
+          <template slot-scope="scope">
+            <span
+              v-if="scope.row.dqysze!=0"
+              v-text="scope.row.dqysze"
+              style="color:#3E84E9;cursor: pointer"
+              @click="yfClick(scope.row)"
+            ></span>
+            <span v-else v-text="scope.row.dqysze"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="dqyskzj" label="应付款增加">
+          <template slot-scope="scope">
+            <span
+              v-if="scope.row.dqyskzj!=0"
+              v-text="scope.row.dqyskzj"
+              style="color:#3E84E9;cursor: pointer"
+              @click="yfkzjClick(scope.row)"
+            ></span>
+            <span v-else v-text="scope.row.dqyskzj"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="dqyskjs" label="应付款减少">
+          <template slot-scope="scope">
+            <span
+              v-if="scope.row.dqyskjs!=0"
+              v-text="scope.row.dqyskjs"
+              style="color:#3E84E9;cursor: pointer"
+              @click="yfkjsClick(scope.row)"
+            ></span>
+            <span v-else v-text="scope.row.dqyskjs"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="dqysk" label="客户已收款">
+          <template slot-scope="scope">
+            <span
+              v-if="scope.row.dqysk!=0"
+              v-text="scope.row.dqysk"
+              style="color:#3E84E9;cursor: pointer"
+              @click="gysysClick(scope.row)"
+            ></span>
+            <span v-else v-text="scope.row.dqysk"></span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="dqysye" label="应收余额"></el-table-column>
+      </el-table-column>
+      <el-table-column prop="ysze" label="应收总额"></el-table-column>
+      <el-table-column prop="address" label="客户所在城市"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { reportYscx } from "@/api/jxc/jxc";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  computed: {},
+  data() {
+    return {
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      xsfzrName: "",
+      from: {
+        page: 1,
+        limit: 15,
+        customerName: "",
+        beginDate: "",
+        endDate: "",
+        xsfzr: "",
+        search: "",
+      },
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      gxrDialogStatus: false,
+      listType: "jxc_grxsbb_yscx",
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.loginData();
+  },
+  methods: {
+    dcExcel() {
+      let tHeader = [
+        "客户编号",
+        "客户名称",
+        "初始化欠款",
+        "期初应收余额",
+        "应收总额",
+        "应付款增加",
+        "应付款减少",
+        "客户已收款",
+        "应收余额",
+        "应收总额",
+        "客户所在城市",
+      ];
+      let filterVal = [
+        "code",
+        "khName",
+        "cshqk",
+        "qcysye",
+        "dqysze",
+        "dqyskzj",
+        "dqyskjs",
+        "dqysk",
+        "dqysye",
+        "ysze",
+        "address",
+      ];
+      this.exportInfos(
+        tHeader,
+        filterVal,
+        this.tableData,
+        "应收查询"
+      );
+    },
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.customerName = "";
+      this.from.beginDate = "";
+      this.from.endDate = "";
+      this.from.xsfzr = "";
+      for (var i in list) {
+        if (list[i].name == "khmc") {
+          this.$set(this.from, "customerName", list[i].value);
+        } else if (list[i].name == "ywy") {
+          this.$set(this.from, "xsfzr", list[i].value);
+        } else if (list[i].name == "itemData") {
+          this.item = list[i].value
+        }
+      }
+      this.loginData();
+    },
+    yfClick(row) {
+      this.windowOpen("/cgtjbbYfze", {
+        list: JSON.stringify(row),
+        item: this.item,
+        type: "yfze",
+      });
+    },
+    yfkzjClick(row) {
+      this.windowOpen("/cgtjbbYfkMx", {
+        id: this.encode(row.gysId),
+        type: "yfkzj",
+      });
+    },
+    yfkjsClick(row) {
+      this.windowOpen("/cgtjbbYfkMx", {
+        id: this.encode(row.gysId),
+        type: "yfkjs",
+      });
+    },
+    gysysClick(row) {
+      this.windowOpen("/cgbbtjGysysk", {
+        list: JSON.stringify(row),
+        item: this.item,
+        type: "gysysk",
+      });
+    },
+    //获取列表数据
+    loginData() {
+      if (this.item.length) {
+        this.from.beginDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      reportYscx(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-date-editor .el-range-separator {
+  line-height: 28px;
+}
+.c-container .el-range-separator {
+  width: 10%;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+</style>

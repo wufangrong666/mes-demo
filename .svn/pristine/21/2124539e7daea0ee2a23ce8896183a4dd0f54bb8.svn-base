@@ -1,0 +1,244 @@
+<template>
+  <div style="float:left;position: relative;">
+    <div class="nav">
+      <div class="leftNav">
+        <span>销售模块</span>
+        <span>单号前缀</span>
+      </div>
+      <div class="rightNav">
+        <div v-for="(item,index) in crmList" :key="index">
+          <span v-text="item.flag"></span>
+          <el-input v-model="item.prefix"></el-input>
+          <el-button @click="deleteClick(item.id,index,crmList)" disabled type="text">删除</el-button>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="leftNav">
+        <span>采购模块</span>
+        <span>单号前缀</span>
+      </div>
+      <div class="rightNav">
+        <div v-for="(item,index) in jxcList" :key="index">
+          <span v-text="item.flag"></span>
+          <el-input v-model="item.prefix"></el-input>
+          <el-button @click="deleteClick(item.id,index,jxcList)" disabled type="text">删除</el-button>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="leftNav">
+        <span>财务模块</span>
+        <span>单号前缀</span>
+      </div>
+      <div class="rightNav">
+        <div v-for="(item,index) in cwList" :key="index">
+          <span v-text="item.flag"></span>
+          <el-input v-model="item.prefix"></el-input>
+          <el-button @click="deleteClick(item.id,index,cwList)" disabled type="text">删除</el-button>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="leftNav">
+        <span>仓管模块</span>
+        <span>单号前缀</span>
+      </div>
+      <div class="rightNav">
+        <div v-for="(item,index) in oaList" :key="index">
+          <span v-text="item.flag"></span>
+          <el-input v-model="item.prefix"></el-input>
+          <el-button @click="deleteClick(item.id,index,oaList)" disabled type="text">删除</el-button>
+        </div>
+      </div>
+    </div>
+    <div class="btn">
+      <el-button type="info" @click="addPush" plain>添加</el-button>
+      <el-button type="primary" @click="dhGzAdd" plain>保存</el-button>
+    </div>
+
+    <el-dialog title="添加" :visible.sync="dialogVisible" width="30%" :before-close="handleClose">
+      <div style="margin: 0 0 10px 2%">
+        <el-select v-model="value" placeholder="请选择">
+          <el-option v-for="item in options" :key="item.id" :label="item.name" :value="item.id"></el-option>
+        </el-select>
+      </div>
+      <div class="dialog">
+        <el-input v-model="flag" placeholder="请输入内容"></el-input>
+        <el-input v-model="prefix" placeholder="请输入内容"></el-input>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogPush">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template> 
+
+<script>
+import {
+  dhgzQueryDhgz,
+  dhgzDeleteById,
+  dhgzAddAndUpdate
+} from "@/api/manage/jxcsz";
+export default {
+  name: "",
+  data() {
+    return {
+      dialogVisible: false,
+      crmList: [],
+      jxcList: [],
+      cwList: [],
+      oaList: [],
+      data: [],
+      input: "",
+      value: "",
+      flag: "",
+      prefix: "",
+      options: [
+        { id: 1, name: "销售模块" },
+        { id: 2, name: "采购模块" },
+        { id: 3, name: "财务模块" },
+        { id: 4, name: "仓管模块" }
+      ],
+      adminDhgzList: []
+    };
+  },
+
+  methods: {
+    dhGzAdd() {
+      this.adminDhgzList = [];
+      this.adminDhgzList = this.adminDhgzList.concat(this.crmList);
+      this.adminDhgzList = this.adminDhgzList.concat(this.jxcList);
+      console.log(this.adminDhgzList);
+      dhgzAddAndUpdate({
+        adminDhgzList: this.adminDhgzList
+      })
+        .then(res => {
+          this.msgSuccess("添加成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    dialogPush() {
+      if (this.value == 1) {
+        this.crmList.push({ flag: this.flag, prefix: this.prefix, module: 1 });
+        this.dialogVisible = false;
+      } else if (this.value == 2) {
+        this.jxcList.push({ flag: this.flag, prefix: this.prefix, module: 2 });
+        this.dialogVisible = false;
+      } else if (this.value == 3) {
+        this.cwList.push({ flag: this.flag, prefix: this.prefix, module: 2 });
+        this.dialogVisible = false;
+      } else {
+        this.oaList.push({ flag: this.flag, prefix: this.prefix, module: 2 });
+        this.dialogVisible = false;
+      }
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    addPush() {
+      this.dialogVisible = true;
+      this.value = "";
+      this.flag = "";
+      this.prefix = "";
+    },
+    deleteClick(id, index, list) {
+      if (id == undefined) {
+        list.splice(index, 1);
+      } else {
+        dhgzDeleteById({
+          id: id
+        })
+          .then(res => {
+            this.msgSuccess("删除成功");
+            this.loginData();
+          })
+          .catch(res => {});
+      }
+    },
+    loginData() {
+      dhgzQueryDhgz()
+        .then(res => {
+          for (var i in res.data) {
+            this.data = res.data;
+            if (i == 1) {
+              this.crmList = res.data[i];
+            } else if (i == 2) {
+              this.jxcList = res.data[i];
+            } else if (i == 3) {
+              this.cwList = res.data[i];
+            } else {
+              this.oaList = res.data[i];
+            }
+          }
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  activated(){
+    this.loginData();
+  },
+  mounted() {
+  }
+};
+</script>
+<style lang='scss' scoped>
+.dialog {
+  margin-top: 20px;
+  .el-input {
+    width: 45%;
+    float: left;
+    margin-left: 2%;
+  }
+}
+.btn {
+  width: 100%;
+  height: 40px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+}
+.nav {
+  width: 25%;
+  min-height: 600px;
+  float: left;
+  margin-top: 20px;
+  .leftNav {
+    width: 100%;
+    float: left;
+    line-height: 30px;
+    span {
+      width: 40%;
+      float: left;
+      text-align: center;
+    }
+  }
+  .rightNav {
+    float: right;
+    line-height: 30px;
+    div {
+      float: left;
+      width: 100%;
+      span {
+        width: 40%;
+        float: left;
+        text-align: center;
+        line-height: 35px;
+      }
+      .el-input {
+        width: 45%;
+        float: left;
+      }
+      .el-button {
+        color: red;
+        margin-left: 5px;
+      }
+    }
+  }
+}
+</style>

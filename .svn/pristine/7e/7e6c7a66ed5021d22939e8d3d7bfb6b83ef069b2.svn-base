@@ -1,0 +1,9 @@
+import request from '@/utils/request'
+// 给角色设置数据权限
+export function getCusByBirthday(data) {
+    return request({
+        url: 'crmCustomer/getCusByBirthday',
+        method: 'post',
+        data: data
+    })
+}

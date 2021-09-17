@@ -1,0 +1,174 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="header">请指定用于导入的Excel文件</div>
+        <div class="center">
+          <div class="input-box" style="width:100%">
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="bottom">请使用客户信息初始化模板导入数据！ 模板下载</div>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="c-container">
+    <div class="title">{{title}}</div>
+
+    <div class="input-box" style="width:100%">
+      <label class="input-label">上传附件</label>
+      <a href="javascript:;" class="a-upload">
+        <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+      </a>
+      <ul class="uploadStyle">
+        <li v-for="(item,index) in fileList" :key="index">
+          <span>{{item.name}}</span>
+          <i @click="deleteUpload(index)" class="el-icon-close"></i>
+        </li>
+      </ul>
+    </div>
+  </div>-->
+</template>
+
+<script>
+export default {
+  name: "",
+  data() {
+    return {
+      title: "",
+      fileList: [],
+    };
+  },
+
+  methods: {
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmCustomerFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .title {
+  clear: both;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.title {
+  margin: 0;
+}
+.header {
+  width: 30%;
+  line-height: 50px;
+  margin: 20px 0 0 20px;
+  border: 1px solid #e6e6e6;
+  text-align: center;
+}
+.center {
+  width: 30%;
+  height: 100px;
+  margin: 0 0 0 20px;
+  border: 1px solid #e6e6e6;
+  text-align: center;
+}
+.bottom {
+  width: 30%;
+  line-height: 50px;
+  margin: 0 0 0 20px;
+  border: 1px solid #e6e6e6;
+  text-align: center;
+}
+.a-upload {
+  padding: 0 10px;
+  margin: 20px 0 0 30%;
+  height: 25px;
+  line-height: 25px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

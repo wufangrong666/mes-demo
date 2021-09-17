@@ -1,0 +1,295 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="客户分配">
+          <div class="input-box">
+            <label class="input-label">销售负责人:</label>
+            <el-input :readonly="true" clearable placeholder="请选择销售负责人" v-model="ywyName">
+              <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="handle-bar">
+            <el-button type="success" @click="successClick">保存</el-button>
+            <el-button @click="hidenView" type="info">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+    <!-- 销售负责人 -->
+    <el-dialog
+      title="选择人员"
+      :visible.sync="dialogYwy"
+      width="40%"
+      style="margin-top:-5vh"
+      :before-close="handleCloseYwy"
+      :modal-append-to-body="false"
+    >
+      <div>
+        <el-tabs v-model="activeName" @tab-click="tabsClick">
+          <el-tab-pane class="el-tab-department" label="按部门" name="department">
+            <el-tree
+              ref="tree"
+              node-key="userId"
+              @check-change="handleTreeClick"
+              @node-click="nodeClick"
+              :props="defaultProps"
+              :data="treeData"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="按角色" name="role">
+            <el-tree
+              ref="treeR"
+              @check-change="handleTreeClickR"
+              @node-click="nodeClickR"
+              node-key="id"
+              :props="defaultPropsR"
+              :data="treeDataR"
+              show-checkbox
+              default-expand-all
+            ></el-tree>
+          </el-tab-pane>
+          <el-tab-pane class="el-tab-department" label="查询" name="search">
+            <div style="margin-top:5px">
+              <el-input style="width:30%" v-model="realname"></el-input>
+              <el-select style="width:10%" v-model="realStatus">
+                <el-option
+                  v-for="item in realStatusList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+              <el-button @click="realSearch" type="primary">查询</el-button>
+              <el-table
+                height="350px"
+                :show-header="false"
+                :data="realtableData"
+                style="width: 100%"
+              >
+                <el-table-column width="50">
+                  <template slot-scope="scope">
+                    <el-radio v-model="realRadio" :label="scope.row" @change="realRadioChange">
+                      <i></i>
+                    </el-radio>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="realname" label="姓名"></el-table-column>
+              </el-table>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="downYwy">取 消</el-button>
+        <el-button type="primary" @click="submitYwy">确 定</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import Lockr from "lockr";
+import { usersList } from "@/api/common";
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+  crmCustomerPoolAssignmentCustomer,
+} from "@/api/crm/ggkhc";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  props: {},
+  watch: {},
+  data() {
+    return {
+      activeName: "department",
+      ywyName: "",
+      ywy: "",
+      urlList: {},
+      loading: false,
+      ywyIds: "",
+      selectList: [],
+      dialogYwy: false,
+      defaultProps: {
+        label: "name",
+        children: "children",
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user",
+      },
+      treeData: [],
+      treeDataR: [],
+      realname: "",
+      realStatus: "1",
+      realtableData: [],
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" },
+      ],
+    };
+  },
+
+  methods: {
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+      } else {
+      }
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    ywyDialog() {
+      this.dialogYwy = true;
+      this.dialogYwyTree();
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then((res) => {
+          this.treeData = res.data;
+        })
+        .catch((res) => {});
+    },
+    hidenView() {
+      window.top.close();
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    downYwy() {
+      this.dialogYwy = false;
+      this.from.ywy = "";
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      if (this.activeName == "department") {
+        this.ywy = this.$refs.tree.getCheckedKeys().join("");
+        this.ywyName = this.$refs.tree.getCheckedNodes()[0].name;
+      } else if (this.activeName == "role") {
+        this.ywy = this.$refs.treeR.getCheckedNodes()[0].userId;
+        this.ywyName = this.$refs.treeR.getCheckedNodes()[0].realname;
+      }
+    },
+    successClick() {
+      crmCustomerPoolAssignmentCustomer({
+        customerIds: this.widowData.id,
+        ywyIds: this.ywy,
+      })
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "分配成功",
+            type: "success",
+            onClose: () => {
+              window.top.close();
+              window.opener.postMessage("child", window.location);
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then((res) => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    loginData() {
+      usersList({ pageType: 0 })
+        .then((res) => {
+          this.selectList = res.data;
+        })
+        .catch(() => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.loginData();
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+  },
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  height: 25px;
+}
+.create-flex .el-input-group__append {
+  line-height: 23px;
+}
+.create-flex .el-input__icon {
+  line-height: 25px;
+}
+.el-dialog__body {
+  padding-top: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.el-tab-pane{
+  height: 400px;
+  overflow: auto;
+}
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+
+.handle-bar {
+  width: 100%;
+  text-align: center;
+  margin-top: 20%;
+  float: left;
+}
+</style>

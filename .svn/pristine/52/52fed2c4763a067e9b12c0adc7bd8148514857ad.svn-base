@@ -1,0 +1,95 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <el-checkbox
+          :value="from.khmcLxrdhRepeatflag == 1?true:false"
+          @change="val => $set(from,'khmcLxrdhRepeatflag',val ? 1 : 0)"
+        >客户及联系人电话</el-checkbox>
+        <el-checkbox
+          :value="from.khmcLxrsjhmRepeatflag == 1?true:false"
+          @change="val => $set(from,'khmcLxrsjhmRepeatflag',val ? 1 : 0)"
+        >客户及联系人手机号码</el-checkbox>
+        <el-checkbox
+          :value="from.khmcLxrczRepeatflag == 1?true:false"
+          @change="val => $set(from,'khmcLxrczRepeatflag',val ? 1 : 0)"
+        >客户及联系人传真</el-checkbox>
+        <el-checkbox
+          :value="from.khmcLxremailRepeatflag == 1?true:false"
+          @change="val => $set(from,'khmcLxremailRepeatflag',val ? 1 : 0)"
+        >客户及联系人Email</el-checkbox>
+      </div>
+      <div class="topStatus">以上被选中信息点中若有任意一项重复，添加客户信息时，客户联系方式按以下方式处理：</div>
+      <div class="topStatus">
+        <el-radio v-model="from.repeatTipflag" :label="1">仅给出提示</el-radio>
+        <el-radio v-model="from.repeatTipflag" :label="2">给出提示同时无法保存</el-radio>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminKhszQueryKhszSet,
+  adminKhszUpdateKhszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    khlxfsData() {
+      adminKhszQueryKhszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminKhszUpdateKhszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.khlxfsData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.khlxfsData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 5%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 95%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

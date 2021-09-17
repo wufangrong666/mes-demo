@@ -1,0 +1,1246 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="产品基本信息：注：品牌、规格型号 唯一锁定一个产品">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>
+              品牌:
+            </label>
+            <div
+              style="float:left;overflow: hidden;white-space: nowrap;"
+              :title="brandName"
+              v-if="toViewType"
+              v-text="brandName"
+            ></div>
+            <el-input v-else :readonly="true" clearable placeholder="品牌" v-model="brandName">
+              <el-button @click="brandIdClick" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>
+              规格型号:
+            </label>
+            <div
+              style="float:left;overflow: hidden;white-space: nowrap;"
+              :title="from.productModelnum"
+              v-if="toViewType"
+              v-text="from.productModelnum"
+            ></div>
+            <el-input v-else clearable placeholder="规格型号" v-model="from.productModelnum"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">品名:</label>
+            <div
+              v-if="toViewType"
+              style="float:left;overflow: hidden;white-space: nowrap;"
+              :title="nameCn"
+              v-text="nameCn"
+            ></div>
+            <el-input v-else :readonly="true" clearable placeholder="品名" v-model="nameCn">
+              <el-button @click="comnameIdClick" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div style="height:200px;width:25%;float:right">
+            <div class="section">
+              <el-upload
+                v-if="systemImage == '' && !toViewType"
+                drag
+                class="upload"
+                :show-file-list="false"
+                action="http"
+                accept="image/png, image/jpeg, image/gif, image/jpg"
+                :http-request="fileUpload"
+              >
+                <i class="el-icon-plus uploader-icon"></i>
+              </el-upload>
+              <div v-else class="upload-show">
+                <img v-show="systemImage!=''" :src="systemImage" />
+                <i
+                  v-show="!toViewType"
+                  @click="deleteSystemImage"
+                  class="el-icon-remove icon-delete"
+                ></i>
+              </div>
+            </div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">品牌:</label>
+            <div
+              style="float:left;overflow: hidden;white-space: nowrap;"
+              :title="brandName"
+              v-if="toViewType"
+              v-text="brandName"
+            ></div>
+            <el-input v-else :readonly="true" clearable placeholder="品牌" v-model="brandName"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">计量单位:</label>
+            <div v-if="toViewType" v-text="measureUnitName"></div>
+            <el-select v-else v-model="from.measureUnitid" placeholder="请选择">
+              <el-option
+                v-for="item in measure"
+                :key="item.measureUnitid"
+                :label="item.measureName"
+                :value="item.measureUnitid"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">参考成本价:</label>
+            <div v-if="toViewType" v-text="from.costPrice"></div>
+            <el-input v-else clearable placeholder="请输入参考成本价" v-model="from.costPrice"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">参考出售价:</label>
+            <div v-if="toViewType" v-text="from.sellPrice"></div>
+            <el-input v-else clearable placeholder="请输入参考成本价" v-model="from.sellPrice"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">一级批发:</label>
+            <div v-if="toViewType" v-text="from.yjpfj"></div>
+            <el-input v-else clearable placeholder="请输入一级批发" v-model="from.yjpfj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">二级批发:</label>
+            <div v-if="toViewType" v-text="from.ejpfj"></div>
+            <el-input v-else clearable placeholder="请输入二级批发" v-model="from.ejpfj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">三级批发:</label>
+            <div v-if="toViewType" v-text="from.sjpfj"></div>
+            <el-input v-else clearable placeholder="请输入三级批发" v-model="from.sjpfj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">四级批发:</label>
+            <div v-if="toViewType" v-text="from.sijpfj"></div>
+            <el-input v-else clearable placeholder="请输入四级批发" v-model="from.sijpfj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">五级批发:</label>
+            <div v-if="toViewType" v-text="from.wjpfj"></div>
+            <el-input v-else clearable placeholder="请输入五级批发" v-model="from.wjpfj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">库存上限:</label>
+            <div v-if="toViewType" v-text="from.kcsx"></div>
+            <el-input v-else clearable placeholder="请输入库存上限" v-model="from.kcsx"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">库存下限:</label>
+            <div v-if="toViewType" v-text="from.kcxx"></div>
+            <el-input v-else clearable placeholder="请输入库存下限" v-model="from.kcxx"></el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">供应商:</label>
+            <div v-if="toViewType" v-text="gysName"></div>
+            <el-input v-else :readonly="true" clearable placeholder="请选择供应商" v-model="gysName">
+              <el-button @click="gysClick" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">客户:</label>
+            <div v-if="toViewType" v-text="khName"></div>
+            <el-input v-else clearable placeholder="请选择客户" v-model="khName">
+              <el-button @click="khClick" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box" style="width:100%;margin-bottom:10px">
+            <label class="input-label">上传附件</label>
+            <a v-show="!toViewType" href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <a style="color:#409eff" :href="item.filePath" :download="item.name">{{item.name}}</a>
+                <i v-show="!toViewType" @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">产品描述:</label>
+            <div v-if="toViewType" v-text="from.description"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              :rows="2"
+              placeholder="请输入企业描述"
+              v-model="from.description"
+            ></el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">备注:</label>
+            <div v-if="toViewType" v-text="from.remark"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              :rows="1"
+              placeholder="请输入备注"
+              v-model="from.remark"
+            ></el-input>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">保质期:</label>
+            <div v-if="toViewType" style="float:left" v-text="from.bzq"></div>
+            <el-input
+              @keyup.native="from.bzq = from.bzq.replace(/[^\d]/g,'')"
+              v-else
+              style="width:10%"
+              clearable
+              placeholder="请输入保质期"
+              v-model="from.bzq"
+            ></el-input>天
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">产品状态:</label>
+            <div v-if="toViewType" style="float:left" v-text="from.status == 1?'启用':'停用'"></div>
+            <el-radio v-if="!toViewType" v-model="from.status" label="1">启用</el-radio>
+            <el-radio v-if="!toViewType" v-model="from.status" label="0">停用</el-radio>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人:</label>
+            <div v-if="!toViewType" v-text="creator"></div>
+            <div v-if="toViewType" v-text="from.creatorName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期:</label>
+            <div v-text="createDate"></div>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="预留字段：">
+          <div class="input-box" v-if="ylzd1Status">
+            <label class="input-label" v-text="zdyName1"></label>
+            <div v-if="toViewType" v-text="from.ylzd1"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd1"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd2Status">
+            <label class="input-label" v-text="zdyName2"></label>
+            <div v-if="toViewType" v-text="from.ylzd2"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd2"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd3Status">
+            <label class="input-label" v-text="zdyName3"></label>
+            <div v-if="toViewType" v-text="from.ylzd3"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd3"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd4Status">
+            <label class="input-label" v-text="zdyName4"></label>
+            <div v-if="toViewType" v-text="from.ylzd4"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd4"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd5Status">
+            <label class="input-label" v-text="zdyName5"></label>
+            <div v-if="toViewType" v-text="from.ylzd5"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd5"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd6Status">
+            <label class="input-label" v-text="zdyName6"></label>
+            <div v-if="toViewType" v-text="from.ylzd6"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd6"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd7Status">
+            <label class="input-label" v-text="zdyName7"></label>
+            <div v-if="toViewType" v-text="from.ylzd7"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd7"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd8Status">
+            <label class="input-label" v-text="zdyName8"></label>
+            <div v-if="toViewType" v-text="from.ylzd8"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd8"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd9Status">
+            <label class="input-label" v-text="zdyName9"></label>
+            <div v-if="toViewType" v-text="from.ylzd9"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd9"></el-input>
+          </div>
+          <div class="input-box" v-if="ylzd10Status">
+            <label class="input-label" v-text="zdyName10"></label>
+            <div v-if="toViewType" v-text="from.ylzd10"></div>
+            <el-input v-else clearable placeholder="请输入" v-model="from.ylzd10"></el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button v-show="!toViewType" type="success" @click="successClick">保存</el-button>
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+    </flexbox>
+    <!-- 选择品牌 -->
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品牌"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input placeholder="输入关键字进行过滤" clearable v-model="filterText"></el-input>
+        <div style="width:100%;height:400px;overflow: auto;margin-top:10px">
+          <el-tree
+            show-checkbox
+            class="filter-tree"
+            :data="data"
+            node-key="brandId"
+            :props="defaultProps"
+            default-expand-all
+            :filter-node-method="filterNode"
+            @check-change="handleClick"
+            :check-strictly="true"
+            ref="tree"
+          ></el-tree>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="changeTree">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 选择品名 -->
+    <el-dialog
+      :modal-append-to-body="false"
+      title="选择品名"
+      :visible.sync="dialogComname"
+      width="50%"
+      :before-close="handleComname"
+    >
+      <div style="float:left;height:400px;width:100%">
+        <div style="width:30%;float:left;height:400px;">
+          <el-input style="width:70%;" placeholder="输入关键字进行过滤" v-model="comnameText"></el-input>
+          <div style="width:100%;height:356px;overflow: auto;margin-top:10px">
+            <el-tree
+              class="filter-tree"
+              :data="comnameData"
+              node-key="brandId"
+              :props="defaultPropscomname"
+              default-expand-all
+              :filter-node-method="comnameNode"
+              ref="trees"
+              @node-click="comnameClick"
+            ></el-tree>
+          </div>
+        </div>
+        <ul class="comnameRight">
+          <li>
+            <span>品名:</span>
+            <span v-text="comnameList.nameCn"></span>
+          </li>
+          <li>
+            <span>英文品名:</span>
+            <span v-text="comnameList.nameEn"></span>
+          </li>
+          <li>
+            <span>创建人:</span>
+            <span v-text="comnameList.realname"></span>
+          </li>
+          <li>
+            <span>创建日期:</span>
+            <span v-text="comnameList.createDate"></span>
+          </li>
+          <li>
+            <span>关税(%):</span>
+            <span v-text="comnameList.tariff"></span>
+          </li>
+          <li>
+            <span>海关编码:</span>
+            <span v-text="comnameList.hgbm"></span>
+          </li>
+          <li>
+            <span>最后修改日期:</span>
+            <span v-text="comnameList.lastEdittime"></span>
+          </li>
+          <li>
+            <span>功能:</span>
+            <span v-text="comnameList.function"></span>
+          </li>
+          <li>
+            <span>原理:</span>
+            <span v-text="comnameList.theory"></span>
+          </li>
+          <li>
+            <span>用途:</span>
+            <span v-text="comnameList.usage"></span>
+          </li>
+          <li>
+            <span style="width:100px">德国HS CODE:</span>
+            <span v-text="comnameList.hsCode"></span>
+          </li>
+        </ul>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleComname">关闭</el-button>
+        <el-button type="primary" @click="submit">选择此品名</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 供应商 -->
+    <el-dialog
+      title="选择供应商"
+      :visible.sync="dialogVisibleGys"
+      width="40%"
+      :before-close="handleCloseGys"
+      :modal-append-to-body="false"
+    >
+      <span>
+        <div class="input-dialog">
+          <label class="input-label">名称:</label>
+          <el-input v-model="dialogGys.name" placeholder="名称"></el-input>
+        </div>
+        <div class="input-dialog">
+          <label class="input-label">编码:</label>
+          <el-input v-model="dialogGys.gysBm" placeholder="编码"></el-input>
+        </div>
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+        <el-table
+          :data="gysTableData"
+          style="width: 100%"
+          height="400px"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column prop="gysName" label="供应商名称"></el-table-column>
+        </el-table>
+        <div>
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="dialogGys.page"
+            :page-sizes="[15, 30, 50, 100]"
+            :page-size="dialogGys.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totle"
+          ></el-pagination>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleCloseGys">取 消</el-button>
+        <el-button type="primary" @click="dialogGysSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 客户 -->
+    <el-dialog
+      title="选择客户"
+      :visible.sync="dialogVisibleKh"
+      width="40%"
+      :before-close="handleCloseKh"
+      :modal-append-to-body="false"
+    >
+      <span>
+        <div class="input-dialog">
+          <label class="input-label">名称:</label>
+          <el-input v-model="dialogKh.name" placeholder="名称"></el-input>
+        </div>
+        <div class="input-dialog">
+          <label class="input-label">编码:</label>
+          <el-input v-model="dialogKh.code" placeholder="编码"></el-input>
+        </div>
+        <el-button type="primary" @click="searchKh">查询</el-button>
+        <el-button @click="resetKh">重置</el-button>
+        <el-table
+          :data="khTableData"
+          style="width: 100%"
+          height="400px"
+          @selection-change="handleSelectionKhChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column prop="name" label="客户名称"></el-table-column>
+        </el-table>
+        <div>
+          <el-pagination
+            @size-change="handleSizeChangeKh"
+            @current-change="handleCurrentChangeKh"
+            :current-page="dialogKh.page"
+            :page-sizes="[15, 30, 50, 100]"
+            :page-size="dialogKh.limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totleKh"
+          ></el-pagination>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleCloseKh">取 消</el-button>
+        <el-button type="primary" @click="dialogKhSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <edit-image
+      title="修改个人图像"
+      :fixedNumber="[4.2, 5]"
+      previewWidth="80px"
+      previewHeight="90px"
+      previewRadius="0"
+      width="550px"
+      :show="showEditImage"
+      :image="editImage"
+      :file="editFile"
+      save-button-title="确定"
+      @save="submiteImage"
+      @close="showEditImage=false"
+    ></edit-image>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  crmProductBrandQueryList,
+  crmProductQueryPageList,
+  crmProductFindMeasureList,
+  crmProductFileUpload,
+  crmProductSaveAndUpdate,
+  crmProductFindByProductId,
+  findAllComnameNameAndId,
+  crmProductFindCustomer,
+  crmProductFileRemoveById,
+  crmProductFindYlzd,
+} from "@/api/crm/cpxx";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { crmProductComnameQueryById } from "@/api/crm/pmgl";
+import { sgdFindGys } from "@/api/jxc/jxc";
+import { crmProductUploadImg } from "@/api/common";
+import EditImage from "@/components/EditImage";
+import Lockr from "lockr";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    EditImage,
+  },
+  data() {
+    return {
+      zdyName1: "",
+      measureUnitName: "",
+      ylzd1Status: false,
+      zdyName2: "",
+      ylzd2Status: false,
+      zdyName3: "",
+      ylzd3Status: false,
+      zdyName4: "",
+      ylzd4Status: false,
+      zdyName5: "",
+      ylzd5Status: false,
+      zdyName6: "",
+      ylzd6Status: false,
+      zdyName7: "",
+      ylzd7Status: false,
+      zdyName8: "",
+      ylzd8Status: false,
+      zdyName9: "",
+      ylzd9Status: false,
+      zdyName10: "",
+      ylzd10Status: false,
+      fileList: [],
+      creator: "",
+      createDate: "",
+      systemImage: "",
+      showEditImage: false,
+      editImage: null,
+      editFile: null,
+      gysTableData: [],
+      khTableData: [],
+      totle: 0,
+      totleKh: 0,
+      dialogGys: {
+        gysBm: "",
+        name: "",
+        page: 1,
+        limit: 15,
+      },
+      dialogKh: {
+        code: "",
+        name: "",
+        page: 1,
+        limit: 15,
+      },
+      ylzdList: [],
+      measure: [],
+      nameCn: "",
+      comnameList: [],
+      comnameData: [],
+      defaultPropscomname: {
+        children: "children",
+        label: "name",
+      },
+      brandName: "",
+      filterText: "",
+      loading: false,
+      gysNameList: [],
+      gysName: "",
+      gysIdList: [],
+      khNameList: [],
+      khName: "",
+      khIdList: [],
+      from: {
+        productId: "",
+        brandId: "",
+        productModelnum: "",
+        comnameId: "",
+        measureUnitid: "",
+        costPrice: "",
+        sellPrice: "",
+        yjpfj: "",
+        ejpfj: "",
+        sjpfj: "",
+        sijpfj: "",
+        wjpfj: "",
+        kcsx: "",
+        kcxx: "",
+        gys: "",
+        customer: "",
+        description: "",
+        remark: "",
+        bzq: "",
+        status: "1",
+        img: "",
+        ylzd1: "",
+        ylzd2: "",
+        ylzd3: "",
+        ylzd4: "",
+        ylzd5: "",
+        ylzd6: "",
+        ylzd7: "",
+        ylzd8: "",
+        ylzd9: "",
+        ylzd10: "",
+      },
+      dialogVisible: false,
+      dialogVisibleGys: false,
+      dialogVisibleKh: false,
+      data: [],
+      defaultProps: {
+        children: "children",
+        label: "name",
+      },
+      dialogComname: false,
+      comnameText: "",
+      toViewType: true,
+    };
+  },
+  watch: {
+    filterText(val) {
+      this.$refs.tree.filter(val);
+    },
+    comnameText(val) {
+      this.$refs.trees.filter(val);
+    },
+  },
+  methods: {
+    handleSelectionChange(data) {
+      this.gysNameList = [];
+      this.gysIdList = [];
+      for (var i in data) {
+        this.gysNameList.push("《" + data[i].gysName + "》");
+        this.gysIdList.push(data[i].gysId);
+      }
+    },
+    handleSelectionKhChange(data) {
+      this.khNameList = [];
+      this.khIdList = [];
+      for (var i in data) {
+        this.khNameList.push("《" + data[i].name + "》");
+        this.khIdList.push(data[i].customerId);
+      }
+    },
+    dialogGysSubmit() {
+      this.dialogVisibleGys = false;
+      this.gysName = this.gysNameList.join("");
+      this.from.gys = this.gysIdList.join(",");
+    },
+    dialogKhSubmit() {
+      this.dialogVisibleKh = false;
+      this.khName = this.khNameList.join("");
+      this.from.customer = this.khIdList.join(",");
+    },
+    handleSizeChange(val) {
+      this.dialogGys.limit = val;
+      this.gysTableDataQuery();
+    },
+    handleCurrentChange(val) {
+      this.dialogGys.page = val;
+      this.gysTableDataQuery();
+    },
+    handleSizeChangeKh(val) {
+      this.dialogKh.limit = val;
+      this.khTableDataQuery();
+    },
+    handleCurrentChangeKh(val) {
+      this.dialogKh.page = val;
+      this.khTableDataQuery();
+    },
+    handleCloseGys() {
+      this.dialogVisibleGys = false;
+      this.gysName = "";
+      this.gysNameList = [];
+      this.from.gys = "";
+      this.gysIdList = [];
+    },
+    gysClick() {
+      this.dialogVisibleGys = true;
+      this.reset();
+    },
+    khClick() {
+      this.dialogVisibleKh = true;
+      this.resetKh();
+    },
+    search() {
+      this.gysTableDataQuery();
+    },
+    reset() {
+      this.dialogGys.page = 1;
+      this.dialogGys.limit = 15;
+      this.dialogGys.name = "";
+      this.dialogGys.gysBm = "";
+      this.gysTableDataQuery();
+    },
+    searchKh() {
+      this.dialogKh.page = 1;
+      this.khTableDataQuery();
+    },
+    resetKh() {
+      this.dialogKh.page = 1;
+      this.dialogKh.limit = 15;
+      this.dialogKh.name = "";
+      this.dialogKh.code = "";
+      this.khTableDataQuery();
+    },
+    gysTableDataQuery() {
+      sgdFindGys(this.dialogGys)
+        .then((res) => {
+          this.gysTableData = res.data;
+          this.totle = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    khTableDataQuery() {
+      xbjQueryCustomer(this.dialogKh)
+        .then((res) => {
+          this.khTableData = res.data.list;
+          this.totleKh = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    comnameNode(value, data) {
+      if (!value) return true;
+      return data.name.indexOf(value) !== -1;
+    },
+    handleComname() {
+      this.dialogComname = false;
+      this.from.comnameId = "";
+      this.nameCn = "";
+    },
+    comnameIdClick() {
+      this.dialogComname = true;
+      this.comnameText = "";
+      this.comnameTree();
+    },
+    changeTree() {
+      this.brandName = this.$refs.tree.getCheckedNodes()[0].name;
+      this.from.brandId = this.$refs.tree.getCheckedNodes()[0].brandId;
+      this.dialogVisible = false;
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handleCloseKh() {
+      this.dialogVisibleKh = false;
+      this.khName = "";
+      this.khNameList = [];
+      this.from.customer = "";
+      this.khIdList = [];
+    },
+    submit() {
+      this.dialogComname = false;
+    },
+    successClick() {
+      if (this.from.brandId == "") {
+        this.msgInfo("请选择品牌");
+        return;
+      }
+      if (this.from.productModelnum == "") {
+        this.msgInfo("请输入规格型号");
+        return;
+      }
+      if (this.from.measureUnitid == "") {
+        this.msgInfo("请选择计量单位");
+        return;
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.productFile = arr.join(",");
+      if (!this.ylzd1Status) {
+        delete this.from.ylzd1;
+      }
+      if (!this.ylzd2Status) {
+        delete this.from.ylzd2;
+      }
+      if (!this.ylzd3Status) {
+        delete this.from.ylzd3;
+      }
+      if (!this.ylzd4Status) {
+        delete this.from.ylzd4;
+      }
+      if (!this.ylzd5Status) {
+        delete this.from.ylzd5;
+      }
+      if (!this.ylzd6Status) {
+        delete this.from.ylzd6;
+      }
+      if (!this.ylzd7Status) {
+        delete this.from.ylzd7;
+      }
+      if (!this.ylzd8Status) {
+        delete this.from.ylzd8;
+      }
+      if (!this.ylzd9Status) {
+        delete this.from.ylzd9;
+      }
+      if (!this.ylzd10Status) {
+        delete this.from.ylzd10;
+      }
+      crmProductSaveAndUpdate({
+        data: this.from,
+      })
+        .then((res) => {
+          if (this.widowData.type == "add") {
+            this.loading = true;
+            this.message("新增成功");
+          } else if (this.widowData.type == "edit") {
+            this.loading = true;
+            this.message("编辑成功");
+          }
+        })
+        .catch((res) => {
+          this.loading = false;
+        });
+    },
+    message(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          this.resetGetList();
+          this.hidenView();
+          this.loading = false;
+        },
+      });
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    hidenView() {
+      window.top.close();
+    },
+    brandIdClick() {
+      this.dialogVisible = true;
+      this.loginData();
+    },
+    filterNode(value, data) {
+      if (!value) return true;
+      return data.label.indexOf(value) !== -1;
+    },
+    handleClick(data, checked, node) {
+      if (checked) {
+        this.$refs.tree.setCheckedNodes([data]);
+      }
+    },
+    comnameClick(data) {
+      this.from.comnameId = data.id;
+      this.nameCn = data.name;
+      crmProductComnameQueryById({
+        id: data.id,
+      })
+        .then((res) => {
+          this.comnameList = res.data;
+        })
+        .catch((res) => {});
+    },
+    loginData() {
+      crmProductBrandQueryList({
+        data: {
+          name: "",
+          isPrecise: "",
+        },
+      })
+        .then((res) => {
+          this.data = res.data;
+        })
+        .catch((res) => {});
+    },
+    comnameTree() {
+      findAllComnameNameAndId()
+        .then((res) => {
+          this.comnameData = res.data;
+        })
+        .catch((res) => {});
+    },
+    findMeasureList() {
+      crmProductFindMeasureList()
+        .then((res) => {
+          this.measure = res.measure;
+          this.from.measureUnitid = res.measure[0].measureUnitid;
+        })
+        .catch((res) => {});
+    },
+    deleteSystemImage() {
+      this.systemImage = "";
+      this.editedImage = null;
+    },
+    fileUpload(content) {
+      const reader = new FileReader();
+      var self = this;
+      reader.onload = function (e) {
+        let result;
+        if (typeof e.target.result === "object") {
+          // 把Array Buffer转化为blob 如果是base64不需要
+          result = window.URL.createObjectURL(new Blob([e.target.result]));
+        } else {
+          result = e.target.result;
+        }
+        self.editImage = result;
+        self.editFile = content.file;
+        self.showEditImage = true;
+      };
+      reader.readAsDataURL(content.file);
+    },
+    submiteImage(data) {
+      this.editedImage = data;
+      this.systemImage = data.image;
+      var param = new FormData();
+      if (this.editedImage) {
+        param.append("file", this.editedImage.blob, this.editedImage.file.name);
+      }
+      crmProductUploadImg(param)
+        .then((res) => {
+          this.from.img = res.img;
+        })
+        .catch((res) => {});
+    },
+    deleteUpload(index, item) {
+      this.fileList.splice(index, 1);
+      crmProductFileRemoveById({
+        id: item.fileId,
+      })
+        .then((res) => {
+          this.msgSuccess("删除成功");
+        })
+        .catch((res) => {});
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmProductFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    editData() {
+      crmProductFindByProductId({
+        productId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+          for (var i in this.measure) {
+            if (this.measure[i].measureUnitid == res.data.measureUnitid) {
+              this.measureUnitName = this.measure[i].measureName;
+            }
+          }
+          this.gysName = res.data.productGys;
+          this.khName = res.data.productCustomer;
+          this.fileList = res.file;
+          this.systemImage = res.data.img;
+          this.brandName = res.data.brandName;
+          this.nameCn = res.data.nameCn;
+          this.creator = res.data.creatorName;
+
+          this.ylzdList = [];
+          for (var i in res.data.ylzd) {
+            this.ylzdList.push({
+              id: i,
+              name: res.data.ylzd[i],
+            });
+          }
+        })
+        .catch((res) => {});
+    },
+    ylzdQuery() {
+      crmProductFindYlzd()
+        .then((res) => {
+          this.ylzdList = res.data;
+          for (var i in res.data) {
+            if (res.data[i].id == 1) {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzd1Status = true;
+            } else if (res.data[i].id == 2) {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzd2Status = true;
+            } else if (res.data[i].id == 3) {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzd3Status = true;
+            } else if (res.data[i].id == 4) {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzd4Status = true;
+            } else if (res.data[i].id == 5) {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzd5Status = true;
+            } else if (res.data[i].id == 6) {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzd6Status = true;
+            } else if (res.data[i].id == 7) {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzd7Status = true;
+            } else if (res.data[i].id == 8) {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzd8Status = true;
+            } else if (res.data[i].id == 9) {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzd9Status = true;
+            } else if (res.data[i].id == 10) {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzd10Status = true;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.findMeasureList();
+    this.ylzdQuery();
+    if (this.widowData.type == "edit") {
+      this.editData();
+    }
+    if (this.widowData.type == "lookCard") {
+      this.toViewType = true;
+      this.editData();
+    } else {
+      this.toViewType = false;
+    }
+    this.creator = Lockr.get("loginUserInfo").realname;
+    this.createDate = this.getTime();
+  },
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  height: 25px;
+}
+.create-flex .el-input-group__append {
+  line-height: 23px;
+}
+.create-flex .el-input__icon {
+  line-height: 25px;
+}
+.el-dialog__body {
+  padding-top: 0;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-input {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.handle-bar {
+  margin-top: 5px;
+}
+.comnameRight {
+  width: 70%;
+  float: right;
+  height: 400px;
+  padding: 0 20px;
+  li {
+    width: 50%;
+    float: left;
+    line-height: 50px;
+    span:nth-child(1) {
+      width: 32%;
+      float: left;
+    }
+    span:nth-child(2) {
+      width: 68%;
+      float: right;
+    }
+  }
+}
+.input-dialog {
+  width: 40%;
+  float: left;
+  .input-label {
+    width: 40px;
+    line-height: 30px;
+    display: inline-block;
+  }
+  .el-input {
+    width: 70%;
+  }
+}
+.avatar-uploader {
+  position: absolute;
+  top: 0;
+  left: 325px;
+  width: 180px;
+  height: 180px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 14px;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+  border-radius: 6px;
+}
+.upload /deep/ .el-upload-dragger {
+  width: 160px;
+  height: 180px;
+}
+.uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 160px;
+  height: 180px;
+  line-height: 180px;
+  text-align: center;
+}
+.upload-show {
+  position: relative;
+  display: block;
+  width: 160px;
+  height: 180px;
+  img {
+    width: 160px;
+    height: 180px;
+  }
+
+  .icon-delete {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    color: red;
+    font-size: 20px;
+    display: none;
+  }
+}
+.upload-show:hover {
+  .icon-delete {
+    display: block;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 25px;
+  line-height: 25px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 20px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

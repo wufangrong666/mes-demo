@@ -1,0 +1,3295 @@
+<template>
+  <div>
+    <flexbox class="th-container">
+      <img
+        @click="showFilterClick"
+        class="c-filtrate"
+        :style="{ 'margin-left': isSeas ? 0 : '0px'}"
+        src="@/assets/img/c_filtrate.png"
+      />
+      <div v-if="selectionList.length == 0" class="condition_title" @click="showFilterClick">高级筛选</div>
+      <div v-else class="selected—title">
+        已选中
+        <span class="selected—count">{{selectionList.length}}</span>项
+      </div>
+      <filter-form
+        :fieldList="fieldList"
+        :dialogVisible.sync="showFilter"
+        :obj="filterObj"
+        :listType="listType"
+        :isSeas="isSeas"
+        @filter="handleFilter"
+      ></filter-form>
+      <flexbox class="selection-items-box">
+        <flexbox
+          class="selection-item"
+          v-for="(item, index) in getSelectionHandleItemsInfo()"
+          :key="index"
+        >
+          <img class="selection-item-icon" :src="item.icon" />
+          <el-button
+            @click.native="selectionBarClick(item.type)"
+            :disabled="item.disabled"
+            type="text"
+          >{{item.name}}</el-button>
+        </flexbox>
+      </flexbox>
+    </flexbox>
+    <!-- 高级筛选展示 -->
+    <filter-content
+      v-if="filterObj.form && filterObj.form.length > 0"
+      :obj="filterObj"
+      @delete="handleDeleteField"
+    ></filter-content>
+
+    <customerTransfer
+      :show="customerTransfer"
+      :dialogTitle="dialogTitle"
+      :customerList="customerList"
+      @save-success="createSaveSuccess"
+      @close="customerTransfer=false"
+    ></customerTransfer>
+
+    <el-dialog
+      title="终止执行原因"
+      :modal-append-to-body="false"
+      :visible.sync="dialogVisibleZzzx"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input
+          type="textarea"
+          placeholder="请输入内容"
+          v-model="zzzxTextarea"
+          maxlength="200"
+          show-word-limit
+        ></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisibleZzzx = false">取 消</el-button>
+        <el-button type="primary" @click="zzzxSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+      title="强制执行完毕原因"
+      :modal-append-to-body="false"
+      :visible.sync="dialogVisibleqzzxwb"
+      width="30%"
+      :before-close="handleCloseQzzxwb"
+    >
+      <span>
+        <el-input
+          type="textarea"
+          placeholder="请输入内容"
+          v-model="qzzxTextarea"
+          maxlength="200"
+          show-word-limit
+        ></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisibleqzzxwb = false">取 消</el-button>
+        <el-button type="primary" @click="qzzxSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { mapGetters } from "vuex";
+import typeModel from "@/views/manage/model/typeModel";
+import dataList from "./Json";
+import filterForm from "./filterForm";
+import filterContent from "./filterForm/filterContent";
+import customerTransfer from "../crm/khzy/customerTransfer";
+
+import {
+  filterIndexfields,
+  companyDelete,
+  customerRead,
+  isdefault,
+} from "@/api/manage/SystemConfig";
+import { crmCustomerdelete, crmCustomerqueryById } from "@/api/crm/ggkhc";
+import {
+  crmCustomerDeleteByIds,
+  crmCustomerCareCheckStatus,
+  crmCustomerCareDeleteByIds,
+} from "@/api/crm/khxxgl";
+import {
+  crmContactRecordDeleteByIds,
+  crmContactRecordQueryById,
+} from "@/api/crm/jwjl";
+import { htmbGetHtmbByType } from "@/api/manage/xtsz";
+import {
+  crmProductDelProductById,
+  crmProductFindByProductId,
+} from "@/api/crm/cpxx";
+import {
+  crmGysDeleteByIds,
+  crmGysQueryById,
+  crmGysQueryEditById,
+} from "@/api/crm/gysxx";
+import {
+  jxcXsddCheckStatus,
+  jxcXsdddeleteById,
+  jxcXsddAdminDeleteById,
+  sgdDeleteBySgdId,
+  cgddDelByCgddId,
+  cgshDelCgshByCgshId,
+  jxcCkglDeleteById,
+  jxcWlgsglDeleteById,
+  jxcXsydDeleteById,
+  jxcXsydAdminDeleteById,
+  jxcXskdDeleteById,
+  jxcXskdAdminDeleteById,
+  jxcCgydDeleteById,
+  cgddFileZzzx,
+} from "@/api/jxc/jxc";
+import { crmJjfaDeleteById } from "@/api/crm/jjfa";
+import { crmXsjhDeleteById } from "@/api/crm/xsjh";
+import { bjdDeletById } from "@/api/crm/xsbjd";
+import createView from "./createView"; //编辑
+import Lockr from "lockr";
+
+export default {
+  name: "table-head", //客户管理下 重要提醒 回款计划提醒
+  components: {
+    createView,
+    filterForm,
+    filterContent,
+    customerTransfer,
+  },
+  computed: {
+    ...mapGetters(["manage", "companyConfig", "operAuth"]),
+  },
+  data() {
+    return {
+      dialogVisibleZzzx: false,
+      zzzxTextarea: "",
+      qzzxTextarea: "",
+      bjdTitle: "",
+      cgshDhmx: false,
+      cgshDetailsData: {},
+      cgshType: 0,
+      cgshDetails: false,
+      cgshDetailsData: {},
+      cgddDhmxStatus: false,
+      cgddDhmx: false,
+      cgddDhmxId: 0,
+      xsZhuanSg: false,
+      xsZhuanSgId: 0,
+      xskdDhmx: false,
+      xskdDetail: false,
+      xskdId: 0,
+      xskdType: "",
+      sgdType: "",
+      xsddDhmx: false,
+      sgdDhmx: false,
+      sgdId: 0,
+      xsddType: "",
+      xsddDetail: false,
+      xsddId: "",
+      sgdEdit: false,
+      bjdDetailId: "",
+      bjdDetail: false,
+      jwDialog: false,
+      isCreate: false,
+      khxxglDetail: false,
+      gysDetail: false,
+      listData: {},
+      createData: {},
+      createActionInfo: { type: "edit" },
+      showFilter: false, // 控制筛选框
+      fieldList: [],
+      filterObj: { form: [] }, // 筛选确定数据
+      showDialog: false,
+      showKhxx: false,
+      customerTransfer: false,
+      showKhxxId: 0,
+      showDialogId: 0,
+      sgdId: 0,
+      cgddId: {},
+      cgddAdd: false,
+      dialogTitle: "",
+      /** 勾选操作数据 */
+      selectionList: [],
+      customerList: [],
+      showTitle: "",
+      jwList: {},
+      gyslistData: {},
+      sgdGenerateStatus: false,
+      sgdGenerateId: {},
+      bjdEdit: false,
+      bjdEditId: 0,
+      bjdEditFlag: false,
+      butonStatus: false,
+      xsddType: "",
+      xskdStatus: false,
+      cgddTstj: false,
+      cgddTstjId: 0,
+      cgddTstjSh: false,
+      xsddHtdy: false,
+      xsbjdHtdy: false,
+      xsbjdMblist: {},
+      xsbjdDjid: 0,
+      xsddMblist: {},
+      xsddDjid: 0,
+      xskdHtdy: false,
+      xskdMblist: {},
+      xskdDjid: 0,
+      cgddHtdy: false,
+      cgddDjid: 0,
+      cgddMblist: {},
+      khxxglDetailTitle: "",
+      gysDetailTitle: "",
+      cpxxDetail: false,
+      cpxxDetailTitle: "",
+      cpxxDetailId: {},
+      useridQx: "",
+      dialogVisibleqzzxwb: false,
+    };
+  },
+  watch: {
+    showKhxx: {
+      handler(val) {
+        if (val) {
+        }
+      },
+    },
+  },
+  props: {
+    title: {
+      type: String,
+      default: "",
+    },
+    /** 没有值就是全部类型 有值就是当个类型 */
+    listType: {
+      type: String,
+      default: "",
+    },
+    // 辅助 使用 公海没有场景
+    isSeas: {
+      type: Boolean,
+      default: false,
+    },
+    transfer: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  mounted() {
+    console.log(this.operAuth);
+    window.addEventListener("message", this.receiveMessage, false);
+    this.useridQx = Lockr.get("loginUserInfo").userId;
+  },
+  methods: {
+    handleCloseQzzxwb() {
+      this.dialogVisibleqzzxwb = false;
+    },
+    qzzxSubmit() {
+      this.$confirm("请确认要执行的操作, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          if (this.listType == "jxc_xsdd") {
+            jxcXsddCheckStatus({
+              xsddId: this.selectionList[0].xsddId,
+              type: 6,
+              message: this.qzzxTextarea,
+            })
+              .then((res) => {
+                this.msgSuccess("提交成功");
+                this.handler();
+                this.dialogVisibleqzzxwb = false;
+                this.$emit("on-handle");
+              })
+              .catch((res) => {});
+          } else if (this.listType == "jxc_cgdd") {
+            cgddFileZzzx({
+              cgddId: this.selectionList[0].cgddId,
+              status: 6,
+              message: this.qzzxTextarea,
+            })
+              .then((res) => {
+                this.msgSuccess("提交成功");
+                this.handler();
+                this.dialogVisibleqzzxwb = false;
+                this.$emit("on-handle");
+              })
+              .catch((res) => {});
+          }
+        })
+        .catch(() => {
+          this.msgInfo("取消提交");
+        });
+    },
+    handleClose() {
+      this.dialogVisibleZzzx = false;
+    },
+    zzzxSubmit() {
+      this.$confirm("请确认要执行的操作, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          jxcXsddCheckStatus({
+            xsddId: this.selectionList[0].xsddId,
+            type: 9,
+            message: this.zzzxTextarea,
+          })
+            .then((res) => {
+              this.msgSuccess("提交成功");
+              this.handler();
+              this.dialogVisibleZzzx = false;
+              this.$emit("on-handle");
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("取消提交");
+        });
+    },
+    receiveMessage(event) {
+      if (event.data.type == "sgxt") {
+        this.$router.push({ path: "/jxc/purchase/purchaseorder" });
+      }
+    },
+    hideView() {
+      this.jwDialog = false;
+      this.isCreate = false;
+      this.$store.commit("edit");
+    },
+    /** 展示高级筛选 */
+    showFilterClick() {
+      this.getFilterFieldInfo();
+    },
+    // 获取高级筛选字段数据
+    getFilterFieldInfo() {
+      filterIndexfields({
+        label: typeModel[this.listType],
+      })
+        .then((res) => {
+          this.fieldList = res.data;
+          this.showFilter = true;
+        })
+        .catch(() => {});
+    },
+    //高级查询筛选操作
+    handleFilter(form) {
+      this.filterObj = form;
+      this.showFilter = false;
+      this.$emit("filter", form.obj);
+    },
+    //删除
+    handleDeleteField(data) {
+      this.filterObj = data.obj;
+      this.$emit("filter", this.filterObj.obj);
+    },
+    /** 表头按钮操作 */
+    handler() {
+      this.$emit("handle");
+    },
+    setStatus(str, id, status) {
+      this.$confirm(str + ", 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          crmCustomerCareCheckStatus({
+            id: id,
+            status: status,
+          })
+            .then((res) => {
+              this.$message({
+                type: "success",
+                message: "设置成功!",
+              });
+              this.$emit("on-handle");
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    selectionBarClick(type) {
+      //进程高级追踪
+      if (type == "jcgjzz") {
+        this.windowOpen("/xsddJcgjzz", {
+          id: this.encode(this.selectionList[0].xsddId),
+          type: "jcgjzz",
+        });
+      }
+      // 关联费用
+      else if (type == "glfy") {
+        if (this.listType == "jxc_xskd") {
+          this.windowOpen("/xskdGlfy", {
+            id: this.encode(this.selectionList[0].xskdId),
+            dh: this.selectionList[0].xskdDh,
+            hj: this.selectionList[0].zkhZje,
+            type: "glfy",
+          });
+        } else if (this.listType == "jxc_cgsh") {
+          this.windowOpen("/cgshGlfy", {
+            id: this.encode(this.selectionList[0].cgshId),
+            dh: this.selectionList[0].cgshDh,
+            hj: this.selectionList[0].hj,
+            type: "glfy",
+          });
+        }
+      }
+      //查看卡片
+      else if (type == "lookCard") {
+        if (this.listType == "crm_customer") {
+          this.windowOpen("/khxxDeail", {
+            id: this.encode(this.selectionList[0].customerId),
+            type: "lookCard",
+          });
+        } else if (this.listType == "crm_gys") {
+          this.windowOpen("/gysCard", {
+            id: this.encode(this.selectionList[0].gysId),
+            type: "lookCard",
+          });
+        }
+      }
+      //追加说明
+      else if (type == "additional") {
+        if (this.listType == "crm_customerpool") {
+          this.windowOpen("/customerZjsm", {
+            id: this.encode(this.selectionList[0].customerId),
+            type: "additional",
+          });
+        }
+      }
+      //启用、停用
+      else if (type == "qYong" || type == "tYong") {
+        if (this.listType == "crm_customerCare") {
+          if (type == "qYong") {
+            this.setStatus("请确认是否启用", this.selectionList[0].ghId, 19);
+          } else {
+            this.setStatus("请确认是否启用", this.selectionList[0].ghId, 18);
+          }
+        }
+      }
+      //点评
+      else if (type == "review") {
+        if (this.listType == "crm_contactRecord") {
+          this.windowOpen("/jwjlAddEdit", {
+            id: this.encode(this.selectionList[0].jwjlId),
+            type: "review",
+          });
+        } // 查看
+      } else if (type == "toView") {
+        if (this.listType == "crm_jjfa") {
+          this.windowOpen("/jjfaDetail", {
+            id: this.encode(this.selectionList[0].jjfaId),
+            type: "toView",
+          });
+        } else if (this.listType == "crm_xsjh") {
+          this.windowOpen("/xsjhDetail", {
+            id: this.encode(this.selectionList[0].xsjhId),
+            type: "toView",
+          });
+        } else if (this.listType == "crm_contactRecord") {
+          this.windowOpen("/jwjlAddEdit", {
+            id: this.encode(this.selectionList[0].jwjlId),
+            type: "toView",
+          });
+        } else if (this.listType == "crm_customerCare") {
+          this.windowOpen("/khghAddEdit", {
+            id: this.encode(this.selectionList[0].ghId),
+            type: "toView",
+          });
+        } else if (this.listType == "crm_customerpool") {
+          this.windowOpen("/customerPoolAddEdit", {
+            id: this.encode(this.selectionList[0].customerId),
+            type: "toView",
+          });
+        } else if (this.listType == "crm_bjd") {
+          this.windowOpen("/bjdDetails", {
+            id: this.encode(this.selectionList[0].bjdId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_xsdd") {
+          this.windowOpen("/xsddDhmx", {
+            id: this.encode(this.selectionList[0].xsddId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_xskd") {
+          this.windowOpen("/xskdDhmx", {
+            id: this.encode(this.selectionList[0].xskdId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_sgd") {
+          this.windowOpen("/sgddDhmx", {
+            id: this.encode(this.selectionList[0].sgdId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgddDhmx", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_wlgsgl") {
+          this.windowOpen("/wlgsglDetail", {
+            id: this.encode(this.selectionList[0].id),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_xsyd") {
+          this.windowOpen("/xsydDetail", {
+            id: this.encode(this.selectionList[0].xsydId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_cgsh") {
+          this.windowOpen("/cgshDhmx", {
+            id: this.encode(this.selectionList[0].cgshId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_cgyd") {
+          this.windowOpen("/cgydDetail", {
+            id: this.encode(this.selectionList[0].cgydId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_xsthrk") {
+          this.windowOpen("/xsthrkDetail", {
+            id: this.encode(this.selectionList[0].xsydId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_cgthck") {
+          this.windowOpen("/cgthckDetail", {
+            id: this.encode(this.selectionList[0].cgydId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_qtlrkd") {
+          this.windowOpen("/qtlrkdDetail", {
+            id: this.encode(this.selectionList[0].rkdId),
+            type: "toView",
+          });
+        } else if (this.listType == "jxc_qtlckd") {
+          this.windowOpen("/qtlckdDetail", {
+            id: this.encode(this.selectionList[0].ckdId),
+            type: "toView",
+          });
+        } else if (this.listType == "admin_company") {
+          this.windowOpen("/compmanDetails", {
+            id: this.encode(this.selectionList[0].companyId),
+            type: "toView",
+          });
+        }
+      } else if (type == "dyrkd") {
+        this.windowOpen("/cgshHtdy", {
+          id: this.encode(this.selectionList[0].cgshId),
+          type: "htDy",
+        });
+      } else if (type == "printOrderCkd") {
+        htmbGetHtmbByType()
+          .then((res) => {
+            this.windowOpen("/xskdHtdy", {
+              id: this.encode(this.selectionList[0].xskdId),
+              xsddMblist: JSON.stringify(res.data),
+              type: "htDy",
+              mb: res.data["xsdd"][0].id,
+            });
+          })
+          .catch((res) => {});
+      } else if (type == "printOrderBjd") {
+        htmbGetHtmbByType()
+          .then((res) => {
+            this.windowOpen("/xsbjdHtdy", {
+              id: this.encode(this.selectionList[0].bjdId),
+              type: "htDy",
+              mb: res.data["xsbjd"][0].id,
+            });
+          })
+          .catch((res) => {});
+      } else if (type == "printOrderHt") {
+        if (this.listType == "jxc_xsdd") {
+          htmbGetHtmbByType()
+            .then((res) => {
+              this.windowOpen("/xsddHtdy", {
+                id: this.encode(this.selectionList[0].xsddId),
+                xsddMblist: JSON.stringify(res.data),
+                mb: res.data["xsdd"][0].id,
+                type: "htDy",
+              });
+            })
+            .catch((res) => {});
+        } else if (this.listType == "jxc_cgdd") {
+          htmbGetHtmbByType()
+            .then((res) => {
+              this.windowOpen("/cgddHtdy", {
+                id: this.encode(this.selectionList[0].cgddId),
+                xsddMblist: JSON.stringify(res.data),
+                type: "htDy",
+                mb: res.data["cgdd"][0].id,
+              });
+            })
+            .catch((res) => {});
+        }
+      } else if (type == "backAudit") {
+        if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgddTshsh", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "backAudit",
+          });
+        }
+      } else if (type == "comeBack") {
+        if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgddTstj", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "comeBack",
+          });
+        }
+      } else if (type == "purchase") {
+        this.windowOpen("/xsZhuanSg", {
+          id: this.encode(this.selectionList[0].xsddId),
+          type: "zhuan",
+        });
+      } else if (type == "order") {
+        if (this.listType == "jxc_xsdd") {
+          this.windowOpen("/xskdDetail", {
+            id: this.encode(this.selectionList[0].xsddId),
+            type: "xskdXtui",
+          });
+        }
+      } else if (type == "termination") {
+        if (this.listType == "jxc_xsdd") {
+          this.dialogVisibleZzzx = true;
+        } else if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgddZzzx", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "zzzx",
+          });
+        }
+      } else if (type == "orderDownSh") {
+        if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgshDetails", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "cgddXt",
+          });
+        }
+      } else if (type == "mandatory") {
+        if (this.listType == "jxc_xsdd") {
+          this.dialogVisibleqzzxwb = true;
+        } else if (this.listType == "jxc_cgdd") {
+          this.dialogVisibleqzzxwb = true;
+        }
+      } else if (type == "salesOrder") {
+        this.windowOpen("/xsddDetail", {
+          list: JSON.stringify(this.selectionList),
+          type: "xjdXtui",
+        });
+      } else if (type == "orderDown") {
+        this.windowOpen("/xsddDetail", {
+          id: this.encode(this.selectionList[0].bjdId),
+          type: "bjdXtui",
+        });
+      } else if (type == "salesQuotation") {
+        this.windowOpen("/xbjToxsbjd", {
+          list: JSON.stringify(this.selectionList),
+          type: "salesQuotation",
+        });
+      } else if (type == "edit") {
+        //编辑
+        if (this.listType == "crm_jjfa") {
+          this.windowOpen("/jjfaAddEdit", {
+            id: this.encode(this.selectionList[0].jjfaId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_xsjh") {
+          this.windowOpen("/xsjhAddEdit", {
+            id: this.encode(this.selectionList[0].xsjhId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_sgd") {
+          this.windowOpen("/sgdEdit", {
+            id: this.encode(this.selectionList[0].sgdId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_customerCare") {
+          this.windowOpen("/khghAddEdit", {
+            id: this.encode(this.selectionList[0].ghId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_product") {
+          this.windowOpen("/cpxxAddEdit", {
+            id: this.encode(this.selectionList[0].productId),
+            type: "edit",
+          });
+          this.cpxxDetailId = this.selectionList[0];
+          this.cpxxDetail = true;
+          this.cpxxDetailTitle = "编辑产品信息";
+        } else if (this.listType == "crm_bjd") {
+          this.windowOpen("/bjdEdit", {
+            id: this.encode(this.selectionList[0].bjdId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_contactRecord") {
+          this.windowOpen("/jwjlAddEdit", {
+            id: this.encode(this.selectionList[0].jwjlId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_customer") {
+          this.windowOpen("/customerEdit", {
+            id: this.encode(this.selectionList[0].customerId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_customerpool") {
+          this.windowOpen("/customerPoolAddEdit", {
+            id: this.encode(this.selectionList[0].customerId),
+            type: "edit",
+          });
+        } else if (this.listType == "crm_gys") {
+          this.windowOpen("/gysAddEdit", {
+            id: this.encode(this.selectionList[0].gysId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_ckgl") {
+          this.windowOpen("/ckAddEdit", {
+            id: this.encode(this.selectionList[0].ckId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_wlgsgl") {
+          this.windowOpen("/wlgsglAddEdit", {
+            id: this.encode(this.selectionList[0].id),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_xsyd") {
+          this.windowOpen("/xsydAddEdit", {
+            id: this.encode(this.selectionList[0].xsydId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_cgyd") {
+          this.windowOpen("/cgydAddEdit", {
+            id: this.encode(this.selectionList[0].cgydId),
+            type: "edit",
+          });
+        } else if (this.listType == "admin_company") {
+          this.windowOpen("/compmanAdd", {
+            id: this.encode(this.selectionList[0].companyId),
+            type: "edit",
+          });
+        }
+      } else if (type == "default") {
+        let self = this;
+        if (this.selectionList.length == 1) {
+          if (this.selectionList[0].isdefault === "否") {
+            this.$confirm("是否设为默认抬头", "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            })
+              .then(() => {
+                isdefault({
+                  companyId: this.selectionList
+                    .map(function (item) {
+                      return item.companyId;
+                    })
+                    .join(","),
+                })
+                  .then((res) => {
+                    this.$emit("handle", { type: type });
+                    this.msgSuccess("操作成功");
+                  })
+                  .catch((res) => {});
+              })
+              .catch(() => {
+                this.msgSuccess("已取消操作");
+              });
+          } else {
+            this.msgSuccess("已是默认状态，无需更改");
+          }
+        }
+      } else if (type == "delete" || type == "deleteAdmin") {
+        //删除
+        var message = "";
+        if (type == "delete" || type == "deleteAdmin") {
+          message = "确定要删除这些数据吗?";
+        }
+        this.$confirm(message, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        })
+          .then(() => {
+            this.confirmHandle(type);
+          })
+          .catch(() => {
+            this.msgInfo("已取消操作");
+          });
+      } else if (type == "distribution") {
+        this.windowOpen("/fpkh", {
+          id: this.encode(
+            this.selectionList
+              .map((res) => {
+                return res.customerId;
+              })
+              .join(",")
+          ),
+          type: "distribution",
+        });
+        // 审核
+      } else if (type == "audit") {
+        if (this.listType == "crm_jjfa") {
+          this.windowOpen("/jjfaDetail", {
+            id: this.encode(this.selectionList[0].jjfaId),
+            type: "audit",
+          });
+        } else if (this.listType == "crm_xsjh") {
+          this.windowOpen("/xsjhDetail", {
+            id: this.encode(this.selectionList[0].xsjhId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_cgsh") {
+          this.windowOpen("/cgshDhmx", {
+            id: this.encode(this.selectionList[0].cgshId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgddDhmx", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_xskd") {
+          this.windowOpen("/xskdDhmx", {
+            id: this.encode(this.selectionList[0].xskdId),
+            type: "audit",
+          });
+        } else if (this.listType == "crm_gys") {
+          this.windowOpen("/gysAudit", {
+            id: this.encode(this.selectionList[0].gysId),
+            type: "audit",
+          });
+        } else if (this.listType == "crm_customer") {
+          this.windowOpen("/customerEdit", {
+            id: this.encode(this.selectionList[0].customerId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_xsdd") {
+          this.windowOpen("/xsddDhmx", {
+            id: this.encode(this.selectionList[0].xsddId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_sgd") {
+          this.windowOpen("/sgddDhmx", {
+            id: this.encode(this.selectionList[0].sgdId),
+            type: "audit",
+          });
+        } else if (this.listType == "crm_bjd") {
+          this.windowOpen("/bjdDetails", {
+            id: this.encode(this.selectionList[0].bjdId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_xsyd") {
+          this.windowOpen("/xsydDetail", {
+            id: this.encode(this.selectionList[0].xsydId),
+            type: "audit",
+          });
+        } else if (this.listType == "jxc_cgyd") {
+          this.windowOpen("/cgydDetail", {
+            id: this.encode(this.selectionList[0].cgydId),
+            type: "audit",
+          });
+        }
+      } else if (type == "orderDownBjd") {
+        this.windowOpen("/bjdEdit", {
+          id: this.encode(this.selectionList[0].xsjhId),
+          type: "xmjh",
+        });
+      } else if (type == "orderDownJjfa") {
+        this.windowOpen("/jjfaAddEdit", {
+          id: this.encode(this.selectionList[0].jjfaId),
+          type: "audit",
+        });
+      } else if (type == "customerTransfer") {
+        this.customerTransfer = true;
+        this.dialogTitle = "按销售转移";
+      } else if (type == "salesTransfer") {
+        this.customerTransfer = true;
+        this.dialogTitle = "按客户转移";
+        this.customerList = this.selectionList;
+      } else if (type == "editDetail") {
+        //编辑明细
+        if (this.listType == "jxc_cgsh") {
+          this.windowOpen("/cgshDetails", {
+            id: this.encode(this.selectionList[0].cgshId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_xsdd") {
+          this.windowOpen("/xsddDetail", {
+            id: this.encode(this.selectionList[0].xsddId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_cgdd") {
+          this.windowOpen("/cgddAdd", {
+            id: this.encode(this.selectionList[0].cgddId),
+            type: "edit",
+          });
+        } else if (this.listType == "jxc_xskd") {
+          this.windowOpen("/xskdDetail", {
+            id: this.encode(this.selectionList[0].xskdId),
+            type: "edit",
+          });
+        }
+      } else if (type == "generate") {
+        this.windowOpen("/sgdGenerate", {
+          id: this.encode(
+            this.selectionList
+              .map(function (item, index, array) {
+                return item.sgdId;
+              })
+              .join(",")
+          ),
+          type: "generate",
+        });
+      } else if (type == "stockIn") {
+        if (this.listType == "jxc_xsthrk") {
+          this.windowOpen("/xsthrkDetail", {
+            id: this.encode(this.selectionList[0].xsydId),
+            type: "stockIn",
+          });
+        } else if (this.listType == "jxc_qtlrkd") {
+          this.windowOpen("/qtlrkdDetail", {
+            id: this.encode(this.selectionList[0].rkdId),
+            type: "stockIn",
+          });
+        }
+      } else if (type == "stockOut") {
+        if (this.listType == "jxc_cgthck") {
+          this.windowOpen("/cgthckDetail", {
+            id: this.encode(this.selectionList[0].cgydId),
+            type: "stockOut",
+          });
+        } else if (this.listType == "jxc_qtlckd") {
+          this.windowOpen("/qtlckdDetail", {
+            id: this.encode(this.selectionList[0].ckdId),
+            type: "stockOut",
+          });
+        }
+      }
+    },
+    confirmHandle(type) {
+      if (type === "delete" || type == "deleteAdmin") {
+        let request = {
+          admin_company: companyDelete,
+          crm_customerpool: crmCustomerdelete,
+          crm_customer: crmCustomerDeleteByIds,
+          crm_product: crmProductDelProductById,
+          crm_gys: crmGysDeleteByIds,
+          jxc_xsdd: jxcXsdddeleteById,
+          jxc_sgd: sgdDeleteBySgdId,
+          crm_bjd: bjdDeletById,
+          jxc_cgdd: cgddDelByCgddId,
+          jxc_cgsh: cgshDelCgshByCgshId,
+          crm_customerCare: crmCustomerCareDeleteByIds,
+          crm_jjfa: crmJjfaDeleteById,
+          crm_xsjh: crmXsjhDeleteById,
+          jxc_ckgl: jxcCkglDeleteById,
+          jxc_wlgsgl: jxcWlgsglDeleteById,
+          jxc_xsyd: jxcXsydDeleteById,
+          jxc_xskd: jxcXskdDeleteById,
+          jxc_cgyd: jxcCgydDeleteById,
+        }[this.listType];
+        if (this.listType == "jxc_xskd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.xskdId;
+          });
+          if (type == "delete") {
+            request({
+              xskdId: ids.join(","),
+            })
+              .then((res) => {
+                this.msgSuccess("删除成功");
+                this.$emit("on-handle", { type: type });
+              })
+              .catch(() => {});
+          } else {
+            jxcXskdAdminDeleteById({
+              xskdId: ids.join(","),
+            })
+              .then((res) => {
+                this.msgSuccess("删除成功");
+                this.$emit("on-handle", { type: type });
+              })
+              .catch(() => {});
+          }
+        } else if (this.listType == "crm_jjfa") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.jjfaId;
+          });
+          request({
+            id: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("on-handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "crm_xsjh") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.xsjhId;
+          });
+          request({
+            id: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("on-handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "crm_customerCare") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.ghId;
+          });
+          request({
+            ghIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("on-handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "jxc_cgsh") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.cgshId;
+          });
+          request({
+            cgshIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "jxc_cgdd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.cgddId;
+          });
+          request({
+            cgddId: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "crm_bjd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.bjdId;
+          });
+          request({
+            bjdId: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "jxc_sgd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.sgdId;
+          });
+          request({
+            sgdId: ids.join(","),
+            auth: type === "delete" ? 0 : 1,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "jxc_xsdd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.xsddId;
+          });
+          if (type === "delete") {
+            request({
+              xsddId: ids.join(","),
+            })
+              .then((res) => {
+                this.msgSuccess("删除成功");
+                this.$emit("handle", { type: type });
+              })
+              .catch(() => {});
+          } else {
+            jxcXsddAdminDeleteById({
+              xsddId: ids.join(","),
+            })
+              .then((res) => {
+                this.msgSuccess("删除成功");
+                this.$emit("handle", { type: type });
+              })
+              .catch((res) => {});
+          }
+        } else if (this.listType == "admin_company") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.companyId;
+          });
+          request({
+            companyIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch(() => {});
+        } else if (this.listType == "crm_customerpool") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.customerId;
+          });
+          request({
+            customerIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch((res) => {});
+        } else if (this.listType == "crm_customer") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.customerId;
+          });
+          request({
+            customerIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch((res) => {});
+        } else if (this.listType == "crm_contactRecord") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.jwjlId;
+          });
+          crmContactRecordDeleteByIds({
+            jwjlIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+            })
+            .catch((res) => {});
+        } else if (this.listType == "crm_product") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.productId;
+          });
+          crmProductDelProductById({
+            productId: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+              this.$store.commit("edit");
+            })
+            .catch((res) => {});
+        } else if (this.listType == "crm_gys") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.gysId;
+          });
+          request({
+            gysIds: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+              this.$store.commit("edit");
+            })
+            .catch((res) => {});
+        } else if (this.listType == "jxc_ckgl") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.ckId;
+          });
+          request({
+            id: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+              this.$store.commit("edit");
+            })
+            .catch((res) => {});
+        } else if (this.listType == "jxc_wlgsgl") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.id;
+          });
+          request({
+            id: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+              this.$store.commit("edit");
+            })
+            .catch((res) => {});
+        } else if (this.listType == "jxc_xsyd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.xsydId;
+          });
+          if (type == "delete") {
+            request({
+              id: ids.join(","),
+            })
+              .then((res) => {
+                this.msgSuccess("删除成功");
+                this.$emit("handle", { type: type });
+                this.$store.commit("edit");
+              })
+              .catch((res) => {});
+          } else {
+            jxcXsydAdminDeleteById({
+              id: ids.join(","),
+            })
+              .then((res) => {
+                this.msgSuccess("删除成功");
+                this.$emit("handle", { type: type });
+                this.$store.commit("edit");
+              })
+              .catch((res) => {});
+          }
+        } else if (this.listType == "jxc_cgyd") {
+          var ids = this.selectionList.map(function (item, index, array) {
+            return item.cgydId;
+          });
+          request({
+            cgydId: ids.join(","),
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.$emit("handle", { type: type });
+              this.$store.commit("edit");
+            })
+            .catch((res) => {});
+        }
+      }
+    },
+    /** 获取展示items */
+    getSelectionHandleItemsInfo() {
+      let handleInfos = {
+        delete: {
+          name: "删除",
+          type: "delete",
+          icon: require("@/assets/img/selection_delete.png"),
+          disabled: true,
+        },
+        toView: {
+          name: "查看",
+          type: "toView",
+          icon: require("@/assets/img/selection_delete.png"),
+          disabled: true,
+        },
+        deleteAdmin: {
+          name: "管理员删除",
+          type: "deleteAdmin",
+          icon: require("@/assets/img/selection_delete.png"),
+          disabled: true,
+        },
+        edit: {
+          name: "编辑",
+          type: "edit",
+          icon: require("@/assets/img/selection_edit.png"),
+          disabled: true,
+        },
+        default: {
+          name: "设为默认",
+          type: "default",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        distribution: {
+          name: "分配客户",
+          type: "distribution",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        audit: {
+          name: "审核",
+          type: "audit",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        customerTransfer: {
+          name: "按销售负责人转移",
+          type: "customerTransfer",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        salesTransfer: {
+          name: "转移客户",
+          type: "salesTransfer",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        salesQuotation: {
+          name: "转成销售报价单",
+          type: "salesQuotation",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        salesOrder: {
+          name: "转成销售订单",
+          type: "salesOrder",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        editDetail: {
+          name: "编辑明细",
+          type: "editDetail",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        termination: {
+          name: "终止执行",
+          type: "termination",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        mandatory: {
+          name: "强制执行完毕",
+          type: "mandatory",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        purchase: {
+          name: "申购单",
+          type: "purchase",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        order: {
+          name: "下推开单",
+          type: "order",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        orderDown: {
+          name: "下推订单",
+          type: "orderDown",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        orderDownSh: {
+          name: "下推收货单",
+          type: "orderDownSh",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        orderDownBjd: {
+          name: "下推报价单",
+          type: "orderDownBjd",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        orderDownJjfa: {
+          name: "下推解决方案",
+          type: "orderDownJjfa",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        generate: {
+          name: "生成采购订单",
+          type: "generate",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        printOrderBjd: {
+          name: "打印报价单",
+          type: "printOrderBjd",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        printOrderHt: {
+          name: "打印合同",
+          type: "printOrderHt",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        printOrderCkd: {
+          name: "打印出库单",
+          type: "printOrderCkd",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        comeBack: {
+          name: "退审提交",
+          type: "comeBack",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        backAudit: {
+          name: "退审审核",
+          type: "backAudit",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        additional: {
+          name: "追加说明",
+          type: "additional",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        lookCard: {
+          name: "查看卡片",
+          type: "lookCard",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        review: {
+          name: "点评",
+          type: "review",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        qYong: {
+          name: "启用",
+          type: "qYong",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        tYong: {
+          name: "禁用",
+          type: "tYong",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        jgsp: {
+          name: "价格审批",
+          type: "jgsp",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        dyrkd: {
+          name: "打印入库单",
+          type: "dyrkd",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        glfy: {
+          name: "关联费用",
+          type: "glfy",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        jczz: {
+          name: "进程追踪",
+          type: "jczz",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        jcgjzz: {
+          name: "进程高级追踪",
+          type: "jcgjzz",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        stockOut: {
+          name: "出库",
+          type: "stockOut",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+        stockIn: {
+          name: "入库",
+          type: "stockIn",
+          icon: require("@/assets/img/selection_reset.png"),
+          disabled: true,
+        },
+      };
+      if (this.listType == "crm_xsjh") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            audit: true,
+            orderDownBjd: true,
+            orderDownJjfa: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              orderDownBjd: true,
+              orderDownJjfa: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.xsjhshqx,
+              orderDownBjd: true,
+              orderDownJjfa: true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              orderDownBjd: false,
+              orderDownJjfa: false,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              orderDownBjd: true,
+              orderDownJjfa: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_ckgl") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            edit: true,
+            delete: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            edit: false,
+            delete: false,
+          });
+        }
+      } else if (this.listType == "crm_jjfa") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            audit: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.jjfashqx,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "crm_khzy") {
+        if (this.selectionList.length == 0) {
+          return this.forSelectionHandleItems(handleInfos, {
+            salesTransfer: true,
+            customerTransfer: false,
+          });
+        } else if (this.selectionList.length >= 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            salesTransfer: false,
+            customerTransfer: false,
+          });
+        }
+      }
+      if (this.listType == "crm_customerCare") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            qYong: true,
+            tYong: true,
+            edit: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == 18) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              qYong:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              tYong: true,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              qYong: true,
+              tYong:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              edit: true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_cgsh") {
+        if (this.selectionList.length == 0) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            dyrkd: true,
+            editDetail: true,
+            audit: true,
+            glfy: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              glfy:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqtfyqx,
+              delete: true,
+              deleteAdmin: false,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgddsh,
+              glfy:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqtfyqx,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin: false,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              glfy:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqtfyqx,
+              delete: true,
+              deleteAdmin: false,
+            });
+          } else if (this.selectionList[0].statusId == 10) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              glfy:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqtfyqx,
+              delete: true,
+              deleteAdmin: false,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              glfy:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqtfyqx,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin: false,
+            });
+          } else if (this.selectionList[0].statusId == 10) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              glfy:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqtfyqx,
+              delete: true,
+              deleteAdmin: false,
+            });
+          }
+        } else if (this.selectionList.length > 1) {
+          for (var i in this.selectionList) {
+            if (
+              this.selectionList[i].statusId == 0 &&
+              this.operAuth.cgglqx != undefined &&
+              !this.operAuth.cgglqx.cgdddyqx
+            ) {
+              return this.forSelectionHandleItems(handleInfos, {
+                toView: false,
+                dyrkd: false,
+                editDetail:
+                  this.selectionList[0].creatorId == this.useridQx
+                    ? false
+                    : true,
+                audit:
+                  this.operAuth.cgglqx == undefined
+                    ? true
+                    : !this.operAuth.cgglqx.cgddsh,
+                glfy: false,
+                delete: true,
+                deleteAdmin: false,
+              });
+            }
+          }
+        }
+      } else if (this.listType == "jxc_xskd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            printOrderCkd: true,
+            editDetail: true,
+            audit: true,
+            glfy: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.xskddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              glfy:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.operAuth.xsglqx != undefined
+                    ? !this.operAuth.xsglqx.xskdqtfyqx
+                    : true
+                  : true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xskddyqx,
+              editDetail: true,
+              audit:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xskdsh,
+              glfy:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.operAuth.xsglqx == undefined
+                    ? !this.operAuth.xsglqx.xskdqtfyqx
+                    : true
+                  : true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xskddyqx,
+              editDetail: true,
+              audit: true,
+              glfy:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.operAuth.xsglqx == undefined
+                    ? !this.operAuth.xsglqx.xskdqtfyqx
+                    : true
+                  : true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xskddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              glfy:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.operAuth.xsglqx == undefined
+                    ? !this.operAuth.xsglqx.xskdqtfyqx
+                    : true
+                  : true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 20) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xskddyqx,
+              editDetail: true,
+              audit: true,
+              glfy:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.operAuth.xsglqx == undefined
+                    ? !this.operAuth.xsglqx.xskdqtfyqx
+                    : true
+                  : true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "crm_bjd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            printOrderBjd: true,
+            edit: true,
+            audit: true,
+            orderDown: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderBjd: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              orderDown: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderBjd: false,
+              edit: true,
+              audit:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsbjdshqx,
+              orderDown: true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderBjd: false,
+              edit: true,
+              audit: true,
+              orderDown: false,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderBjd: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              orderDown: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_cgdd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            printOrderHt:
+              this.operAuth.cgglqx == undefined
+                ? true
+                : !this.operAuth.cgglqx.cgdddyqx,
+            editDetail: true,
+            audit: true,
+            orderDownSh: true,
+            delete: true,
+            termination: true,
+            mandatory: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              orderDownSh: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgddsh,
+              orderDownSh: true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqx,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              orderDownSh: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 3) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqx,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 4) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqx,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 5) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh: true,
+              delete: true,
+              termination: true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 7) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqx,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 8) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgshqx,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.qzzxwbqx,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 12) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderHt:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgdddyqx,
+              editDetail: true,
+              audit: true,
+              orderDownSh: true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        } else {
+          return this.forSelectionHandleItems(handleInfos, ["editDetail"]);
+        }
+      } else if (this.listType == "jxc_sgd") {
+        if (this.selectionList.length == 0) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            audit: true,
+            delete: true,
+            generate: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              generate: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.sgdshqx,
+              delete: true,
+              generate: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              delete: true,
+              generate: this.selectionList[0].sfqbcg == "是" ? true : false,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              generate: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        } else if (this.selectionList.length > 1) {
+          let status = true;
+          if (this.operAuth.cgglqx) {
+            if (this.operAuth.cgglqx.sgdsccgddqx) {
+              for (var i in this.selectionList) {
+                if (
+                  this.selectionList[i].statusId == 1 &&
+                  this.selectionList[i].sfqbcg == "否"
+                ) {
+                  status = true;
+                } else {
+                  status = false;
+                  break;
+                }
+              }
+              if (status) {
+                return this.forSelectionHandleItems(handleInfos, {
+                  toView: true,
+                  edit: true,
+                  audit: true,
+                  delete: true,
+                  generate: false,
+                  deleteAdmin:
+                    this.operAuth.othersqx == undefined
+                      ? true
+                      : !this.operAuth.othersqx.glyscqx,
+                });
+              } else {
+                return this.forSelectionHandleItems(handleInfos, {
+                  toView: true,
+                  edit: true,
+                  audit: true,
+                  delete: true,
+                  generate: true,
+                  deleteAdmin:
+                    this.operAuth.othersqx == undefined
+                      ? true
+                      : !this.operAuth.othersqx.glyscqx,
+                });
+              }
+            }
+          }
+        }
+      } else if (this.listType == "jxc_xsdd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            jczz: true,
+            jcgjzz: true,
+            printOrderHt: true,
+            editDetail: true,
+            audit: true,
+            purchase: true,
+            order: true,
+            delete: true,
+            termination: true,
+            mandatory: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.selectionList[0].ywyId == this.useridQx
+                    ? false
+                    : true
+                  : true,
+              audit: true,
+              purchase: true,
+              order: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsddsh,
+              purchase: true,
+              order: true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit: true,
+              purchase:
+                this.selectionList[0].sfksg == "否"
+                  ? true
+                  : this.operAuth.xsglqx == undefined
+                  ? true
+                  : this.selectionList[0].statusId == 3
+                  ? !this.operAuth.xsglqx.xsddsgqx
+                  : this.selectionList[0].statusId == 4
+                  ? !this.operAuth.xsglqx.xsddsgqx
+                  : true,
+              order:
+                this.selectionList[0].sfkxt == "否"
+                  ? true
+                  : this.operAuth.xsglqx == undefined
+                  ? true
+                  : this.selectionList[0].statusId == 3
+                  ? !this.operAuth.xsglqx.xsfhqx
+                  : this.selectionList[0].statusId == 4
+                  ? !this.operAuth.xsglqx.xsfhqx
+                  : true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail:
+                this.selectionList[0].creatorId == this.useridQx
+                  ? this.selectionList[0].ywyId == this.useridQx
+                    ? false
+                    : true
+                  : true,
+              audit: true,
+              purchase: true,
+              order: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 3) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit: true,
+              purchase:
+                this.selectionList[0].sfksg == "否"
+                  ? true
+                  : this.operAuth.xsglqx == undefined
+                  ? true
+                  : this.selectionList[0].statusId == 3
+                  ? !this.operAuth.xsglqx.xsddsgqx
+                  : this.selectionList[0].statusId == 4
+                  ? !this.operAuth.xsglqx.xsddsgqx
+                  : true,
+              order:
+                this.selectionList[0].sfkxt == "否"
+                  ? true
+                  : this.operAuth.xsglqx == undefined
+                  ? true
+                  : this.selectionList[0].statusId == 3
+                  ? !this.operAuth.xsglqx.xsfhqx
+                  : this.selectionList[0].statusId == 4
+                  ? !this.operAuth.xsglqx.xsfhqx
+                  : true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 4) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit: true,
+              purchase:
+                this.selectionList[0].sfksg == "否"
+                  ? true
+                  : this.operAuth.xsglqx == undefined
+                  ? true
+                  : this.selectionList[0].statusId == 3
+                  ? !this.operAuth.xsglqx.xsddsgqx
+                  : this.selectionList[0].statusId == 4
+                  ? !this.operAuth.xsglqx.xsddsgqx
+                  : true,
+              order:
+                this.selectionList[0].sfkxt == "否"
+                  ? true
+                  : this.operAuth.xsglqx == undefined
+                  ? true
+                  : this.selectionList[0].statusId == 3
+                  ? !this.operAuth.xsglqx.xsfhqx
+                  : this.selectionList[0].statusId == 4
+                  ? !this.operAuth.xsglqx.xsfhqx
+                  : true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.qzzxwbqx,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 5) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: false,
+              audit: true,
+              purchase: true,
+              order: true,
+              delete: true,
+              termination: true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 6) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit: true,
+              purchase: true,
+              order: true,
+              delete: true,
+              termination: true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 8) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit: true,
+              purchase: true,
+              order: true,
+              delete: true,
+              termination:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              mandatory:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.qzzxwbqx,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 9) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              jczz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jczzqx,
+              jcgjzz:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.jcgjzzqx,
+              printOrderHt:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsdddyqx,
+              editDetail: true,
+              audit: true,
+              purchase: true,
+              order: true,
+              delete: true,
+              termination: true,
+              mandatory: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "crm_xbj") {
+        if (this.selectionList.length == 0) {
+          return this.forSelectionHandleItems(handleInfos, {
+            salesQuotation: true,
+            salesOrder: true,
+          });
+        } else {
+          return this.forSelectionHandleItems(handleInfos, {
+            salesQuotation: false,
+            salesOrder: false,
+          });
+        }
+      } else if (this.listType == "admin_company") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: false,
+            edit: false,
+            deleteAdmin: false,
+          });
+        }
+      } else if (this.listType == "crm_customerpool") {
+        if (this.selectionList.length == 0) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            delete: true,
+            distribution: true,
+            additional: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: false,
+            edit:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.ggkhcbjqx,
+            delete:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.ggkhcscqx,
+            distribution:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.fpkhqx,
+            additional:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.ggkhczjsmqx,
+          });
+        } else if (this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            delete: true,
+            distribution:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.fpkhqx,
+            additional: true,
+          });
+        }
+      } else if (this.listType == "crm_customer") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            lookCard: true,
+            edit: true,
+            audit: true,
+            delete: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              lookCard: false,
+              edit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.khbjqx,
+              audit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.khshqx,
+              delete:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.khscqx,
+            });
+          } else {
+            return this.forSelectionHandleItems(handleInfos, {
+              lookCard: false,
+              edit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.khbjqx,
+              audit: true,
+              delete:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.khscqx,
+            });
+          }
+        }
+      } else if (this.listType == "crm_contactRecord") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            // edit: true,
+            review: true,
+            delete: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: false,
+            // edit:
+            //   this.operAuth.crmqx == undefined
+            //     ? true
+            //     : !this.operAuth.crmqx.jwjlbjqx,
+            review:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.jwjldpqx,
+            delete:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.jwjlscqx,
+          });
+        }
+      } else if (this.listType == "crm_product") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            edit: true,
+            delete: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            edit:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.cpxxbjqx,
+            delete:
+              this.operAuth.crmqx == undefined
+                ? true
+                : !this.operAuth.crmqx.cpxxscqx,
+          });
+        }
+      } else if (this.listType == "crm_gys") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            lookCard: true,
+            edit: true,
+            audit: true,
+            delete: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          if (this.selectionList[0].statusId == "0") {
+            return this.forSelectionHandleItems(handleInfos, {
+              lookCard: false,
+              edit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.gysbjqx,
+              audit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.gysshqx,
+              delete:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.gysscqx,
+            });
+          } else if (this.selectionList[0].statusId == "1") {
+            return this.forSelectionHandleItems(handleInfos, {
+              lookCard: false,
+              edit:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.gysbjqx,
+              audit: true,
+              delete:
+                this.operAuth.crmqx == undefined
+                  ? true
+                  : !this.operAuth.crmqx.gysscqx,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_wlgsgl") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            deleteAdmin: true,
+          });
+        } else if (this.selectionList.length == 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: false,
+            edit: false,
+            deleteAdmin:
+              this.operAuth.othersqx == undefined
+                ? true
+                : !this.operAuth.othersqx.glyscqx,
+          });
+        }
+      } else if (this.listType == "jxc_xsyd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            audit: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit:
+                this.operAuth.xsglqx == undefined
+                  ? true
+                  : !this.operAuth.xsglqx.xsthshqx,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 22) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              delete: true,
+              deleteAdmin: !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_cgyd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            edit: true,
+            audit: true,
+            delete: true,
+            deleteAdmin: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == -1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete: false,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 0) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit:
+                this.operAuth.cgglqx == undefined
+                  ? true
+                  : !this.operAuth.cgglqx.cgddsh,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              delete: true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 2) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              audit: true,
+              delete:
+                this.selectionList[0].creatorId == this.useridQx ? false : true,
+              deleteAdmin:
+                this.operAuth.othersqx == undefined
+                  ? true
+                  : !this.operAuth.othersqx.glyscqx,
+            });
+          } else if (this.selectionList[0].statusId == 21) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              edit: true,
+              audit: true,
+              delete: true,
+              deleteAdmin: !this.operAuth.othersqx.glyscqx,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_xsthrk") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            stockIn: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              stockIn: false,
+            });
+          } else if (this.selectionList[0].statusId == 22) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              stockIn: true,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_cgthck") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            stockOut: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == 1) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              stockOut: false,
+            });
+          } else if (this.selectionList[0].statusId == 21) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              stockOut: true,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_qtlrkd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            dyrkd: true,
+            stockIn: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == 25) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd: false,
+              stockIn: false,
+            });
+          } else if (this.selectionList[0].statusId == 22) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              dyrkd: false,
+              stockIn: true,
+            });
+          }
+        }
+      } else if (this.listType == "jxc_qtlckd") {
+        if (this.selectionList.length == 0 || this.selectionList.length > 1) {
+          return this.forSelectionHandleItems(handleInfos, {
+            toView: true,
+            printOrderCkd: true,
+            stockOut: true,
+          });
+        } else if ((this.selectionList.length = 1)) {
+          if (this.selectionList[0].statusId == 23) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd: false,
+              stockOut: false,
+            });
+          } else if (this.selectionList[0].statusId == 21) {
+            return this.forSelectionHandleItems(handleInfos, {
+              toView: false,
+              printOrderCkd: false,
+              stockOut: true,
+            });
+          }
+        }
+      }
+    },
+    forSelectionHandleItems(handleInfos, array) {
+      var tempsHandles = [];
+      for (var i in array) {
+        handleInfos[i].disabled = array[i];
+        tempsHandles.push(handleInfos[i]);
+      }
+      return tempsHandles;
+    },
+    // 判断是否展示
+    whetherTypeShowByPermision: function (type) {
+      if (type == "delete") {
+        return true;
+      }
+      return true;
+    },
+    // 子组件 回调的 结果
+    handleCallBack(data) {
+      this.$emit("handle", { type: data.type });
+    },
+    /** 勾选后的表头操作 */
+    headSelectionChange(array) {
+      this.selectionList = array;
+    },
+    // 创建数据页面 保存成功
+    createSaveSuccess(data) {
+      // 回到保存成功
+      this.$emit("on-handle", { type: "save-success" });
+    },
+    xxddDhmxClick() {
+      this.$emit("handle");
+    },
+    sgdEditClick() {
+      this.$emit("handle");
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+.th-container {
+  font-size: 13px;
+  height: 50px;
+  padding: 0 20px;
+}
+/** 场景和筛选 */
+.condition_title {
+  width: 55px;
+  cursor: pointer;
+}
+.condition_title:hover {
+  color: $xr-color-primary;
+}
+
+.m-arrow {
+  margin: 0 8px;
+}
+.c-filtrate {
+  margin: 0 10px 0 30px;
+  width: 12px;
+}
+
+/** 勾选操作 */
+.th-container {
+  font-size: 12px;
+  height: 50px;
+  padding: 0 20px;
+  color: #777;
+
+  .selected—title {
+    flex-shrink: 0;
+    padding-right: 20px;
+    border-right: 1px solid $--table-border-color;
+    .selected—count {
+      color: $xr-color-primary;
+    }
+  }
+}
+
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+</style>

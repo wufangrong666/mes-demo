@@ -1,0 +1,61 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="客户" name="1">
+            <khTabs></khTabs>
+          </el-tab-pane>
+          <el-tab-pane label="销售订单" name="2">
+            <xsddTabs></xsddTabs>
+          </el-tab-pane>
+          <el-tab-pane label="销售开单" name="3">
+            <xskdTabs></xskdTabs>
+          </el-tab-pane>
+          <el-tab-pane label="销售异动" name="4">
+            <xsydTabs></xsydTabs>
+          </el-tab-pane>
+          <el-tab-pane label="采购订单" name="5">
+            <cgddTabs></cgddTabs>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import khTabs from "./khTabs";
+import xsddTabs from "./xsddTabs"
+import xskdTabs from "./xskdTabs"
+import xsydTabs from "./xsydTabs"
+import cgddTabs from "./cgddTabs"
+export default {
+  name: "",
+  components: {
+    khTabs,
+    xsddTabs,
+    xskdTabs,
+    xsydTabs,
+    cgddTabs
+  },
+  data() {
+    return {
+      activeName: "1",
+      title: ""
+    };
+  },
+
+  methods: {},
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+</style>

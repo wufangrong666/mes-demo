@@ -1,0 +1,278 @@
+<template>
+  <el-container>
+    <el-header class="nav-container">
+      <!-- 财务管理 -->
+      <navbar :navIndex="2" @nav-items-click="navClick"></navbar>
+    </el-header>
+    <el-container>
+      <el-aside width="auto" class="aside-container">
+        <sidebar
+          :items="financeRouters.children"
+          :addOffset="quickAddOffset"
+          createButtonTitle="快速创建"
+          mainRouter="finance"
+        >
+          <div slot="add" class="quick-add">
+            <div class="quick-add-content">
+              <p v-for="(item, index) in quickAddList" :key="index" @click="addSkip(item)">
+                <i class="wukong" :class="'wukong-' + item.icon"></i>
+                <span>{{item.label}}</span>
+              </p>
+            </div>
+          </div>
+        </sidebar>
+      </el-aside>
+      <!-- 引入右侧内容 appmain -->
+      <el-main id="project-main-container">
+        <app-main></app-main>
+      </el-main>
+    </el-container>
+    <add-project v-if="isCreate" @close="isCreate = false"></add-project>
+  </el-container>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import { childrenMenu } from "@/router/modules/finance/finance";
+import { Navbar, Sidebar, AppMain } from "./components";
+export default {
+  name: "Layout",
+  components: {
+    Navbar,
+    Sidebar,
+    AppMain,
+  },
+  computed: {
+    ...mapGetters(["finance", "financeRouters", "operAuth"]),
+    permissonProject() {
+      return (
+        this.project &&
+        this.project.projectManage &&
+        this.project.projectManage.save
+      );
+    },
+    // 快捷添加
+    quickAddList() {
+      var addItems = [];
+      if (this.finance.ywwlz.xswlz.yskd && this.operAuth.cwglqx.xjyskdqx) {
+        addItems.push({
+          icon: "customer",
+          index: "customer",
+          label: "预收款单",
+        });
+      }
+      if (this.finance.ywwlz.xswlz.yfkd && this.operAuth.cwglqx.xjskdqx) {
+        addItems.push({
+          icon: "help_tips",
+          label: "收款单",
+        });
+      }
+      return addItems;
+    },
+    quickAddOffset() {
+      return Math.round(this.quickAddList.length / 2) * 75;
+    },
+  },
+  data() {
+    return {
+      isCreate: false,
+      sidebarItems: [],
+      yskdDetailsTitle: "新增",
+      data: {},
+      yskdDetails: false,
+    };
+  },
+  created() {
+    this.sidebarItems = childrenMenu;
+    // this.getProjectMenu();
+    // this.getTagMenu();
+    // this.addNotification();
+  },
+  methods: {
+    onHanle() {
+      this.$router.push({
+        path: "/finance/deal/salechaseDeal/advanceReceipt",
+      });
+    },
+    addSkip(item) {
+      this.isCreate = true;
+      if (item.index == "customer") {
+        this.windowOpen("/yskdDetails", {
+          id: this.encode(""),
+          type: "add",
+        });
+      }
+    },
+    navClick(index) {},
+
+    quicklyCreate() {},
+
+    /**
+     * 获取项目菜单
+     */
+    getProjectMenu() {
+      // 获取项目列表
+      let projectMenu = null;
+      for (let item of this.sidebarItems) {
+        if (item.meta && item.meta.title == "项目") {
+          projectMenu = item;
+          break;
+        }
+      }
+
+      if (projectMenu) {
+        workIndexWorkListAPI()
+          .then((res) => {
+            projectMenu.children = [];
+            for (let item of res.data) {
+              projectMenu.children.push({
+                path: "list/" + item.workId,
+                meta: {
+                  title: item.name,
+                  id: item.workId,
+                },
+              });
+            }
+          })
+          .catch(() => {});
+      }
+    },
+
+    /**
+     * 获取标签菜单
+     */
+    getTagMenu() {
+      let tagMenu = null;
+      for (let item of this.sidebarItems) {
+        if (item.meta && item.meta.title == "标签") {
+          tagMenu = item;
+          break;
+        }
+      }
+
+      if (tagMenu) {
+        workTasklableIndexAPI()
+          .then((res) => {
+            tagMenu.children = [];
+            for (let item of res.data) {
+              tagMenu.children.push({
+                path: "tag/" + item.labelId,
+                meta: {
+                  title: item.name,
+                  params: item,
+                },
+              });
+            }
+          })
+          .catch(() => {});
+      }
+    },
+
+    /**
+     * 通知更新
+     */
+    addNotification() {
+      // 项目设置
+      this.$bus.$on("project-setting", (name, id) => {
+        for (let item of this.sidebarItems) {
+          if (item.meta && item.meta.title == "项目") {
+            for (let i in item.children) {
+              if (item.children[i].meta.id == id) {
+                item.children[i].meta.title = name;
+                break;
+              }
+            }
+          }
+        }
+      });
+
+      // 项目新增
+      this.$bus.$on("add-project", (name, id) => {
+        for (let item of this.sidebarItems) {
+          if (item.meta && item.meta.title == "项目") {
+            item.children.push({
+              path: "list/" + id,
+              meta: {
+                title: name,
+                id: id,
+              },
+            });
+            this.$nextTick(() => {
+              this.$router.replace({
+                name: "project-list",
+                params: {
+                  id: id,
+                },
+              });
+            });
+            break;
+          }
+        }
+      });
+
+      // 恢复项目
+      this.$bus.$on("recover-project", (name, id) => {
+        for (let item of this.sidebarItems) {
+          if (item.meta && item.meta.title == "项目") {
+            item.children.push({
+              path: "list/" + id,
+              meta: {
+                title: name,
+                id: id,
+              },
+            });
+          }
+        }
+      });
+
+      // 项目删除
+      this.$bus.$on("delete-project", (id) => {
+        for (let item of this.sidebarItems) {
+          if (item.meta && item.meta.title == "项目") {
+            for (let i in item.children) {
+              if (item.children[i].meta.id == id) {
+                item.children.splice(i, 1);
+                this.$router.replace({
+                  name: "my-task",
+                });
+                break;
+              }
+            }
+          }
+        }
+      });
+    },
+  },
+
+  beforeDestroy() {
+    this.$bus.$off("project-setting");
+    this.$bus.$off("add-project");
+    this.$bus.$off("delete-project");
+    this.$bus.$off("recover-project");
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+@import "./styles/common.scss";
+.el-container {
+  min-height: 0;
+}
+.aside-container {
+  position: relative;
+  background-color: #001529;
+  box-sizing: border-box;
+  border-right: solid 1px #e6e6e6;
+  overflow: visible;
+}
+
+.nav-container {
+  padding: 0;
+  // box-shadow: 0px 1px 2px #dbdbdb;
+  z-index: 100;
+  min-width: 1200px;
+}
+.quick-add {
+  height: 178px;
+}
+</style>

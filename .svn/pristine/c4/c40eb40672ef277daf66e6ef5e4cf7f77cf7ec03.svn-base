@@ -1,0 +1,168 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="付款基本信息">
+          <div class="input-box" style="width:100%">
+            <label class="input-label">付款日期</label>
+            <div style="float:left" v-text="from.fkrq"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商</label>
+            <div style="float:left" v-text="from.gysName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">费用类别</label>
+            <div style="float:left">{{from.fylb == '1'?'银行汇款':'现金'}}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款单号</label>
+            <div style="float:left" v-text="from.yfkdDh"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期</label>
+            <div style="float:left" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位抬头</label>
+            <div style="float:left" v-text="from.dwttName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款方式</label>
+            <div style="float:left" v-text="from.fkfsName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">操作员</label>
+            <div style="float:left" v-text="from.creatorName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">是否补单</label>
+            <div style="float:left" v-text="from.sfbd"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">备注</label>
+            <div style="float:left" v-text="from.remark"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">付款账户</label>
+            <div style="float:left" v-text="from.fkzhName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label"></label>
+            <div style="float:left"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label"></label>
+            <div style="float:left"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商编码</label>
+            <div style="float:left" v-text="from.gysCode"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">初始欠款</label>
+            <div style="float:left" v-text="from.cshqk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">总金额</label>
+            <div style="float:left" v-text="from.je"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已付金额</label>
+            <div style="float:left" v-text="from.yfje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已退总额(除换货)</label>
+            <div style="float:left" v-text="from.ytje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">退货冲抵金额</label>
+            <div style="float:left" v-text="from.thcdze"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">未付金额</label>
+            <div style="float:left" v-text="from.je"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label" style="width:140px">未付金额(扣除未审核)</label>
+            <div style="float:left" v-text="from.je"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">本次付款</label>
+            <div style="float:left" v-text="from.bcfk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">已核销金额</label>
+            <div style="float:left" v-text="from.yhxje"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">剩余金额</label>
+            <div style="float:left">{{from.je -from.yfje }}</div>
+          </div>
+          <div class="input-box">
+            <label class="input-label" style="color:red">本次已核销余额</label>
+            <div style="float:left" v-text="from.bcfk"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核人</label>
+            <div style="float:left" v-text="from.shrName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">审核时间</label>
+            <div style="float:left" v-text="from.shsj"></div>
+          </div>
+          <div style="text-align:center;line-height:40px;float:left;width:100%">
+            <el-button @click="hidenView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrFindInfo } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      from: {},
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    mxData() {
+      cgbbGrFindInfo({
+        type: this.widowData.type,
+        fkdId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.mxData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../../../manage/styles/table.scss";
+@import "../../../../../styles/detail.scss";
+</style>

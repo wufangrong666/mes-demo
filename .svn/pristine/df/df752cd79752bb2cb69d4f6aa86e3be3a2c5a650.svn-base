@@ -1,0 +1,65 @@
+<template>
+  <div>
+    <create-view :loading="loading" :body-style="{ height: '100%'}">
+      <flexbox direction="column" align="stretch" class="crm-create-container">
+        <flexbox class="crm-create-header">
+          <div style="flex:1;font-size:17px;color:#333;">新建记录</div>
+          <img @click="hidenView" class="close" src="@/assets/img/task_close.png" />
+        </flexbox>
+      </flexbox>
+    </create-view>
+  </div>
+</template>
+
+<script>
+import CreateView from "@/components/CreateView";
+export default {
+  data() {
+    return {
+      loading: false
+    }
+  },
+  components: {
+    CreateView
+  },
+  methods: {
+    hidenView() {
+      this.$emit("hiden-view");
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.crm-create-container {
+  position: relative;
+  height: 100%;
+}
+
+.crm-create-flex {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.crm-create-header {
+  height: 40px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  .close {
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin-right: -10px;
+    padding: 10px;
+    cursor: pointer;
+  }
+}
+.crm-create-body {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+</style>

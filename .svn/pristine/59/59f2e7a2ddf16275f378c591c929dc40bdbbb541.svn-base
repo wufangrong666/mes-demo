@@ -1,0 +1,1355 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex btnStyle">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>
+              客户名称:
+            </label>
+            <div v-if="toViewType" v-text="from.name"></div>
+            <el-input
+              v-else
+              @blur="nameBlur"
+              @input="getName"
+              clearable
+              placeholder="请输入客户名称"
+              v-model="from.name"
+            ></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售负责人:</label>
+            <div v-if="toViewType" v-text="ywyName"></div>
+            <el-input v-else :readonly="true" clearable placeholder="请选择销售负责人" v-model="ywyName">
+              <el-button :disabled="menuStats" @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所属集团:</label>
+            <div
+              style="float:left;overflow: hidden;white-space: nowrap"
+              :title="from.ssjt"
+              v-if="toViewType"
+              v-text="from.ssjt"
+            ></div>
+            <el-input v-else clearable placeholder="请输入所属集团" v-model="from.ssjt">
+              <el-button @click="customerDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">客户编码:</label>
+            <div style="float:left;overflow: hidden" :title="from.code" v-text="from.code"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">规模:</label>
+            <div v-if="toViewType" v-text="from.khgm"></div>
+            <el-select v-else v-model="from.khgm" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in khgmList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建人:</label>
+            <div v-text="creator"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">创建日期:</label>
+            <div class="createDate" :title="from.createDate" v-text="from.createDate"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在国家:</label>
+            <div v-if="toViewType" v-text="from.khgj"></div>
+            <el-input v-else clearable placeholder="请输入所在国家" v-model="from.khgj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">手机号码:</label>
+            <div v-if="toViewType" v-text="from.khsjhm"></div>
+            <el-input v-else clearable placeholder="请输入手机号码" maxlength="11" v-model="from.khsjhm"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">详细地址:</label>
+            <div v-if="toViewType" v-text="from.address"></div>
+            <el-input v-else clearable placeholder="请输入详细地址" v-model="from.address"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">QQ:</label>
+            <div v-if="toViewType" v-text="from.khqq"></div>
+            <el-input v-else clearable placeholder="请输入QQ" v-model="from.khqq"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在省:</label>
+            <div v-if="toViewType" v-text="from.khsf"></div>
+            <el-select v-else v-model="from.khsf" placeholder="请选择" @change="provinceChanged">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in provinces"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">电话:</label>
+            <div v-if="toViewType" v-text="from.businessTel"></div>
+            <el-input v-else clearable placeholder="请输入电话" v-model="from.businessTel"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">邮编:</label>
+            <div v-if="toViewType" v-text="from.postcode"></div>
+            <el-input v-else clearable placeholder="请输入邮编" v-model="from.postcode"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">skype:</label>
+            <div v-if="toViewType" v-text="from.skype"></div>
+            <el-input v-else clearable placeholder="请输入skype" v-model="from.skype"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在市:</label>
+            <div v-if="toViewType" v-text="from.khcs"></div>
+            <el-select v-else v-model="from.khcs" :loading="loadingCity" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in cities"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">传真:</label>
+            <div v-if="toViewType" v-text="from.cz"></div>
+            <el-input v-else clearable placeholder="请输入传真" v-model="from.cz"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">网址:</label>
+            <div v-if="toViewType" v-text="from.website"></div>
+            <el-input v-else clearable placeholder="请输入网址" v-model="from.website"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">旺旺:</label>
+            <div v-if="toViewType" v-text="from.khww"></div>
+            <el-input v-else clearable placeholder="请输入旺旺" v-model="from.khww"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在县:</label>
+            <div v-if="toViewType" v-text="from.khqx"></div>
+            <el-input v-else clearable placeholder="请输入所在县" v-model="from.khqx"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">Email:</label>
+            <div v-if="toViewType" v-text="from.email"></div>
+            <el-input v-else clearable placeholder="请输入Email" v-model="from.email"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">共享人:</label>
+            <div
+              v-if="toViewType"
+            >{{from.gxrName != ''?from.gxrName.map(item =>{return item.realname}).join(','):''}}</div>
+            <el-input v-else :readonly="true" clearable placeholder="请选择共享人" v-model="gxrName">
+              <el-button @click="gxrDialog" slot="append" icon="el-icon-plus"></el-button>
+            </el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="地址信息和财务信息">
+          <div class="input-box">
+            <label class="input-label">收货国家:</label>
+            <div v-if="toViewType" v-text="from.shgj"></div>
+            <el-input v-else clearable placeholder="请输入收货国家" v-model="from.shgj"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货城市:</label>
+            <div v-if="toViewType" v-text="from.shcs"></div>
+            <el-input v-else clearable placeholder="请输入客户名称" v-model="from.shcs"></el-input>
+          </div>
+          <div class="input-box"></div>
+          <div class="input-box"></div>
+          <div class="input-box">
+            <label class="input-label">收货地址1:</label>
+            <div v-if="toViewType" v-text="from.shdz"></div>
+            <el-input v-else clearable placeholder="请输入收货地址1" v-model="from.shdz"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货地址2:</label>
+            <div v-if="toViewType" v-text="from.shdzb"></div>
+            <el-input v-else clearable placeholder="请输入收货地址2" v-model="from.shdzb"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货地址3:</label>
+            <div v-if="toViewType" v-text="from.shdzc"></div>
+            <el-input v-else clearable placeholder="请输入收货地址3" v-model="from.shdzc"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">收货地址4:</label>
+            <div v-if="toViewType" v-text="from.shdzd"></div>
+            <el-input v-else clearable placeholder="请输入收货地址4" v-model="from.shdzd"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">开户行:</label>
+            <div v-if="toViewType" v-text="from.khyh"></div>
+            <el-input v-else clearable placeholder="请输入开户行" v-model="from.khyh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">开户名:</label>
+            <div v-if="toViewType" v-text="from.khm"></div>
+            <el-input v-else clearable placeholder="请输入开户名" v-model="from.khm"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">银行账号:</label>
+            <div v-if="toViewType" v-text="from.yhzh"></div>
+            <el-input v-else clearable placeholder="请输入银行账号" v-model="from.yhzh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">信用额度:</label>
+            <div v-if="toViewType" v-text="from.xyed"></div>
+            <el-input v-else clearable placeholder="请输入详细地址" v-model="from.xyed"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">税号:</label>
+            <div v-if="toViewType" v-text="from.khsh"></div>
+            <el-input v-else clearable placeholder="请输入税号" v-model="from.khsh"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">开票地址:</label>
+            <div v-if="toViewType" v-text="from.kpdz"></div>
+            <el-input v-else clearable placeholder="请输入开票地址" v-model="from.kpdz"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">交往频率超期预警:</label>
+            <div style="float:left;width:60px" v-if="toViewType" v-text="from.jwpl"></div>
+            <el-input
+              @keyup.native="from.jwpl = from.jwpl.replace(/[^\d]/g,'')"
+              v-else
+              clearable
+              placeholder="请输入交往频率超期预警"
+              v-model="from.jwpl"
+            ></el-input>
+            <span style="display: inline-block;line-height: 25px;">天</span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">欠款额度:</label>
+            <div style="float:left;width:60px" v-if="toViewType" v-text="from.qked"></div>
+            <el-input
+              @keyup.native="from.qked = from.qked.replace(/[^\d]/g,'')"
+              v-else
+              clearable
+              placeholder="请输入欠款额度"
+              v-model="from.qked"
+            ></el-input>
+            <span style="display: inline-block;line-height: 25px;">元</span>
+          </div>
+          <div style="width:100%;margin-bottom:5px;float:left">
+            <label class="input-label">收款期限设置:</label>
+            <div
+              style="display: inline-block;width:55px"
+              v-if="toViewType"
+              v-text="from.skqxszFlag"
+            ></div>
+            <div
+              style="display: inline-block;width:30px"
+              v-if="toViewType"
+              v-text="from.skqxszDays"
+            ></div>
+            <el-radio
+              v-if="!toViewType"
+              style="margin-left: 30px;"
+              @change="fhhChange"
+              v-model="from.skqxszFlag"
+              label="发货后"
+            >发货后</el-radio>
+            <el-input
+              v-if="!toViewType"
+              :readonly="from.skqxszFlag != '发货后'"
+              style="width:100px"
+              clearable
+              @keyup.native="fhhData = fhhData.replace(/[^\d]/g,'')"
+              v-model="fhhData"
+            ></el-input>
+            <span>天为收款期限</span>
+            <el-radio
+              v-if="!toViewType"
+              style="margin:0 55px  0 54px;"
+              @change="kphChange"
+              v-model="from.skqxszFlag"
+              label="开票后"
+            >开票后</el-radio>
+            <el-input
+              v-if="!toViewType"
+              :readonly="from.skqxszFlag != '开票后'"
+              style="width:100px"
+              clearable
+              @keyup.native="kphData = kphData.replace(/[^\d]/g,'')"
+              v-model="kphData"
+            ></el-input>
+            <span v-if="!toViewType">天为收款期限</span>
+          </div>
+          <div class="input-box">
+            <label class="input-label">超期无购买提示:</label>
+            <span style="float: left;line-height: 25px;margin-right: 10px;">连续</span>
+            <div v-if="toViewType" v-text="from.cqwgmts"></div>
+            <el-input
+              @keyup.native="from.cqwgmts = from.cqwgmts.replace(/[^\d]/g,'')"
+              v-else
+              style="width:100px"
+              clearable
+              v-model="from.cqwgmts"
+            ></el-input>
+            <span style="display: inline-block;line-height: 25px;margin-left: 10px;">天无购买提醒</span>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="地址信息和财务信息">
+          <div class="input-box">
+            <label class="input-label">客户来源:</label>
+            <div v-if="toViewType" v-text="from.khlx"></div>
+            <el-select v-else v-model="from.customerFrom" placeholder="请选择">
+              <el-option
+                v-for="item in customerFromList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">客户类型:</label>
+            <div v-if="toViewType" v-text="from.khlx"></div>
+            <el-select v-else v-model="from.khlx" placeholder="请选择">
+              <el-option
+                v-for="item in khlxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售方式:</label>
+            <div v-if="toViewType" v-text="from.xsfs"></div>
+            <el-select v-else v-model="from.xsfs" placeholder="请选择">
+              <el-option
+                v-for="item in xsfsList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">预设售价:</label>
+            <div v-if="toViewType" v-text="from.yssj"></div>
+            <el-select v-else v-model="from.yssj" placeholder="请选择">
+              <el-option
+                v-for="item in yssjList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">行业属性:</label>
+            <div v-if="toViewType" v-text="from.hysx"></div>
+            <el-select v-else v-model="from.hysx" placeholder="请选择">
+              <el-option
+                v-for="item in hysxList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">企业性质:</label>
+            <div v-if="toViewType" v-text="from.qyxz"></div>
+            <el-select v-else v-model="from.qyxz" placeholder="请选择">
+              <el-option
+                v-for="item in qyxzList"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">法定代表人:</label>
+            <div v-if="toViewType" v-text="from.fddbr"></div>
+            <el-input v-else clearable placeholder="请输入法定代表人" v-model="from.fddbr"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">委托代理人:</label>
+            <div v-if="toViewType" v-text="from.wtdlr"></div>
+            <el-input v-else clearable placeholder="请输入委托代理人" v-model="from.wtdlr"></el-input>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a v-if="!toViewType" href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item.fileId)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <div class="input-boxB" style="margin:8px 0">
+            <label class="input-label">所询产品信息:</label>
+            <div style="width:90%;float:left" v-if="toViewType" v-text="from.sxcpxx"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              :rows="2"
+              maxlength="200"
+              show-word-limit
+              placeholder="请输入内容"
+              v-model="from.sxcpxx"
+            ></el-input>
+          </div>
+          <div class="input-boxB" style="margin:8px 0">
+            <label class="input-label">企业描述:</label>
+            <div style="width:90%;float:left" v-if="toViewType" v-text="from.description"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              :rows="2"
+              maxlength="200"
+              show-word-limit
+              placeholder="请输入企业描述"
+              v-model="from.description"
+            ></el-input>
+          </div>
+          <div class="input-boxB" style="margin:8px 0">
+            <label class="input-label">备注:</label>
+            <div style="width:90%;float:left" v-if="toViewType" v-text="from.remark"></div>
+            <el-input
+              v-else
+              resize="none"
+              type="textarea"
+              maxlength="200"
+              show-word-limit
+              :rows="1"
+              placeholder="请输入备注"
+              v-model="from.remark"
+            ></el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="客户联系人">
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column label="姓名">
+              <template slot="header" slot-scope="scope">
+                <span>姓名</span>
+                <span style="color:red">*</span>
+              </template>
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.contactName"></div>
+                <el-input v-else clearable v-model="scope.row.contactName"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="性别">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.contactGender"></div>
+                <el-select v-else v-model="scope.row.contactGender" placeholder="请选择">
+                  <el-option
+                    v-for="item in contactGenderList"
+                    :key="item.name"
+                    :label="item.name"
+                    :value="item.name"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="重要程度">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.zycd"></div>
+                <el-select v-else v-model="scope.row.zycd" placeholder="请选择">
+                  <el-option
+                    v-for="item in zycdList"
+                    :key="item.name"
+                    :label="item.name"
+                    :value="item.name"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="职位">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.zw"></div>
+                <el-input v-else clearable v-model="scope.row.zw"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="手机">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.sj"></div>
+                <el-input
+                  maxlength="11"
+                  @keyup.native="scope.row.sj = scope.row.sj.replace(/[^\d]/g,'')"
+                  v-else
+                  clearable
+                  v-model="scope.row.sj"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="工作电话">
+              <template slot="header" slot-scope="scope">
+                <span>工作电话</span>
+                <span style="color:red">*</span>
+              </template>
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.contactPhone"></div>
+                <el-input
+                  @keyup.native="scope.row.contactPhone = scope.row.contactPhone.replace(/[^\d]/g,'')"
+                  v-else
+                  clearable
+                  v-model="scope.row.contactPhone"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="E-mail">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.contactEmail"></div>
+                <el-input
+                  @blur="contactEmailInput(scope.row)"
+                  v-else
+                  clearable
+                  v-model="scope.row.contactEmail"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="QQ">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.contactQq"></div>
+                <el-input
+                  @keyup.native="scope.row.contactQq = scope.row.contactQq.replace(/[^\d]/g,'')"
+                  v-else
+                  clearable
+                  v-model="scope.row.contactQq"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="传真">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.cz"></div>
+                <el-input v-else clearable v-model="scope.row.cz"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="生日">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="scope.row.contactBirthday"></div>
+                <el-date-picker
+                  v-else
+                  value-format="yyyy-MM-dd"
+                  v-model="scope.row.contactBirthday"
+                  type="date"
+                  placeholder="选择日期"
+                ></el-date-picker>
+              </template>
+            </el-table-column>
+            <el-table-column label="备注">
+              <template slot-scope="scope">
+                <div v-if="toViewType" v-text="from.remark"></div>
+                <el-input v-else clearable v-model="scope.row.remark"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-button
+                  v-if="scope.$index != 0"
+                  style="color:red"
+                  @click="deleteTable(scope)"
+                  type="text"
+                >删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button v-if="!toViewType" icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+        <el-button v-if="!toViewType" type="success" @click="successClick">保存</el-button>
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+    </flexbox>
+
+    <!-- 所属集团 -->
+    <el-dialog
+      title="客户列表"
+      :visible.sync="dialogVisible"
+      width="60%"
+      style="margin-top:-5vh"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">客户名称</label>
+        <el-input placeholder="请输入客户名称" clearable v-model="dialogFrom.name"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">客户编码</label>
+        <el-input placeholder="请输入客户编码" clearable v-model="dialogFrom.code"></el-input>
+      </div>
+      <div class="dialog-box">
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+      <div class="table-box">
+        <el-table :data="userTableData" style="width: 100%" height="500">
+          <el-table-column label="客户名称">
+            <template slot-scope="scope">
+              <span
+                @click="queryName(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.name"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="客户编码"></el-table-column>
+        </el-table>
+      </div>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page.sync="dialogFrom.page"
+        :page-size="dialogFrom.limit"
+        layout="prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 共享人 -->
+    <gxrDialog
+      @gxrDialogTreeData="gxrDialogTreeData"
+      @close="gxrDialogStatus = false"
+      :gxrDialogStatus="gxrDialogStatus"
+    ></gxrDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import Lockr from "lockr";
+import dataList from "../../components/Json";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser,
+  crmCustomeraddOrUpdate,
+  crmCustomerQueryById,
+  crmCustomerPoolUpdate,
+} from "@/api/crm/ggkhc";
+import {
+  crmCustomerFileQueryByCusId,
+  crmCustomerFileRemoveById,
+  crmCustomerValidataName,
+} from "@/api/crm/khxxgl";
+import { crmCustomerFileUpload, usersList } from "@/api/common";
+import { EventBus } from "../../../utils/eventBus";
+import gxrDialog from "../../components/gxrDialog";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    gxrDialog,
+  },
+  props: {},
+  watch: {},
+  data() {
+    return {
+      gxrDialogStatus: false,
+      menuStats: false,
+      widowData: {},
+      toViewType: true,
+      reviewType: true,
+      dialogGxr: false,
+      gxrName: "",
+      xsfzrRoleId: "",
+      realRadio: "",
+      realname: "",
+      realStatus: "1",
+      realtableData: [],
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" },
+      ],
+      ywyName: "",
+      editData: {},
+      defaultProps: {
+        label: "name",
+        children: "children",
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user",
+      },
+      treeData: [],
+      treeDataR: [],
+      activeName: "department",
+      dialogYwy: false,
+      fhhData: "",
+      kphData: "",
+      dialogFrom: {
+        name: "",
+        code: "",
+        page: 1,
+        limit: 15,
+      },
+      total: 0,
+      dialogVisible: false,
+      loading: false,
+      khxxglDetailTitle: "",
+      fileList: [],
+      fileIds: [],
+      userTableData: [],
+      creator: "",
+      from: {
+        customerId: "",
+        name: "",
+        ywy: "",
+        code: "",
+        ssjt: "",
+        khgm: "",
+        createDate: "",
+        khgj: "",
+        khsjhm: "",
+        address: "",
+        khqq: "",
+        khsf: "",
+        businessTel: "",
+        postcode: "",
+        skype: "",
+        khcs: "",
+        cz: "",
+        website: "",
+        khww: "",
+        khqx: "",
+        email: "",
+        gxr: "",
+        shgj: "",
+        shcs: "",
+        shdz: "",
+        shdzb: "",
+        shdzc: "",
+        shdzd: "",
+        khyh: "",
+        khm: "",
+        yhzh: "",
+        xyed: "",
+        kpdz: "",
+        khsh: "",
+        jwpl: "",
+        qked: "",
+        skqxszFlag: "",
+        skqxszDays: "",
+        cqwgmts: "",
+        khlx: "一般客户",
+        xsfs: "直接销售",
+        yssj: "参考出售价",
+        hysx: "机电",
+        qyxz: "私营企业",
+        fddbr: "",
+        wtdlr: "",
+        sxcpxx: "",
+        description: "",
+        remark: "",
+        customerFrom: "网络搜索",
+      },
+      customerFromList: [
+        { name: "网络搜索" },
+        { name: "客户介绍" },
+        { name: "广告" },
+        { name: "报纸杂志" },
+        { name: "户外媒体" },
+        { name: "朋友推荐" },
+        { name: "其他" },
+      ],
+      khgmList: [
+        { name: "微型(10人以下)" },
+        { name: "小型(10-100人)" },
+        { name: "中小型(100-500人)" },
+        { name: "中型(500-1000人)" },
+        { name: "大型(1000人以上)" },
+      ],
+      khlxList: [
+        { name: "一般客户" },
+        { name: "VIP客户" },
+        { name: "潜在客户" },
+        { name: "长期跟踪客户" },
+        { name: "重要客户" },
+        { name: "一般合作客户" },
+        { name: "已流失客户" },
+      ],
+      xsfsList: [
+        { name: "直接销售" },
+        { name: "OEM" },
+        { name: "一级经销商" },
+        { name: "代理" },
+        { name: "二级经销商" },
+      ],
+      yssjList: [
+        { name: "参考出售价" },
+        { name: "一级批发价" },
+        { name: "二级批发价" },
+        { name: "三级批发价" },
+        { name: "四级批发价" },
+        { name: "五级批发价" },
+      ],
+      hysxList: [
+        { name: "机电" },
+        { name: "食品" },
+        { name: "生物化工" },
+        { name: "IT" },
+        { name: "磨具" },
+        { name: "机械重工" },
+      ],
+      qyxzList: [
+        { name: "私营企业" },
+        { name: "合资企业" },
+        { name: "外资企业" },
+        { name: "独资企业" },
+        { name: "国家事业" },
+      ],
+      zycdList: [
+        { name: "关键联系人" },
+        { name: "重要联系人" },
+        { name: "普通联系人" },
+        { name: "一般联系人" },
+        { name: "特别联系人" },
+        { name: "主管" },
+      ],
+      contactGenderList: [{ name: "男" }, { name: "女" }],
+      tableData: [
+        {
+          contactName: "",
+          contactGender: "",
+          zw: "",
+          sj: "",
+          contactPhone: "",
+          contactEmail: "",
+          contactQq: "",
+          cz: "",
+          contactBirthday: "",
+          remark: "",
+          zycd: "",
+        },
+      ],
+      provinces: [],
+      cities: [],
+      loadingCity: false,
+      flag: false,
+    };
+  },
+
+  methods: {
+    nameBlur() {
+      crmCustomerValidataName({
+        name: this.from.name,
+        id: this.widowData.id,
+      })
+        .then((res) => {
+        })
+        .catch((res) => {
+           this.from.name = ''
+        });
+    },
+    gxrDialogTreeData(id, name) {
+      if (this.flag) {
+        this.from.gxr = id;
+        this.gxrName = name;
+      } else {
+        this.ywyName = name;
+        this.from.ywy = id;
+      }
+    },
+    contactEmailInput(row) {
+      var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+      if (reg.test(row.contactEmail)) {
+      } else {
+        row.contactEmail = "";
+        this.msgInfo("邮箱格式不正确");
+      }
+    },
+    fhhChange() {
+      this.kphData = "";
+    },
+    kphChange() {
+      this.fhhData = "";
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    queryName(row) {
+      this.from.ssjt = row.name;
+      this.dialogVisible = false;
+    },
+    //省市联动选择
+    provinceChanged(value) {
+      if (value !== "") {
+        this.loadingCity = true;
+        for (var item of this.provinces) {
+          if (item.name === value) {
+            this.cities = item.cities;
+            this.city = "";
+            this.loadingCity = false;
+            break;
+          } else {
+            continue;
+          }
+        }
+      } else {
+        this.cities = [];
+        this.city = "";
+      }
+      this.$emit("selectChange", this.province, this.city);
+    },
+    deleteTable(scope) {
+      this.tableData.splice(scope.$index, 1);
+    },
+    appendClick() {
+      this.tableData.push({
+        contactName: "",
+        contactGender: "",
+        zw: "",
+        sj: "",
+        contactPhone: "",
+        contactEmail: "",
+        contactQq: "",
+        cz: "",
+        contactBirthday: "",
+        remark: "",
+        zycd: "",
+      });
+    },
+    realRadioChange(val) {
+      this.from.ywy = val.userId;
+      this.ywyName = val.realname;
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      if (this.activeName == "department") {
+        if (this.$refs.tree.getCheckedKeys().length == 0) {
+          this.from.ywy = "0";
+          this.ywyName = "";
+        } else {
+          this.from.ywy = this.$refs.tree.getCheckedKeys().join("");
+          this.ywyName = this.$refs.tree.getCheckedNodes()[0].name;
+        }
+      } else if (this.activeName == "role") {
+        if (this.$refs.treeR.getCheckedNodes().length == 0) {
+          this.from.ywy = "0";
+          this.ywyName = "";
+          this.xsfzrRoleId = "";
+        } else {
+          this.from.ywy = this.$refs.treeR.getCheckedNodes()[0].userId;
+          this.ywyName = this.$refs.treeR.getCheckedNodes()[0].realname;
+          this.xsfzrRoleId = this.$refs.treeR.getCheckedKeys().join("");
+        }
+      }
+    },
+    downYwy() {
+      this.dialogYwy = false;
+    },
+    successClick() {
+      let self = this;
+      if (this.from.name == "") {
+        this.msgInfo("请输入客户名称");
+        return;
+      }
+      for (var i in this.tableData) {
+        if (this.tableData[i].contactName == "") {
+          this.msgInfo("请输入联系人姓名");
+          return;
+        }
+        if (this.tableData[i].contactPhone == "") {
+          this.msgInfo("请输入联系人工作电话");
+          return;
+        }
+      }
+      if (this.from.skqxszFlag == "发货后") {
+        this.from.skqxszDays = this.fhhData;
+      } else {
+        this.from.skqxszDays = this.kphData;
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.fileIds = arr.join(",");
+      this.from.crmCustomerContactList = this.tableData;
+      if (this.widowData.type == "edit") {
+        this.loading = true;
+        crmCustomerPoolUpdate(this.from)
+          .then((res) => {
+            this.message("编辑成功");
+          })
+          .catch((res) => {
+            this.loading = false;
+          });
+      } else {
+        this.loading = true;
+        crmCustomeraddOrUpdate(this.from)
+          .then((res) => {
+            this.message("新增成功");
+          })
+          .catch((res) => {
+            this.loading = false;
+          });
+      }
+    },
+    message(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          this.resetGetList();
+          this.hidenView();
+          this.loading = false;
+        },
+      });
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    hidenView() {
+      window.top.close();
+    },
+    getName(val) {
+      var easyName = pinyin.getCamelChars(val);
+      this.from.code = easyName.toUpperCase();
+    },
+    customerDialog() {
+      if (this.from.ssjt != "") {
+        this.dialogFrom.name = this.from.ssjt;
+      }
+      this.dialogVisible = true;
+      this.dialogData();
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    ywyDialog() {
+      this.gxrDialogStatus = true;
+      this.flag = false;
+    },
+    gxrDialog() {
+      this.gxrDialogStatus = true;
+      this.flag = true;
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+
+    duakigReal() {
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus,
+      })
+        .then((res) => {
+          this.realtableData = res.data.list;
+        })
+        .catch((res) => {});
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then((res) => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then((res) => {
+          this.treeData = res.data;
+          if (this.from.ywy != "") {
+            if (this.widowData.id != "") {
+            } else {
+              this.$refs.tree.setCheckedKeys([this.from.ywy]);
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    search() {
+      this.dialogData();
+    },
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then((res) => {
+          this.userTableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    deleteUpload(index, id) {
+      this.fileList.splice(index, 1);
+      for (var i in this.fileIds) {
+        if (this.fileIds[i].fileId == id) {
+          this.fileIds.splice(i, 1);
+        }
+      }
+      crmCustomerFileRemoveById({
+        id: id,
+      })
+        .then((res) => {})
+        .catch((res) => {});
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmCustomerFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+          this.fileIds.push({
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    loginData() {},
+    editDataQuery() {
+      crmCustomerQueryById({
+        customerId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+          this.from.gxr = res.data.gxr;
+          if (res.data.gxrName.length > 0) {
+            this.gxrName = res.data.gxrName
+              .map((item) => {
+                return item.realname;
+              })
+              .join(",");
+          }
+          if (res.data.ywy != 0) {
+            this.ywyName = res.data.ywy;
+            this.from.ywy = res.data.ywy;
+          } else {
+            this.from.ywy = res.data.ywy;
+          }
+          this.creator = res.data.creatorName;
+          delete this.from.creator;
+          if (res.data.skqxszFlag == "发货后") {
+            this.fhhData = res.data.skqxszDays;
+          } else if (res.data.skqxszFlag == "开票后") {
+            this.kphData = res.data.skqxszDays;
+          }
+          this.tableData = res.data.customerContact;
+        })
+        .catch((res) => {});
+      crmCustomerFileQueryByCusId({
+        customerId: this.widowData.id,
+      })
+        .then((res) => {
+          this.fileList = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.provinces = dataList.addrs.provinces;
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    let menuQx = Lockr.get("operauthList").crmqx;
+    if (menuQx.fpkhqx) {
+      this.menuStats = !menuQx.fpkhqx;
+    } else {
+      this.menuStats = true;
+    }
+    if (this.widowData.id != "") {
+      this.editDataQuery();
+      if (this.widowData.type == "toView") {
+        this.toViewType = true;
+      } else {
+        this.toViewType = false;
+      }
+      if (this.widowData.type == "review") {
+        this.reviewType = true;
+        this.toViewType = true;
+      } else {
+        this.reviewType = false;
+      }
+    } else {
+      this.toViewType = false;
+      this.reviewType = false;
+      this.ywyName = Lockr.get("loginUserInfo").realname;
+      this.from.ywy = Lockr.get("loginUserInfo").userId;
+      this.creator = Lockr.get("loginUserInfo").realname;
+      this.from.createDate = this.getTime();
+    }
+  },
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  height: 25px;
+}
+.create-flex .el-input-group__append {
+  line-height: 23px;
+}
+.create-flex .el-input__icon {
+  line-height: 25px;
+}
+.el-dialog__body {
+  padding-top: 0;
+}
+.btnStyle .el-button {
+  padding: 3px 12px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.el-tab-department {
+  height: 400px;
+  overflow: auto;
+}
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 25px;
+  line-height: 25px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+.handle-bar {
+  margin-top: 5px;
+}
+.createDate {
+  float: left;
+}
+</style>

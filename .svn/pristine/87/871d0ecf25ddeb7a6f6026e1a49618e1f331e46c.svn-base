@@ -1,0 +1,233 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="品牌/品名" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <!-- <div class="input-box">
+      <label class="input-label">供应商名称</label>
+      <el-input placeholder="请输入供应商名称" clearable v-model="from.name"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">供应商编码</label>
+      <el-input placeholder="请输入供应商编码" clearable v-model="from.code"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">日期类别</label>
+      <el-select v-model="from.rqlb" placeholder="请选择">
+        <el-option
+          v-for="item in rqlbList"
+          :key="item.code"
+          :label="item.name"
+          :value="item.code"
+        ></el-option>
+      </el-select>
+    </div>
+    <div class="input-box" style="width:20%">
+      <label class="input-label">日期范围</label>
+      <el-date-picker
+        value-format="yyyy-MM-dd"
+        v-model="item"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+      ></el-date-picker>
+    </div>-->
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="gysName" label="供应商编码"></el-table-column>
+      <el-table-column prop="gysCode" label="供应商名称"></el-table-column>
+      <el-table-column prop="cgze" label="采购总额" sortable></el-table-column>
+      <el-table-column prop="yfk" label="已付款" sortable></el-table-column>
+      <el-table-column prop="ytk" label="已退款" sortable></el-table-column>
+      <el-table-column prop="cshqk" label="操作"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { cgbbGrCgtjByGys } from "@/api/jxc/jxc";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  computed: {},
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        startDate: "",
+        endDate: "",
+        code: "",
+        rqlb: "cjrq",
+      },
+      rqlbList: [
+        { name: "创建日期", code: "cjrq" },
+        { name: "收货日期", code: "qtrq" },
+      ],
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      gxrDialogStatus: false,
+      listType: "jxc_grcgbb_gysdzb",
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.moreTypes.push({ type: "enter", name: "导入" });
+    this.moreTypes.push({ type: "out", name: "导出" });
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.loginData();
+  },
+  methods: {
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.name = "";
+      this.from.code = "";
+      this.from.rqlb = "";
+      for (var i in list) {
+        if (list[i].name == "gysmc") {
+          this.$set(this.from, "name", list[i].value);
+        } else if (list[i].name == "rqlb") {
+          this.$set(
+            this.from,
+            "rqlb",
+            list[i].value == "创建日期" ? "cjrq" : "qtrq"
+          );
+        } else if (list[i].name == "gysbm") {
+          this.$set(this.from, "code", list[i].value);
+        } else if (list[i].name == "itemData") {
+          this.item = list[i].value;
+        }
+      }
+      this.loginData();
+    },
+    //获取列表数据
+    loginData() {
+      if (this.item.length) {
+        this.from.beginDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      cgbbGrCgtjByGys(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+.c-container .el-date-editor .el-range-separator {
+  line-height: 28px;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    margin-top: 20px;
+    width: 16%;
+    height: 35px;
+    .input-label {
+      line-height: 35px;
+      width: 70px;
+    }
+    .el-date-editor {
+      width: 68%;
+      .el-date-editor .el-range-separator {
+        width: 10%;
+      }
+    }
+  }
+  .right-container {
+    margin-right: -10px;
+    float: right;
+    margin: 12px 20px 0 0;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

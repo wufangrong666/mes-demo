@@ -1,0 +1,121 @@
+<template>
+  <div>
+    <el-dialog
+      title="销售机会"
+      :modal-append-to-body="false"
+      :visible.sync="dialogVisibleXsjh"
+      width="80%"
+      :before-close="handleCloseXsjh"
+      style="margin-top:-7vh"
+    >
+      <div style="float:left;width:100%">
+        <div class="input-boxX" style="margin:5px 0">
+          <label class="input-label">查询条件</label>
+          <el-input placeholder="机会编号/机会名称/客户名称" clearable v-model="xmjh.search"></el-input>
+        </div>
+        <div class="input-boxX" style="margin:5px 0">
+          <el-button type="primary" @click="xsjhData">查询</el-button>
+          <el-button type="info" plain @click="xsjHreset">重置</el-button>
+        </div>
+      </div>
+      <el-table :data="xsjhtableData" max-height="600px" style="width: 100%;margin:20px 0;float:left">
+        <el-table-column>
+          <template slot-scope="scope">
+            <el-radio v-model="xsjhId" :label="scope.row.id">
+              <span></span>
+            </el-radio>
+          </template>
+        </el-table-column>
+        <el-table-column prop="jhbh" label="机会编号"></el-table-column>
+        <el-table-column prop="jhmc" label="销售机会名称"></el-table-column>
+        <el-table-column prop="name" label="客户名称"></el-table-column>
+        <el-table-column prop="creatorName" label="创建人"></el-table-column>
+        <el-table-column prop="createDate" label="创建日期"></el-table-column>
+        <el-table-column prop="jhlx" label="销售机会类型"></el-table-column>
+        <el-table-column prop="jhjd" label="机会阶段"></el-table-column>
+      </el-table>
+      <span slot="footer" class="dialog-footer" style="text-align:center;display:block">
+        <el-button @click="handleCloseXsjh">取 消</el-button>
+        <el-button type="primary" @click="submitXsjh">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { crmJjfaSelectXsjh } from "@/api/crm/xsbjd";
+export default {
+  name: "",
+  components: {},
+  props: ["dialogVisibleXsjh"],
+  data() {
+    return {
+      xsjhId: "",
+      xmjh: {
+        page: 1,
+        limit: 15,
+        search: "",
+      },
+      xsjhItem: "",
+      cjrName: "",
+      gxrDialogStatus: false,
+      xsjhtableData: [],
+    };
+  },
+
+  methods: {
+    submitXsjh() {
+      let dh = "";
+      for (var i in this.xsjhtableData) {
+        if (this.xsjhtableData[i].id == this.xsjhId) {
+          dh = this.xsjhtableData[i].jhbh;
+        }
+      }
+      this.$emit("xsjhQuery", dh, this.xsjhId);
+      this.handleCloseXsjh();
+    },
+    handleCloseXsjh() {
+      this.$emit("colse");
+    },
+    cjrDialog() {
+      this.gxrDialogStatus = true;
+      this.flag = false;
+    },
+    xsjhData() {
+      crmJjfaSelectXsjh(this.xmjh)
+        .then((res) => {
+          this.xsjhtableData = res.data.list;
+          this.totle = res.data.totalRow;
+        })
+        .catch((res) => {});
+    },
+    xsjHreset() {
+      this.xmjh.page = 1;
+      this.xmjh.limit = 15;
+      this.xmjh.search = "";
+      this.xsjhData();
+    },
+  },
+  created() {},
+
+  mounted() {
+    this.xsjhData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../manage/styles/table.scss";
+@import "../../styles/detail.scss";
+.input-boxX {
+  width: 18%;
+  float: left;
+  .input-label {
+    width: 80px;
+  }
+  .el-input,
+  .el-date-editor,
+  .el-select {
+    width: 72%;
+  }
+}
+</style>

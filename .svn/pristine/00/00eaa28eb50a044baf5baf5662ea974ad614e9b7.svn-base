@@ -1,0 +1,80 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="客户销售明细表">
+          <el-table :data="tableList" stripe style="width: 100%">
+            <el-table-column type="expand">
+              <template slot-scope="props">
+                <el-table :data="props.row.xsddmxList" style="width: 100%">
+                  <el-table-column prop="brandName" label="品牌"></el-table-column>
+                  <el-table-column prop="commName" label="品名"></el-table-column>
+                  <el-table-column prop="productModelnum" label="规格型号"></el-table-column>
+                  <el-table-column prop="measureName" label="单位"></el-table-column>
+                  <el-table-column prop="wsdj" label="未税单价"></el-table-column>
+                  <el-table-column prop="quantity" label="数量"></el-table-column>
+                  <el-table-column prop="productSl" label="税率(%)"></el-table-column>
+                  <el-table-column prop="hsdj" label="含税单价"></el-table-column>
+                  <el-table-column prop="zdzk" label="折扣(%)"></el-table-column>
+                  <el-table-column prop="hk" label="货款"></el-table-column>
+                  <el-table-column prop="sj" label="税额"></el-table-column>
+                  <el-table-column prop="hsdj" label="价税合计"></el-table-column>
+                </el-table>
+              </template>
+            </el-table-column>
+            <el-table-column prop="xsddDh" label="单号"></el-table-column>
+            <el-table-column prop="createDate" label="开单日期"></el-table-column>
+            <el-table-column prop="customerName" label="操作员"></el-table-column>
+            <el-table-column prop="ywy" label="业务员"></el-table-column>
+            <el-table-column prop="hkCount" label="货款"></el-table-column>
+            <el-table-column prop="sjCount" label="税额"></el-table-column>
+            <el-table-column prop="hjCount" label="价税合计"></el-table-column>
+            <el-table-column prop="cbzje" label="成本总金额"></el-table-column>
+            <el-table-column prop="lrl" label="利润率"></el-table-column>
+          </el-table>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { reportQueryXsddBycusIds } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      loading: false,
+      tableList: [],
+    };
+  },
+
+  methods: {
+    xstjMx() {
+      reportQueryXsddBycusIds({
+        customerIds: this.widowData.id,
+      })
+        .then((res) => {
+          this.tableList = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.xstjMx();
+  },
+};
+</script>
+<style lang='scss' scoped>
+</style>

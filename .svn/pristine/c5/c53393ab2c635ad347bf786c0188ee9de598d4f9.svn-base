@@ -1,0 +1,150 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <el-table :data="dataList" stripe style="width: 100%">
+            <el-table-column prop="name" label="品牌"></el-table-column>
+            <el-table-column prop="nameCn" label="品名"></el-table-column>
+            <el-table-column prop="modelnum" label="型号"></el-table-column>
+            <el-table-column prop="measureName" label="单位"></el-table-column>
+            <el-table-column prop="quantity" label="申请数量"></el-table-column>
+            <el-table-column label="供应商" width="400">
+              <template slot-scope="scope">
+                <el-radio
+                  v-for="item in scope.row.gys"
+                  :key="item.gysId"
+                  v-model="scope.row.gysName"
+                  :label="item.gysName"
+                >{{item.gysName}}</el-radio>
+              </template>
+            </el-table-column>
+            <el-table-column prop="zy" label="摘要"></el-table-column>
+          </el-table>
+        </sections>
+        <div class="bottom">
+          <el-button @click="hidenView" plain>关闭</el-button>
+          <el-button @click="cgdYl" type="primary">生成采购单预览</el-button>
+        </div>
+      </div>
+
+      <el-dialog
+        title="采购单预览"
+        :visible.sync="dialogVisible"
+        width="80%"
+        :before-close="handleClose"
+        :modal-append-to-body="false"
+      ></el-dialog>
+
+      <cgddAdd
+        @save-success="createSaveSuccess"
+        :cgddId="cgddId"
+        v-if="cgddAdd"
+        @close="cgddAdd=false"
+      ></cgddAdd>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { sgdCreateCgddPreview, sgdCreateCgdd } from "@/api/jxc/jxc";
+import cgddAdd from "./cgddAdd";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    cgddAdd,
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      cgddId: {},
+      cgddAdd: false,
+      loading: false,
+      dataList: [],
+      tableData: [],
+      dialogVisible: false,
+      radio: "",
+      gysId: "",
+    };
+  },
+
+  methods: {
+    cgdYl() {
+      for (var i in this.dataList) {
+        this.dataList[i].zy = "";
+      }
+      this.windowOpen("/sgdPreview", {
+        list: JSON.stringify(this.dataList),
+        sgdId: this.widowData.id,
+        type: "sgdPreview",
+      });
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    handler() {
+      this.$emit("save-success");
+    },
+    queryData() {
+      this.loading = true;
+      sgdCreateCgddPreview({
+        sgdIds: this.widowData.id,
+      })
+        .then((res) => {
+          this.loading = false;
+          this.dataList = res.data;
+          this.gysId = res.data[0].gys[0].gysId;
+        })
+        .catch((res) => {});
+    },
+    hidenView() {
+      window.top.close();
+    },
+    createSaveSuccess(data) {
+      // 回到保存成功
+      this.$emit("on-handle", { type: "save-success" });
+    },
+    receiveMessage(event) {
+      if (event.data.type == "sgxt") {
+        window.opener.postMessage({ type: "sgxt" }, window.location);
+        this.hidenView();
+      }
+    },
+  },
+
+  created() {},
+  mounted() {
+    window.addEventListener("message", this.receiveMessage, false);
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss'>
+.create-flex .el-button {
+  padding: 10px 12px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.create-flex {
+  height: 100%;
+  position: relative;
+}
+.bottom {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin-bottom: 20px;
+}
+</style>

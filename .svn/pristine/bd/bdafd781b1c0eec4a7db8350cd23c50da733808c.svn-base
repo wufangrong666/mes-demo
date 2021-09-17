@@ -1,0 +1,402 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red;">*</span>排序:
+            </label>
+            <el-input placeholder="" v-model="from.sort">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red;">*</span>物流公司名称:
+            </label>
+            <el-input placeholder="" v-model="from.name">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              物流公司编码:
+            </label>
+            <el-input placeholder="" v-model="from.code">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              公司电话:
+            </label>
+            <el-input placeholder="" v-model="from.compPhone">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              email:
+            </label>
+            <el-input placeholder="" v-model="from.email">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              公司传真:
+            </label>
+            <el-input placeholder="" v-model="from.fax">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              所在国家:
+            </label>
+            <el-input placeholder="" v-model="from.gj">
+            </el-input>
+          </div>
+
+          <div class="input-box">
+            <label class="input-label">所在省:</label>
+            <el-select v-model="from.sf" placeholder="请选择" @change="provinceChanged">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in provinces"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+
+          <div class="input-box">
+            <label class="input-label">所在市:</label>
+            <el-select v-model="from.cs" :loading="loadingCity" placeholder="请选择">
+              <el-option :key="''" :label="'请选择'" :value="''"></el-option>
+              <el-option
+                v-for="item in cities"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name"
+              ></el-option>
+            </el-select>
+          </div>
+          <!-- <div class="input-box">
+            <label class="input-label">所在省：</label>
+            <el-input placeholder="" v-model="from.sf">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在市：</label>
+            <el-input placeholder="" v-model="from.cs">
+            </el-input>
+          </div> -->
+           <div class="input-box">
+            <label class="input-label">
+              网址:
+            </label>
+            <el-input placeholder="" v-model="from.website">
+            </el-input>
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              开户行:
+            </label>
+            <el-input placeholder="" v-model="from.khh">
+            </el-input>
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              地址:
+            </label>
+            <el-input placeholder="" v-model="from.dz">
+            </el-input>
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              账号:
+            </label>
+            <el-input placeholder="" v-model="from.zh">
+            </el-input>
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              邮政编码:
+            </label>
+            <el-input placeholder="" v-model="from.postcode">
+            </el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              税号:
+            </label>
+            <el-input placeholder="" v-model="from.sh">
+            </el-input>
+          </div>
+
+           <div class="input-box">
+            <label class="input-label">
+              联系人名称:
+            </label>
+            <el-input placeholder="" v-model="from.contactName">
+            </el-input>
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              联系人电话:
+            </label>
+            <el-input placeholder="" v-model="from.contactPhone">
+            </el-input>
+          </div> <div class="input-box">
+            <label class="input-label">
+              法定代表人:
+            </label>
+            <el-input placeholder="" v-model="from.fddbr">
+            </el-input>
+          </div>
+           <div class="input-box">
+            <label class="input-label">
+              委托代理人:
+            </label>
+            <el-input placeholder="" v-model="from.wtdlr">
+            </el-input>
+          </div>
+
+           <!-- <div class="input-box" style="width:100%">
+            <label class="input-label">添加附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index,item)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div> -->
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="经营范围">
+          <div class="input-boxB">
+            <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="from.jyfw"></el-input>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">    
+        <sections title="备注">
+          <div class="input-boxB">
+            <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="from.remark"></el-input>
+          </div>
+        </sections>
+      </div>
+
+      <div class="handle-bar" style="margin-top: 20px;">
+        <el-button type="primary" @click="successClick(-1)">保存</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "@/views/components/createView";
+import sections from "@/views/components/sections";
+import Lockr from "lockr";
+import dataList from "@/views/components/Json";
+
+import {
+  jxcWlgsglQueryById, //详情接口
+  jxcWlgsglAddEdit, //编辑接口
+} from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      provinces:[],
+      cities: [],
+      loadingCity: false,
+      loading: false,
+      value: "",
+      from: {
+        code:"",//	编码
+        contactPhone:"", //联系人电话
+        cjrq:"", //创建日期
+        remark:"", //备注
+        jyfw:"", //经营范围
+        sf:"", //省份
+        dz:"", //地址
+        compPhone:"", //电话
+        id:"", //id
+        fax:"", //传真
+        delflag:"", //删除标识
+        email:"", //邮箱
+        contactName:"", //联系人
+        website:"", //网址
+        gj:"", //国家
+        postcode:"", //邮编
+        khh:"", //开户行
+        cjr:"", //创建人
+        sort:"", //排序
+        zh:"", //账户
+        wtdlr:"", //委托代理人
+        cs:"", //城市
+        deletezy:"", //删除人员
+        name:"", //物流名称
+        fddbr:"", //法定代表人
+        sh:"",//税号
+        status: "",
+      },
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    successClick(status) {
+      let arr = [];
+      if (this.from.name == "") {
+        this.msgInfo("物流公司名称不能为空");
+        return;
+      }
+      if (this.from.sort == "") {
+        this.msgInfo("排序不能为空");
+        return;
+      }
+      this.from.status = status; //-1保存还是0提交
+      jxcWlgsglAddEdit(this.from)
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "提交成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      if (this.widowData.type == "edit") {
+        jxcWlgsglQueryById({
+          id: this.widowData.id,
+        }).then((res) => {
+          this.from = res.data;
+        });
+      }
+    },
+    //省市联动选择
+    provinceChanged(value) {
+      if (value !== "") {
+        this.loadingCity = true;
+        for (var item of this.provinces) {
+          if (item.name === value) {
+            this.cities = item.cities;
+            this.city = "";
+            this.loadingCity = false;
+            break;
+          } else {
+            continue;
+          }
+        }
+      } else {
+        this.cities = [];
+        this.city = "";
+      }
+      this.$emit("selectChange", this.province, this.city);
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.provinces = dataList.addrs.provinces;
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "@/views/manage/styles/table.scss";
+@import "@/styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

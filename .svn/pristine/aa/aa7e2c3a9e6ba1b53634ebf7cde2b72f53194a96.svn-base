@@ -1,0 +1,71 @@
+import request from '@/utils/request'
+// 查询所有角色信息
+export function getAllRole(data) {
+    return request({
+        url: 'system/role/getAllRole',
+        method: 'post',
+        data: data
+    })
+}
+// 根据角色查询员工信息
+export function getUserByRloe(data) {
+    return request({
+        url: 'system/user/getUserByRloe',
+        method: 'post',
+        data: data
+    })
+}
+// 角色新增
+export function roleAdd(data) {
+    return request({
+        url: 'system/role/add',
+        method: 'post',
+        data: data
+    })
+}
+// 获取菜单权限
+export function getMenuSetListByRole(data) {
+    return request({
+        url: 'system/menu/getMenuSetListByRole',
+        method: 'post',
+        data: data
+    })
+}
+// 设置菜单权限
+export function updateRoleMenu(data) {
+    return request({
+        url: 'system/role/updateRoleMenu',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 根据角色查询数据权限
+export function getOperSetListByRole(data) {
+    return request({
+        url: 'system/menu/getOperSetListByRole',
+        method: 'post',
+        data: data
+    })
+}
+// 给角色设置数据权限
+export function updateRoleOperMenu(data) {
+    return request({
+        url: 'system/role/updateRoleOperMenu',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 修改角色范围权限
+export function updateUserDataType(data) {
+    return request({
+        url: 'system/user/updateUserDataType',
+        method: 'post',
+        data: data
+    })
+}

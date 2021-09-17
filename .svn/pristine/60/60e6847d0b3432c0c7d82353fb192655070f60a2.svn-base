@@ -1,0 +1,88 @@
+<template>
+  <div class="center">
+    <span style="float:left;line-height:50px">下列单据审核后才能被打印:</span>
+    <div style="float: left;height: 300px;margin-top: 6px;">
+      <el-checkbox style='margin:10px' v-model="xsdd" label="1">销售订单</el-checkbox>
+      <br/>
+      <el-checkbox style='margin:10px' v-model="cgdd" label="1">采购订单</el-checkbox>
+      <br/>
+      <el-checkbox style='margin:10px' v-model="cgbjd" label="1">采购报价单</el-checkbox>
+      <br/>
+      <el-checkbox style='margin:10px' v-model="xskd" label="1">销售开单</el-checkbox>
+      <br/>
+      <el-checkbox style='margin:10px' v-model="bjd" label="1">报价单</el-checkbox>
+    </div>
+    <div class="btn">
+      <el-button @click="addClick" type="primary" plain>保存</el-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import { printQuerySetting, printSetting } from "@/api/manage/jxcsz";
+export default {
+  name: "",
+  data() {
+    return {
+      xsdd: false,
+      cgdd: false,
+      cgbjd: false,
+      xskd: false,
+      bjd: false,
+      id: ""
+    };
+  },
+
+  methods: {
+    addClick() {
+      printSetting({
+        xsdd: this.xsdd == true ? 1 : 0,
+        cgdd: this.cgdd == true ? 1 : 0,
+        id: this.id,
+        cgbjd: this.cgbjd == true ? 1 : 0,
+        xskd: this.xskd == true ? 1 : 0,
+        bjd: this.bjd == true ? 1 : 0
+      })
+        .then(res => {
+          this.msgSuccess("修改成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    loginData() {
+      printQuerySetting()
+        .then(res => {
+          this.id = res.data.id;
+          this.xsdd = res.data.xsdd == 1 ? true : false;
+          this.cgdd = res.data.cgdd == 1 ? true : false;
+          this.cgbjd = res.data.cgbjd == 1 ? true : false;
+          this.xskd = res.data.xskd == 1 ? true : false;
+          this.bjd = res.data.bjd == 1 ? true : false;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+  activated(){
+    this.loginData();
+  },
+  mounted() {
+  }
+};
+</script>
+<style lang='scss' scoped>
+.center {
+  position: relative;
+  margin: 10px;
+  min-height: 600px;
+}
+.btn {
+  width: 100%;
+  height: 40px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+}
+</style>

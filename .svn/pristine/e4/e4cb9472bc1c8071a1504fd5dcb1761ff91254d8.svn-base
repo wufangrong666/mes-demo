@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>思奉工业ERP</title>
+  <script  src="./static/client.js"></script>
+  <script  src="jquery.min.js"></script>
+  <script  src="./src/utils/Convert_Pinyin.js"></script>
+</head>
+
+<body>
+  <script type="text/javascript" src="//api.map.baidu.com/api?v=3.0&ak=DgizbHpImTxRZKlLNDbmiEEK42uuMAtN"></script>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+</body>
+<style>
+  .el-table th, .el-table td {
+    text-align: center!important;
+  }
+  </style>
+</html>

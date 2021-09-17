@@ -1,0 +1,157 @@
+<template>
+  <div style="position: relative">
+    <list-Head
+      :title="title"
+      placeholder="申购单单号/品牌/型号"
+      :search.sync="search"
+      @on-handle="listHeadHandle"
+      @on-search="companySearch"
+      main-title="新赠修改"
+      @on-export="exportInfos"
+      :list-type="listType"
+    ></list-Head>
+
+    <div xs-empty-icon="nopermission" xs-empty-text="暂无权限" class="container">
+      <table-Head
+        ref="tableHead"
+        :list-type="listType"
+        @filter="handleFilter"
+        @handle="handleHandle"
+      ></table-Head>
+      <el-table
+        class="n-table--border"
+        id="table"
+        v-loading="loading"
+        :data="list"
+        :height="tableHeight"
+        stripe
+        border
+        highlight-current-row
+        style="width: 100%"
+        :cell-style="cellStyle"
+        @row-click="handleRowClick"
+        @sort-change="sortChange"
+        @header-dragend="handleHeaderDragend"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column show-overflow-tooltip type="selection" align="center" width="55"></el-table-column>
+        <el-table-column
+          v-for="(item, index) in fieldList"
+          :key="index"
+          sortable="custom"
+          show-overflow-tooltip
+          :fixed="index==0"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width"
+          :formatter="fieldFormatter"
+        ></el-table-column>
+        <el-table-column></el-table-column>
+        <el-table-column fixed="right" width="36">
+          <template slot="header" slot-scope="slot">
+            <el-popover
+              :ref="`popover-${slot.$index}`"
+              placement="bottom-end"
+              width="220"
+              trigger="click"
+            >
+              <div>
+                <ul class="ul-popover">
+                  <draggable v-model="checkList">
+                    <li v-for="item in checkList" :key="item.id">
+                      <el-switch v-model="item.show" active-color="#2362fb"></el-switch>
+                      <span v-text="item.name"></span>
+                    </li>
+                  </draggable>
+                </ul>
+                <div class="btn">
+                  <el-button type="primary" @click="reset">重置</el-button>
+                  <el-button type="primary" @click="addPopover(slot)">提交</el-button>
+                </div>
+              </div>
+              <img
+                slot="reference"
+                src="@/assets/img/t_set.png"
+                @click="handleTableSet"
+                class="table-set"
+              />
+            </el-popover>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="pageSizes"
+          :page-size.sync="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+    </div>
+    <sgdDhmx
+      @handle="handleHandle"
+      :sgdType="sgdType"
+      :sgdId="sgdId"
+      @close="sgdDhmx =false"
+      v-if="sgdDhmx"
+    ></sgdDhmx>
+  </div>
+</template>
+
+<script>
+import { mapGetters } from "vuex";
+import table from "../../manage/mixins/table";
+import sgdDhmx from "./sgddDhmx";
+import draggable from "vuedraggable";
+export default {
+  name: "",
+  components: {
+    draggable,
+    sgdDhmx,
+  },
+  mixins: [table],
+  data() {
+    return {
+      title: "",
+      listType: "jxc_sgd",
+      sgdType: "",
+    };
+  },
+
+  methods: {
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      if (column.property === "sfqbcg") {
+        if (row.sfqbcg == "是") {
+          return { color: "#3E84E9"};
+        } else {
+          return { color: "red"};
+        }
+      }
+      // else if (column.property === "status") {
+      //   if (row.statusId == 2) {
+      //     return { color: "red" };
+      //   }
+      // }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style>
+.container .el-table__fixed {
+  height: 685px !important;
+  margin-bottom: 10px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+</style>

@@ -1,0 +1,1725 @@
+import request from '@/utils/request'
+// 查询所有角色信息
+export function jxcXsddQueryPageList(data) {
+    return request({
+        url: 'jxcXsdd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 进销存----销售订单
+export function jxcXsddQueryJwjl(data) {
+    return request({
+        url: 'jxcXsdd/queryJwjl',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 进销存----销售订单--新增
+export function jxcXsddAddOrUpdateJwjl(data) {
+    return request({
+        url: 'jxcXsdd/addOrUpdateJwjl',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站
+export function jxcXsddQueryHsz(data) {
+    return request({
+        url: 'jxcXsdd/queryHsz',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站---恢复
+export function jxcXsddRecoverById(data) {
+    return request({
+        url: 'jxcXsdd/recoverById',
+        method: 'post',
+        data: data,
+    })
+}
+//回收站---删除
+export function jxcXsddRemoveById(data) {
+    return request({
+        url: 'jxcXsdd/removeById',
+        method: 'post',
+        data: data,
+    })
+}
+// 查询所有角色信息
+export function jxcXsddAddAndUpdateCostInfo(data) {
+    return request({
+        url: 'jxcXsdd/addAndUpdateCostInfo',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 新增查询单号信息
+export function jxcXsddQueryForAdd(data) {
+    return request({
+        url: 'jxcXsdd/queryForAdd',
+        method: 'post',
+        data: data,
+    })
+}
+
+// 新增查询单号信息
+export function jxcXsddQueryck(data) {
+    return request({
+        url: 'jxcXsdd/queryck',
+        method: 'post',
+        data: data,
+    })
+}
+// 新增查询单号信息
+export function jxcXsddQuerydjmxByXsddId(data) {
+    return request({
+        url: 'jxcXsdd/querydjmxByXsddId',
+        method: 'post',
+        data: data,
+    })
+}
+// 新建和更新
+export function jxcXsddAddOrUpdate(data) {
+    return request({
+        url: 'jxcXsdd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 根据xsddid查询单据全部信息（ok）
+export function jxcXsddQueryForEditById(data) {
+    return request({
+        url: 'jxcXsdd/queryForEditById',
+        method: 'post',
+        data: data,
+    })
+}
+//  修改单据状态
+export function jxcXsddCheckStatus(data) {
+    return request({
+        url: 'jxcXsdd/checkStatus',
+        method: 'post',
+        data: data,
+    })
+}
+//  根据xsddid删除信息
+export function jxcXsdddeleteById(data) {
+    return request({
+        url: 'jxcXsdd/deleteById',
+        method: 'post',
+        data: data,
+    })
+}
+//  根据xsddid删除信息--admin
+export function jxcXsddAdminDeleteById(data) {
+    return request({
+        url: 'jxcXsdd/adminDeleteById',
+        method: 'post',
+        data: data,
+    })
+}
+//  订单转开单查询明细
+export function jxcXsddXsddToxskd(data) {
+    return request({
+        url: 'jxcXsdd/xsddToxskd',
+        method: 'post',
+        data: data,
+    })
+}
+
+
+//--------------------------------------------------------------------------------- 申购单
+
+export function sgdDeleteFakerRlkData(data) {
+    return request({
+        url: 'sgd/deleteFakerRlkData',
+        method: 'post',
+        data: data,
+    })
+}
+export function sgdPrendPreview(data) {
+    return request({
+        url: 'cgsh/prendPreview',
+        method: 'post',
+        data: data,
+    })
+}
+export function cgshFindCkCgshRkdList(data) {
+    return request({
+        url: 'cgsh/findCkCgshRkdList',
+        method: 'post',
+        data: data,
+    })
+}
+//  查询申购单列表
+export function sgdQueryPageList(data) {
+    return request({
+        url: 'sgd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//  查询采购人
+export function sgdFindAllUser(data) {
+    return request({
+        url: 'sgd/findAllUser',
+        method: 'post',
+        data: data,
+    })
+}
+//  根据sgdId查看详情
+export function sgdFindSgdById(data) {
+    return request({
+        url: 'sgd/findSgdById',
+        method: 'post',
+        data: data,
+    })
+}
+// 修改申购单
+export function sgdAddOrUpdate(data) {
+    return request({
+        url: 'sgd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//  修改申购单状态
+export function sgdAuditSgdBySgdId(data) {
+    return request({
+        url: 'sgd/auditSgdBySgdId',
+        method: 'post',
+        data: data,
+    })
+}
+//  根据sgdId删除申购单
+export function sgdDeleteBySgdId(data) {
+    return request({
+        url: 'sgd/deleteBySgdId',
+        method: 'post',
+        data: data,
+    })
+}
+//  生成采购订单预览
+export function sgdCreateCgddPreview(data) {
+    return request({
+        url: 'sgd/createCgddPreview',
+        method: 'post',
+        data: data,
+    })
+}
+//  获取申购单信息 生成采购订单
+export function sgdCreateCgdd(data) {
+    return request({
+        url: 'sgd/createCgddPreview2',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//  销售转申购根据id查详情
+export function sgdSxddToSgd(data) {
+    return request({
+        url: 'sgd/xsddToSgd ',
+        method: 'post',
+        data: data,
+    })
+}
+//  认领金额
+export function sgdGetRlk(data) {
+    return request({
+        url: 'sgd/getRlk ',
+        method: 'post',
+        data: data,
+    })
+}
+//  修改添加认领款
+export function sgdAddAndUpdateRlk(data) {
+    return request({
+        url: 'sgd/addAndUpdateRlk ',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//  附件删除
+export function sgdFileRemoveById(data) {
+    return request({
+        url: 'sgdFile/removeById ',
+        method: 'post',
+        data: data,
+    })
+}
+
+
+// -------------------------------------------------------------------------------采购订单
+
+//  合同
+export function cgddFindCgddHtmbList(data) {
+    return request({
+        url: 'cgdd/findCgddHtmbList',
+        method: 'post',
+        data: data,
+    })
+}
+//  合同---模板
+export function cgddPrendPreview(data) {
+    return request({
+        url: 'cgdd/prendPreview',
+        method: 'post',
+        data: data,
+    })
+}
+//  修改状态
+export function cgddChangeSendStatus(data) {
+    return request({
+        url: 'cgdd/changeSendStatus',
+        method: 'post',
+        data: data,
+    })
+}
+//  查询采购订单列表
+export function sgddQueryPageList(data) {
+    return request({
+        url: 'cgdd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//  查询采购订单单位抬头
+export function cgddFindDwtt(data) {
+    return request({
+        url: 'cgdd/findDwtt',
+        method: 'post',
+        data: data,
+    })
+}
+//  查询采购单据税率
+export function cgddFindSl(data) {
+    return request({
+        url: 'cgdd/findSl',
+        method: 'post',
+        data: data,
+    })
+}
+//  查询采购订单列表
+export function sgdSgdToCgdd(data) {
+    return request({
+        url: 'sgd/sgdToCgdd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//  采购订单回收站查询
+export function cgddFindAdminDelete(data) {
+    return request({
+        url: 'cgdd/findAdminDelete',
+        method: 'post',
+        data: data,
+    })
+}
+//删除
+export function cgddDelete(data) {
+    return request({
+        url: 'cgdd/delete',
+        method: 'post',
+        data: data,
+    })
+}
+//还原
+export function cgddLessening(data) {
+    return request({
+        url: 'cgdd/lessening',
+        method: 'post',
+        data: data,
+    })
+}
+//单号查询
+export function cgddQueryForAdd(data) {
+    return request({
+        url: 'cgdd/queryForAdd',
+        method: 'post',
+        data: data,
+    })
+}
+//条款明细
+export function cgddFindHttk(data) {
+    return request({
+        url: 'cgdd/findHttk',
+        method: 'post',
+        data: data,
+    })
+}
+//条款明细
+export function sgdHttk(data) {
+    return request({
+        url: 'sgd/rttk',
+        method: 'post',
+        data: data,
+    })
+}
+//新增或修改采购订单
+export function cgddAddOrUpdate(data) {
+    return request({
+        url: 'cgdd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购订单明细
+export function cgddFindCgddInfoByCgddId(data) {
+    return request({
+        url: 'cgdd/findCgddInfoByCgddId',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单附件删除
+export function cgddFileRemoveById(data) {
+    return request({
+        url: 'cgddFile/removeById',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单终止执行
+export function cgddFileZzzx(data) {
+    return request({
+        url: 'cgdd/zzzx',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单修改交货日期
+export function cgddInsertInfoByFieldAndValue(data) {
+    return request({
+        url: 'cgdd/insertInfoByFieldAndValue',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单修改单号
+export function cgddAddGysInfo(data) {
+    return request({
+        url: 'cgdd/addGysInfo',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单交往记录
+export function cgddJwjlQueryList(data) {
+    return request({
+        url: 'cgddJwjl/queryList',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单交往记录新增修改
+export function cgddJwjlAddOrUpdate(data) {
+    return request({
+        url: 'cgddJwjl/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购订单交往记录删除
+export function cgddJwjlDelDjJwjl(data) {
+    return request({
+        url: 'cgddJwjl/delDjJwjl',
+        method: 'post',
+        data: data,
+    })
+}
+//根据cgddId审核采购订单
+export function cgddAuditCgddByCgddIds(data) {
+    return request({
+        url: 'cgdd/auditCgddByCgddIds',
+        method: 'post',
+        data: data,
+    })
+}
+//退审核
+export function cgddTshSubmit(data) {
+    return request({
+        url: 'cgdd/tshSubmit',
+        method: 'post',
+        data: data,
+    })
+}
+//退审核 原因
+export function cgddGetTshMessage(data) {
+    return request({
+        url: 'cgdd/getTshMessage',
+        method: 'post',
+        data: data,
+    })
+}
+//退审核审核
+export function cgddTshAudit(data) {
+    return request({
+        url: 'cgdd/tshAudit',
+        method: 'post',
+        data: data,
+    })
+}
+//删除
+export function cgddDelByCgddId(data) {
+    return request({
+        url: 'cgdd/delByCgddId',
+        method: 'post',
+        data: data,
+    })
+}
+//删除--管理员
+export function cgddAdminDelByCgddId(data) {
+    return request({
+        url: 'cgdd/adminDelByCgddId',
+        method: 'post',
+        data: data,
+    })
+}
+//采购订单转采购收货单生成信息
+export function cgddCgddToCgsh(data) {
+    return request({
+        url: 'cgdd/cgddToCgsh',
+        method: 'post',
+        data: data,
+    })
+}
+
+//---------------------------------------------------------------------------------------销售开单
+//回收站
+export function jxcXskdQueryHsz(data) {
+    return request({
+        url: 'jxcXskd/queryHsz',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站---恢复
+export function jxcXskdRecoverById(data) {
+    return request({
+        url: 'jxcXskd/recoverById',
+        method: 'post',
+        data: data,
+    })
+}
+//回收站---删除
+export function jxcXskdRemoveById(data) {
+    return request({
+        url: 'jxcXskd/removeById',
+        method: 'post',
+        data: data,
+    })
+}
+export function jxcXskdCleanRlkTemp(data) {
+    return request({
+        url: 'jxcXskd/cleanRlkTemp',
+        method: 'post',
+        data: data,
+    })
+}
+//列表查询
+export function jxcXskdQueryPageList(data) {
+    return request({
+        url: 'jxcXskd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售开单--删除
+export function jxcXskdDeleteById(data) {
+    return request({
+        url: 'jxcXskd/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--删除---admin
+export function jxcXskdAdminDeleteById(data) {
+    return request({
+        url: 'jxcXskd/adminDeleteById',
+        method: 'post',
+        data: data
+    })
+}
+//新增--销售开单查询
+export function jxcXskdQueryXsdd(data) {
+    return request({
+        url: 'jxcXskd/queryXsdd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增编辑
+export function jxcXskdAddOrUpdate(data) {
+    return request({
+        url: 'jxcXskd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售开单--认领款查询  
+export function jxcXsddGetRlk(data) {
+    return request({
+        url: 'jxcXsdd/getRlk',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--查询承运商信息
+export function xcXskdSelectExpress(data) {
+    return request({
+        url: 'jxcXskd/selectExpress',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--关联费用
+export function xcXskdQueryGlfy(data) {
+    return request({
+        url: 'jxcXskd/queryGlfy',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--关联费用--费用类别
+export function bankaccountQueryZkcsh(data) {
+    return request({
+        url: 'bankaccount/queryZkcsh',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--关联费用--费用类型
+export function bankaccountSelectFylx(data) {
+    return request({
+        url: 'jxcXskd/selectFylx',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--关联费用--保存
+export function bankaccountAddGlfy(data) {
+    return request({
+        url: 'jxcXskd/addGlfy',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售开单--关联费用--删除
+export function jxcXskdDelGlfyByFyId(data) {
+    return request({
+        url: 'jxcXskd/delGlfyByFyId',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--关联费用--分配
+export function jxcXskdDelGlfyfp(data) {
+    return request({
+        url: 'jxcXskd/glfyfp',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--关联费用--保存
+export function jxcXskdGlfyfpAddOrUpdate(data) {
+    return request({
+        url: 'jxcXskd/glfyfpAddOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售开单--认领款添加修改
+export function jxcXsddAddAndUpdateRlk(data) {
+    return request({
+        url: 'jxcXsdd/addAndUpdateRlk',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售开单--认领款--查询
+export function jxcXskdGetbcRlk(data) {
+    return request({
+        url: 'jxcXsdd/getbcRlk',
+        method: 'post',
+        data: data
+    })
+}
+//新增编辑查询详情  
+export function jxcXskdQueryById(data) {
+    return request({
+        url: 'jxcXskd/queryById',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--附件查询  
+export function jxcXskdFileQueryByXskdId(data) {
+    return request({
+        url: 'jxcXskdFile/queryByXskdId',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单--附件删除  
+export function jxcXskdFileRemoveById(data) {
+    return request({
+        url: 'jxcXskdFile/removeById',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单单号查询
+export function jxcXskdQueryForAdd(data) {
+    return request({
+        url: 'jxcXskd/queryForAdd',
+        method: 'post',
+        data: data
+    })
+}
+//销售开单审核
+export function jxcXskdCheckStatus(data) {
+    return request({
+        url: 'jxcXskd/checkStatus',
+        method: 'post',
+        data: data
+    })
+}
+
+// 采购收货
+
+//新增编辑---选择订单
+export function cgshChooseCgdd(data) {
+    return request({
+        url: 'cgsh/chooseCgdd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//关联费用
+export function cgshGlfy(data) {
+    return request({
+        url: 'cgsh/glfy',
+        method: 'post',
+        data: data
+    })
+}
+//关联费用---保存
+export function cgshAddGlfy(data) {
+    return request({
+        url: 'cgsh/addGlfy',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//关联费用---分配查询
+export function cgshGlfyAllot(data) {
+    return request({
+        url: 'cgsh/glfyAllot',
+        method: 'post',
+        data: data,
+    })
+}
+//关联费用---分配查询
+export function cgshGlfyOperating(data) {
+    return request({
+        url: 'cgsh/glfyOperating',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//关联费用---删除
+export function cgshDelGlfyByFyId(data) {
+    return request({
+        url: 'cgsh/delGlfyByFyId',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增编辑---选择订单根据id查询明细
+export function cgshAddCgshmxByCgdd(data) {
+    return request({
+        url: 'cgsh/addCgshmxByCgdd',
+        method: 'post',
+        data: data
+    })
+}
+//新增编辑
+export function cgshQueryPageList(data) {
+    return request({
+        url: 'cgsh/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增编辑
+export function cgshAddOrUpdate(data) {
+    return request({
+        url: 'cgsh/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//查询供应商
+export function sgdFindGys(data) {
+    return request({
+        url: 'sgd/findGys',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//匹配供应商
+export function toXjChooseGys(data) {
+    return request({
+        url: 'toXj/chooseGys',
+        method: 'post',
+        data: data
+    })
+}
+// 新增创建单号
+export function cgshCreateDh(data) {
+    return request({
+        url: 'cgsh/createDh',
+        method: 'post',
+        data: data
+    })
+}
+//查询供应商对应你联系人
+export function sgdFindGysContactByGysId(data) {
+    return request({
+        url: 'sgd/findGysContactByGysId',
+        method: 'post',
+        data: data
+    })
+}
+//查询供应商对应你联系人
+export function cgshCreateCgshInfo(data) {
+    return request({
+        url: 'cgsh/createCgshInfo',
+        method: 'post',
+        data: data
+    })
+}
+
+//查看采购收货详情
+export function cgshFindCgshById(data) {
+    return request({
+        url: 'cgsh/findCgshById',
+        method: 'post',
+        data: data
+    })
+}
+//修改采购收货状态
+export function cgshChangeStatus(data) {
+    return request({
+        url: 'cgsh/changeStatus',
+        method: 'post',
+        data: data
+    })
+}
+//删除采购收货信息
+export function cgshDelCgshByCgshId(data) {
+    return request({
+        url: 'cgsh/delCgshByCgshId',
+        method: 'post',
+        data: data
+    })
+}
+
+// 销售报表
+//应收查询
+export function reportYscx(data) {
+    return request({
+        url: 'report/yscx',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//已收查询
+export function reportYscx2(data) {
+    return request({
+        url: 'report/yscx2',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售统计【按客户】----明细
+export function reportQueryXsddBycusIds(data) {
+    return request({
+        url: 'report/queryXsddBycusIds',
+        method: 'post',
+        data: data,
+    })
+}
+//销售统计【按客户】
+export function reportXstjakh(data) {
+    return request({
+        url: 'report/xstjakh',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//客户对账表
+export function reportKhdzb(data) {
+    return request({
+        url: 'report/khdzb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售订单统计
+export function reportXsddtj(data) {
+    return request({
+        url: 'report/xsddtj',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售订单统计--未发明细
+export function reportXsddwfmx(data) {
+    return request({
+        url: 'report/xsddwfmx',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售开单一览表
+export function reportXskdylb(data) {
+    return request({
+        url: 'report/xskdylb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售统计一品牌
+export function reportXstjacp(data) {
+    return request({
+        url: 'report/xstjacp',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售统计一业务员
+export function reportXstjaywy(data) {
+    return request({
+        url: 'report/xstjaywy',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售统计一销售按单利润表
+export function reportXsadlrb(data) {
+    return request({
+        url: 'report/xsadlrb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售统计一销售利润汇总表
+export function reportXslrhzb(data) {
+    return request({
+        url: 'report/xslrhzb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--应付查询
+export function cgbbGrQueryShould(data) {
+    return request({
+        url: 'cgbbGr/queryShould',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--应付查询--应付总额明细
+export function cgbbGrQueryShouldByGysId(data) {
+    return request({
+        url: 'cgbbGr/queryShouldByGysId',
+        method: 'post',
+        data: data,
+    })
+}
+//采购报表--应付查询--应付款增加明细
+export function cgbbGrGysYfkZj(data) {
+    return request({
+        url: 'cgbbGr/gysYfkZj',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--应付查询--应付款减少明细
+export function cgbbGrGysYfkJs(data) {
+    return request({
+        url: 'cgbbGr/gysYfkJs',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--应付查询--供应商已收款
+export function cgbbGrQueryGysYskList(data) {
+    return request({
+        url: 'cgbbGr/queryGysYskList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--应付查询--供应商已收款--基本信息
+export function cgbbGrFindInfo(data) {
+    return request({
+        url: 'cgbbGr/findInfo',
+        method: 'post',
+        data: data,
+    })
+}
+//采购报表--已付查询
+export function cgbbGrQueryAlready(data) {
+    return request({
+        url: 'cgbbGr/queryAlready',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--供应商对账明细
+export function cgbbGrGysdzbMx(data) {
+    return request({
+        url: 'cgbbGr/gysdzbMx',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--供应商对账表
+export function cgbbGrQueryGysdzb(data) {
+    return request({
+        url: 'cgbbGr/queryGysdzb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购报表--供应商对账表
+export function cgbbGrCgtjByGys(data) {
+    return request({
+        url: 'cgbbGr/cgtjByGys',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购订单统计报表
+export function cgbbGsCgddTj(data) {
+    return request({
+        url: 'cgbbGs/cgddTj',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购订单未进明细
+export function cgbbGsCgddWjmx(data) {
+    return request({
+        url: 'cgbbGs/cgddWjmx',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购收货--一览表
+export function cgbbGsCgshYlb(data) {
+    return request({
+        url: 'cgbbGs/cgshYlb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购收货--产品
+export function cgtjByproductCgtjByproduct(data) {
+    return request({
+        url: 'cgbbGs/cgtjByproduct',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 仓库管理--列表
+export function jxcCkglQueryPageList(data) {
+    return request({
+        url: 'ckgl/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//仓库管理--删除
+export function jxcCkglDeleteById(data) {
+    return request({
+        url: 'ckgl/deleteById',
+        method: 'post',
+        data: data,
+    })
+}
+//仓库管理--详情
+export function jxcCkglQueryById(data) {
+    return request({
+        url: 'ckgl/queryById',
+        method: 'post',
+        data: data
+    })
+}
+//仓库管理--编辑
+export function jxcCkglAddEdit(data) {
+    return request({
+        url: 'ckgl/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//物流公司管理--列表
+export function jxcWlgsglQueryPageList(data) {
+    return request({
+        url: 'wlgsgl/queryWlgsList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//物流公司管理--删除
+export function jxcWlgsglDeleteById(data) {
+    return request({
+        url: 'wlgsgl/delById',
+        method: 'post',
+        data: data
+    })
+}
+//物流管理--详情
+export function jxcWlgsglQueryById(data) {
+    return request({
+        url: 'wlgsgl/findById',
+        method: 'post',
+        data: data
+    })
+}
+//物流管理--新增编辑
+export function jxcWlgsglAddEdit(data) {
+    return request({
+        url: 'wlgsgl/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站
+export function jxcXsydQueryHsz(data) {
+    return request({
+        url: 'jxcXsyd/queryHsz',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//回收站---恢复
+export function jxcXsydRecoverById(data) {
+    return request({
+        url: 'jxcXsyd/recoverById',
+        method: 'post',
+        data: data,
+    })
+}
+//回收站---删除
+export function jxcXsydRemoveById(data) {
+    return request({
+        url: 'jxcXsyd/removeById',
+        method: 'post',
+        data: data,
+    })
+}
+//销售异动--列表
+export function jxcXsydQueryPageList(data) {
+    return request({
+        url: 'jxcXsyd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售异动--删除
+export function jxcXsydDeleteById(data) {
+    return request({
+        url: 'jxcXsyd/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//销售异动--删除---admin
+export function jxcXsydAdminDeleteById(data) {
+    return request({
+        url: 'jxcXsyd/adminDeleteById',
+        method: 'post',
+        data: data
+    })
+}
+//销售异动--详情
+export function jxcXsydQueryById(data) {
+    return request({
+        url: 'jxcXsyd/queryById',
+        method: 'post',
+        data: data
+    })
+}
+//销售异动--新增编辑
+export function jxcXsydAddEdit(data) {
+    return request({
+        url: 'jxcXsyd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售异动--新增页面
+export function jxcXsydQueryForAdd(data) {
+    return request({
+        url: 'jxcXsyd/queryForAdd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售异动--审核
+export function jxcXsydCheckStatus(data) {
+    return request({
+        url: 'jxcXsyd/checkStatus',
+        method: 'post',
+        data: data,
+    })
+}
+//销售异动--选择销售开单
+export function jxcXsydSelectXskd(data) {
+    return request({
+        url: 'jxcXsyd/selectXskd',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售异动--上传图片
+export function jxcXsydFileUpload(data) {
+    var param = new FormData()
+    Object.keys(data).forEach(key => {
+        param.append(key, data[key])
+    })
+    return request({
+        url: 'jxcXsydFile/upload',
+        method: 'post',
+        data: param,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+//销售异动--查询图片
+export function jxcXsydFileQueryById(data) {
+    return request({
+        url: 'jxcXsydFile/queryByXsydId',
+        method: 'post',
+        data: data,
+    })
+}
+//销售异动--删除图片
+export function jxcXsydFileRemoveById(data) {
+    return request({
+        url: 'jxcXsydFile/removeById',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--列表
+export function jxcCgydQueryPageList(data) {
+    return request({
+        url: 'cgyd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购异动--新增页面初始化
+export function jxcCgydCreate(data) {
+    return request({
+        url: 'cgyd/createCgyd',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--新增编辑
+export function jxcCgydAddEdit(data) {
+    return request({
+        url: 'cgyd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购异动--查看详情
+export function jxcCgydQueryById(data) {
+    return request({
+        url: 'cgyd/findeCgydInfo',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--上传附件
+export function jxcCgydFileUpload(data) {
+    var param = new FormData()
+    Object.keys(data).forEach(key => {
+        param.append(key, data[key])
+    })
+    return request({
+        url: 'cgyd/upload',
+        method: 'post',
+        data: param,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+//采购异动--删除附件
+export function jxcCgydFileRemoveById(data) {
+    return request({
+        url: 'cgyd/removeFile',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--审核
+export function jxcCgydAudit(data) {
+    return request({
+        url: 'cgyd/cgydAudit',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--删除
+export function jxcCgydDeleteById(data) {
+    return request({
+        url: 'cgyd/delCgydByCgydId',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--选择采购收货单
+export function jxcCgydChooseCgsh(data) {
+    return request({
+        url: 'cgyd/chooseCgsh',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购异动--查询选择的采购收货单
+export function jxcCgydCgshById(data) {
+    return request({
+        url: 'cgyd/createMx',
+        method: 'post',
+        data: data,
+    })
+}
+//采购异动--查询供应商
+export function jxcCgydFindGys(data) {
+    return request({
+        url: 'cgyd/findGys',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售退货入库--列表
+export function jxcXsthrkQueryPageList(data) {
+    return request({
+        url: 'ckrck/xsthrk',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售退货入库--入库操作
+export function jxcXsthrkStockIn(data) {
+    return request({
+        url: 'ckrck/xsthrhsh',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购退货出库--列表
+export function jxcCgthckQueryPageList(data) {
+    return request({
+        url: 'ckrck/cgthck',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//采购退货出库--出库操作
+export function jxcCgthckStockOut(data) {
+    return request({
+        url: 'ckrck/cgthckfh',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//其他类入库单--列表
+export function jxcQtlrkdQueryPageList(data) {
+    return request({
+        url: 'ckrkd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//其他类入库单--查看
+export function jxcQtlrkdQueryById(data) {
+    return request({
+        url: 'ckrkd/queryById',
+        method: 'post',
+        data: data,
+    })
+}
+//其他类入库单--入库操作
+export function jxcQtlrkdStockIn(data) {
+    return request({
+        url: 'ckrkd/rk',
+        method: 'post',
+        data: data,
+    })
+}
+//其他类出库单--列表
+export function jxcQtlckdQueryPageList(data) {
+    return request({
+        url: 'ckckd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//其他类出库单--查看
+export function jxcQtlckdQueryById(data) {
+    return request({
+        url: 'ckckd/queryById',
+        method: 'post',
+        data: data,
+    })
+}
+//其他类出库单--出库操作
+export function jxcqtlckdStockOut(data) {
+    return request({
+        url: 'ckckd/ck',
+        method: 'post',
+        data: data,
+    })
+}
+//入出库明细汇总
+export function jxcRckmxhzQueryPageList(data) {
+    return request({
+        url: 'ckReport/rckmxhzb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//入出库数量汇总
+export function jxcRckslhzQueryPageList(data) {
+    return request({
+        url: 'ckReport/rckslhzb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//领料一览表
+export function jxcLlylbQueryPageList(data) {
+    return request({
+        url: 'ckReport/llylb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//呆滞品分析表
+export function jxcDzpfxbQueryPageList(data) {
+    return request({
+        url: 'ckReport/dzpfxb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function ckrckCgshrk(data) {
+    return request({
+        url: 'ckrck/cgshrk',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function ckrckCgshrksh(data) {
+    return request({
+        url: 'ckrck/cgshrksh',
+        method: 'post',
+        data: data,
+    })
+}
+export function ckrckXskdck(data) {
+    return request({
+        url: 'ckrck/xskdck',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function ckrckXskdckfh(data) {
+    return request({
+        url: 'ckrck/xskdckfh',
+        method: 'post',
+        data: data,
+    })
+}
+export function ckrckXswlgl(data) {
+    return request({
+        url: 'ckrck/xswlgl',
+        method: 'post',
+        data: data,
+    })
+}
+export function ckrckUpdateXswlgl(data) {
+    return request({
+        url: 'ckrck/updateXswlgl',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function ckrckCgwlgl(data) {
+    return request({
+        url: 'ckrck/cgwlgl',
+        method: 'post',
+        data: data,
+    })
+}
+export function ckrckUpdateCgwlgl(data) {
+    return request({
+        url: 'ckrck/updateCgwlgl',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function reportQueryXskdByYwy(data) {
+    return request({
+        url: 'report/queryXskdByYwy',
+        method: 'post',
+        data: data,
+    })
+}

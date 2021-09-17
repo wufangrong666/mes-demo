@@ -1,0 +1,70 @@
+import request from '@/utils/request'
+//列表查询交往记录
+export function crmContactRecordQueryPageList(data) {
+    return request({
+        url: 'crmContactRecord/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//删除记录
+export function crmContactRecordDeleteByIds(data) {
+    return request({
+        url: 'crmContactRecord/deleteByIds',
+        method: 'post',
+        data: data,
+    })
+}
+//根据id查询记录
+export function crmContactRecordQueryById(data) {
+    return request({
+        url: 'crmContactRecord/queryById',
+        method: 'post',
+        data: data,
+    })
+}
+//查询分配转移记录
+export function crmCustomerQueryfpzy(data) {
+    return request({
+        url: 'crmCustomer/queryfpzy',
+        method: 'post',
+        data: data,
+    })
+}
+//交往记录附件上传
+export function crmCustomerJwjlFileUpload(data) {
+    var param = new FormData()
+    Object.keys(data).forEach(key => {
+      param.append(key, data[key])
+    })
+    return request({
+      url: 'crmCustomerJwjlFile/upload',
+      method: 'post',
+      data: param,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
+//新增交往记录
+export function crmContactRecordAddOrUpdate(data) {
+    return request({
+        url: 'crmContactRecord/addOrUpdate',      
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//附件查询
+export function crmCustomerJwjlFileQueryByjwjlId(data) {
+    return request({
+        url: 'crmCustomerJwjlFile/queryByJwjlId',
+        method: 'post',
+        data: data,
+    })
+}

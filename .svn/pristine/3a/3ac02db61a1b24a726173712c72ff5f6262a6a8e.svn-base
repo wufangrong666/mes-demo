@@ -1,0 +1,128 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="数据权限" name="dataSet">
+            <dataSet></dataSet>
+          </el-tab-pane>
+          <el-tab-pane label="预留字段" name="ylzd">
+            <ylzd></ylzd>
+          </el-tab-pane>
+          <el-tab-pane label="批号" name="ph">
+            <ph></ph>
+          </el-tab-pane>
+          <el-tab-pane label="序列号" name="xlh">
+            <xlh></xlh>
+          </el-tab-pane>
+          <el-tab-pane label="收付款设置" name="sfksz">
+            <sfksz></sfksz>
+          </el-tab-pane>
+          <el-tab-pane label="价格控制体系" name="jgkztx">
+            <jgkztx></jgkztx>
+          </el-tab-pane>
+          <el-tab-pane label="单号规则" name="addNum">
+            <dhgz></dhgz>
+          </el-tab-pane>
+          <el-tab-pane label="MRP运算" name="MRP">
+            <MRP></MRP>
+          </el-tab-pane>
+          <el-tab-pane label="申购单设置" name="sgdsz">
+            <sgdsz></sgdsz>
+          </el-tab-pane>
+          <el-tab-pane label="利润计算设置" name="lrjssz">
+            <lrjssz></lrjssz>
+          </el-tab-pane>
+          <el-tab-pane label="小数点设置" name="xsd">
+            <xsd></xsd>
+          </el-tab-pane>
+          <el-tab-pane label="销售与申购" name="sg">
+            <xsysg></xsysg>
+          </el-tab-pane>
+          <el-tab-pane label="打印设置" name="printSz">
+            <dysz></dysz>
+          </el-tab-pane>
+          <el-tab-pane label="实收实发数量控制" name="sssfslkz">
+            <sssfslkz></sssfslkz>
+          </el-tab-pane>
+          <el-tab-pane label="单据现结设置" name="djxjsz">
+            <djxjsz></djxjsz>
+          </el-tab-pane>
+          <el-tab-pane label="单据成本提示" name="djcb">
+            <djcb></djcb>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import dhgz from "./dhgz";
+import dysz from "./dysz";
+import xsysg from "./xsysg";
+import djcb from "./djcb";
+import dataSet from "./dataSte";
+import ylzd from "./ylzd";
+import ph from "./ph";
+import xlh from "./xlh";
+import sfksz from "./sfksz";
+import jgkztx from "./jgkztx"
+import MRP from "./MRP"
+import sgdsz from "./sgdsz"
+import lrjssz from "./lrjssz"
+import xsd from "./xsd"
+import sssfslkz from "./sssfslkz"
+import djxjsz from  "./djxjsz"
+export default {
+  name: "",
+  components: {
+    dhgz,
+    dysz,
+    xsysg,
+    djcb,
+    dataSet,
+    ylzd,
+    ph,
+    xlh,
+    sfksz,
+    jgkztx,
+    MRP,
+    sgdsz,
+    lrjssz,
+    xsd,
+    sssfslkz,
+    djxjsz
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "dataSet",
+    };
+  },
+
+  methods: {
+    handleClick() {},
+  },
+
+  created() {},
+  activated() {
+    this.title = this.$route.meta.title;
+  },
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  position: relative;
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+</style>

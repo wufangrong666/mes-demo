@@ -1,0 +1,102 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="CRM" name="crm">
+            <djtxCrm style="width:100%" :crmList="crmList" :selectList="selectList"></djtxCrm>
+          </el-tab-pane>
+          <el-tab-pane label="销售" name="xs">
+            <djtxXs style="width:100%" :jxcList="jxcList" :selectList="selectList"></djtxXs>
+          </el-tab-pane>
+          <el-tab-pane label="采购" name="cg">
+            <djtxCg style="width:100%" :cgList="cgList" :selectList="selectList"></djtxCg>
+          </el-tab-pane>
+          <el-tab-pane label="财务" name="cw">
+            <djtxCw style="width:100%" :cwList="cwList" :selectList="selectList"></djtxCw>
+          </el-tab-pane>
+          <el-tab-pane label="仓库" name="ck">
+            <djtxCk style="width:100%" :ckList="ckList" :selectList="selectList"></djtxCk>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { noticeSettingQueryNoticeSetting } from "@/api/manage/jxcsz";
+import { usersList } from "@/api/common"; // 直属上级接口
+
+import djtxCrm from "./crm";
+import djtxXs from "./xs";
+import djtxCg from "./cg";
+import djtxCw from "./cw";
+import djtxCk from "./ck";
+export default {
+  name: "",
+  components: { djtxCrm, djtxXs, djtxCg, djtxCw, djtxCk },
+  data() {
+    return {
+      title: "",
+      activeName: "crm",
+      crmList: [],
+      jxcList: [],
+      cwList: [],
+      cgList: [],
+      ckList: [],
+      selectList: []
+    };
+  },
+
+  methods: {
+    handleClick() {},
+    loginData() {
+      noticeSettingQueryNoticeSetting()
+        .then(res => {
+          for (var i in res.data) {
+            if (i == 1) {
+              this.crmList = res.data[i];
+              for (var k in res.data[i]) {
+                if (res.data[i][k].noticeUsers.length) {
+                  let arr = [];
+                  for (var y in res.data[i][k].noticeUsers) {
+                    arr.push(res.data[i][k].noticeUsers[y].userId);
+                  }
+                  res.data[i][k].noticeUsers = arr;
+                }
+              }
+              console.log(this.crmList);
+            } else if (i == 2) {
+              this.jxcList = res.data[i];
+            } else if (i == 3) {
+              this.cgList = res.data[i];
+            } else if (i == 4) {
+              this.cwList = res.data[i];
+            } else {
+              this.ckList = res.data[i];
+            }
+          }
+        })
+        .catch(res => {});
+      usersList({ pageType: 0 })
+        .then(res => {
+          this.selectList = res.data;
+        })
+        .catch(() => {});
+    }
+  },
+
+  created() {},
+  activated() {
+    this.loginData();
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+</style>

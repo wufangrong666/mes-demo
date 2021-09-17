@@ -1,0 +1,94 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">客户提示设置：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.khjwplBtFlag" :label="1">是</el-radio>
+          <el-radio v-model="from.khjwplBtFlag" :label="0">否</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">交往频率超期预警：</div>
+        <div class="rightStatus">
+          <span>取值范围</span>
+          <el-input style="width:100px" v-model="from.khjwplQzfwStart" placeholder="请输入内容"></el-input>
+          <span>--</span>
+          <el-input style="width:100px" v-model="from.khjwplQzfwEnd" placeholder="请输入内容"></el-input>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">交往频率超期预警默认值：</div>
+        <div class="rightStatus">
+          <el-input style="width:100px" v-model="from.khjoplDefaultValue" placeholder="请输入内容"></el-input>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminKhszQueryKhszSet,
+  adminKhszUpdateKhszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    khfpData() {
+      adminKhszQueryKhszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminKhszUpdateKhszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.khfpData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.khfpData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 10%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 90%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

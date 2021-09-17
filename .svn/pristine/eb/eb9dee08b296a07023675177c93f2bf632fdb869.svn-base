@@ -1,0 +1,567 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="销售机会">
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会编号:</label>
+            <div v-text="from.jhbh"></div>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会名称:</label>
+            <div v-text="from.jhmc"></div>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">
+              <span style="color:red;">*</span>客户名称
+            </label>
+            <div v-text="from.customerName"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">客户联系人:</label>
+            <div v-text="from.contactName"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会类型:</label>
+            <div v-text="from.jhlx"></div>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">创建人:</label>
+            <div v-text="from.creatorName"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">创建日期:</label>
+            <div v-text="from.createDate"></div>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+              </li>
+            </ul>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会来源:</label>
+            <div v-text="from.jhly"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会提供者:</label>
+            <div v-text="from.jhtgzName"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">负责部门:</label>
+            <div v-text="from.fzbmName"></div>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">负责人:</label>
+            <div v-text="from.fzrName"></div>
+          </div>
+          <div class="input-boxB">
+            <label class="input-label">机会描述:</label>
+            <div v-text="from.descriptioin"></div>
+          </div>
+          <div class="input-box" style="width: 50%"></div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="预期">
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">预计成交日期:</label>
+            <div v-text="from.yjcjrq"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">预计成交金额:</label>
+            <div v-text="from.yjcjje"></div>
+          </div>
+        </sections>
+      </div>
+      <div class="create-flex">
+        <sections title="状态" style="margin-top: 10px;">
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会阶段:</label>
+            <div v-text="from.jhjd"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">机会状态:</label>
+            <div v-text="from.jhzt"></div>
+          </div>
+          <div class="input-box" style="width: 50%">
+            <label class="input-label">成交可能性(%):</label>
+            <div v-text="from.cjknx"></div>
+          </div>
+        </sections>
+      </div>
+      <div class="handle-bar" style="margin-top: 30px;">
+        <el-button v-if="auditStatus" type="success" @click="audit(1)">审核通过</el-button>
+        <el-button v-if="auditStatus" type="info" @click="audit(2)">审核不通过</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+    <!-- 审核不通过原因 -->
+    <el-dialog
+      :modal-append-to-body="false"
+      title="审核不通过原因"
+      :visible.sync="auditDialog"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input v-model="message" placeholder="请输入内容"></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="auditDialog = false">取 消</el-button>
+        <el-button type="primary" @click="auditDialogSubmit">确 定</el-button>
+      </span>
+    </el-dialog>
+    <khDialog @hkDialog="hkDialog" @colse="dialogVisible = false" :dialogVisible="dialogVisible"></khDialog>
+    <!-- 负责人组件 -->
+    <treeDlalog
+      @dialogTreeData="treedelog"
+      @close="treedialogVisible = false"
+      :dialogStatus="treedialogVisible"
+    ></treeDlalog>
+    <gxrDialog
+      @gxrDialogTreeData="gxrdialog"
+      @close="gxrDialogVisible = false"
+      :gxrDialogStatus="gxrDialogVisible"
+    ></gxrDialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import Lockr from "lockr";
+import khDialog from "../../components/khDialog";
+import treeDlalog from "../../components/treeDlalog";
+import gxrDialog from "../../components/gxrDialog";
+import {
+  crmXsjhQueryForAdd, //新增xsjh
+  crmXsjhAddOrUpdate, //新增/编辑xsjh
+  crmXsjhFileQueryByXsjhId, //查询上传附件接口
+  crmXsjhFileUpload, //附件上传
+  crmXsjhFileRemoveById, //附件删除
+  crmXsjhQueryById, //查看编辑审核删除
+  crmXsjhCheckStatus,
+} from "@/api/crm/xsjh";
+
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+    khDialog,
+    treeDlalog,
+    gxrDialog,
+  },
+  watch: {},
+  computed: {},
+  data() {
+    return {
+      auditDialog: false,
+      auditStatus: false,
+      khlxrName: "",
+      khlxrId: "",
+      contactList: [],
+      options: [
+        {
+          label: "投标项目",
+        },
+        {
+          label: "自定义",
+        },
+        {
+          label: "议标项目",
+        },
+        {
+          label: "商务洽谈",
+        },
+        {
+          label: "渠道销售",
+        },
+        {
+          label: "网络搜索",
+        },
+      ],
+      optionJhly: [
+        {
+          label: "客户主动询价",
+        },
+        {
+          label: "自定义",
+        },
+        {
+          label: "网上搜索结果",
+        },
+        {
+          label: "工作人员拓展市场",
+        },
+        {
+          label: "广告宣传",
+        },
+        {
+          label: "客户介绍",
+        },
+      ],
+      gxrDialogVisible: false,
+      treedialogVisible: false,
+      loading: false,
+      from: {
+        contactName: "",
+        yjcjrq: "",
+        yjcjje: "",
+        creatorName: "", //创建人
+        createDate: "",
+        khlxdh: "",
+        customerName: "", //客户名称
+        customerId: "", //客户名称Id
+        fzr: "",
+        fanj: "",
+        fzrName: "",
+        fzrId: "",
+        xsjh: "",
+        jhbh: "",
+        descriptioin: "", //机会描述descriptioin
+        //
+        yjcjrq: "", //预计成交日期
+        yjcjje: "", //预计成交金额
+        jhjd: "", //机会阶段
+        jhzt: "", //机会状态
+        cjknx: "", //成交可能性
+        // contactId: "8",
+        // lastXgsj: "2020-07-03 09:48:23",
+        // customerContact: "111",
+        // jhtgzName: "admin",
+        // shsj: "2020-07-03",
+        // id: "2",
+        // createDate: "2020-07-3",
+        creator: "",
+        jhmc: "", //机会名称
+        jhtgz: "", //机会提供者id
+        jhtgzName: "",
+        fzbmName: "",
+        fzbm: "", //负责部门
+        jhly: "", //机会来源
+        jhlx: "", //机会类型
+        shr: "",
+        status: "",
+        fileIds: "",
+      },
+      fileList: [],
+      dialogVisible: false,
+      dialogVisible1: false,
+      message: "",
+    };
+  },
+
+  methods: {
+    handleClose() {
+      this.dialogVisible1 = false;
+    },
+    // +负责人弹框显示
+    dialogpop() {
+      this.treedialogVisible = true;
+    },
+    hkDialog(name, id) {
+      this.from.customerName = name;
+      this.from.customerId = id;
+    },
+    // 负责人
+    treedelog(id, name) {
+      this.from.fzr = id;
+      this.from.fzrName = name;
+    },
+    dialog() {
+      this.dialogVisible = true;
+    },
+    // +共享人弹框显示
+    sharePopAdd() {
+      this.gxrDialogVisible = true;
+    },
+    // 共享人
+    gxrdialog(id, name) {
+      this.from.gxr = id;
+      this.from.gxrName = name;
+    },
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+      crmXsjhFileRemoveById({
+        id: item.fileId,
+      })
+        .then((res) => {
+          this.msgSuccess("删除成功");
+        })
+        .catch((res) => {});
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    // crmXsjhFileUpload附件上传
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmXsjhFileUpload(params)
+        .then((res) => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+
+    hidenView() {
+      window.top.close();
+    },
+    successClick(status) {
+      console.log(this.from);
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.fileIds = arr.join(",");
+
+      if (this.from.customerId == "") {
+        this.msgInfo("请选择客户");
+        return;
+      }
+      if (this.from.customerId == "") {
+        this.msgInfo("请选择客户");
+        return;
+      }
+      this.from.status = status; //-1保存还是0提交
+      crmXsjhAddOrUpdate(this.from)
+        .then((res) => {
+          this.loading = true;
+          this.$message({
+            message: "提交成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              // window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+
+    
+    // 审核
+    audit(val) {
+      let self = this;
+      if (val == 1) {
+        this.$confirm("请确认审核信息, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        })
+          .then(() => {
+            crmXsjhCheckStatus({
+              id: this.widowData.id,
+              type: val,
+              message: this.message,
+            })
+              .then((res) => {
+                this.loading = true;
+                this.$message({
+                  message: "审核通过",
+                  type: "success",
+                  onClose: () => {
+                    window.opener.postMessage("child", window.location);
+                    window.top.close();
+                    this.loading = false;
+                  },
+                });
+              })
+              .catch((res) => {});
+          })
+          .catch(() => {
+            this.msgInfo("取消审核");
+          });
+      } else {
+        this.auditDialog = true;
+      }
+    },
+    auditDialogSubmit() {
+      crmXsjhCheckStatus({
+        id: this.widowData.id,
+        type: 2,
+        message: this.message,
+      })
+        .then((res) => {
+          this.auditDialog = false;
+          this.loading = true;
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    queryData() {
+      crmXsjhQueryForAdd().then((res) => {
+        console.log(res);
+        this.from.jhbh = res.data.jhbh;
+        this.from.creatorName = res.data.creatorName; //
+        this.from.createDate = res.data.createDate; //创建日期
+      });
+
+        crmXsjhQueryById({
+          id: this.widowData.id,
+        }).then((res) => {
+          
+
+          this.from = res.data;
+          console.log(this.from);
+          this.from.jhmc = res.data.jhmc;
+          this.from.customerName = res.data.customerName;
+          this.from.jhlx = res.data.jhlx;
+          this.from.jhly = res.data.jhly;
+          this.from.jhtgz = res.data.jhtgz;
+          this.from.jhtgzName = res.data.jhtgzName;
+          this.from.fzbm = res.data.fzbm;
+          this.from.fzbmName = res.data.fzbmName.toString();
+          this.from.fzrName = res.data.fzrName;
+          this.from.descriptioin = res.data.descriptioin;
+          this.from.yjcjrq = res.data.yjcjrq;
+          this.from.yjcjje = res.data.yjcjje;
+          this.from.jhjd = res.data.jhjd;
+          this.from.jhzt = res.data.jhzt;
+          this.from.cjknx = res.data.cjknx;
+        });
+
+      // 查询附件上传
+      crmXsjhFileQueryByXsjhId({
+        xsjhId: this.widowData.id,
+      }).then((res) => {
+        console.log(res);
+        this.fileList = res.data;
+      });
+      
+      if (this.widowData.type == "audit") {
+        // 审核
+        this.auditStatus = true;
+      } else {
+        this.auditStatus = false;
+      }
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    console.log(this.widowData.id)
+    this.creator = Lockr.get("loginUserInfo").realname;
+    this.createDate = this.getTime();
+    this.queryData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.tableButton {
+  width: 100%;
+  line-height: 40px;
+  span {
+    display: inline-block;
+    width: 123px;
+  }
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

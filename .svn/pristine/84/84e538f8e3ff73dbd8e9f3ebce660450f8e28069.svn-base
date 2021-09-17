@@ -1,0 +1,422 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <flexbox class="create-header">
+        <div
+          style="flex:1;font-size:24px;color:#333;font-weight: bold;text-align: center;"
+        >{{gysDetailTitle}}</div>
+        <img @click="hidenView" class="close" src="@/assets/img/task_close.png" />
+      </flexbox>
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>供应商名称
+            </label>
+            <el-input
+              @blur="blurName(from.name)"
+              @input="getName"
+              placeholder="供应商名称"
+              v-model="from.name"
+            ></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商编码</label>
+            <el-input :readonly="true" placeholder="供应商编码" v-model="from.code"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">
+              <span style="color:red">*</span>供应商类型
+            </label>
+            <el-select v-model="from.type" placeholder="请选择">
+              <el-option
+                v-for="item in selectList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商商务电话</label>
+            <el-input placeholder="供应商商务电话" v-model="from.businessTele"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商传真</label>
+            <el-input placeholder="供应商传真" v-model="from.fax"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商邮箱</label>
+            <el-input placeholder="供应商邮箱" v-model="from.email"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商地址</label>
+            <el-input placeholder="供应商地址" v-model="from.address"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商描述</label>
+            <el-input placeholder="供应商描述" v-model="from.description"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">供应商备注</label>
+            <el-input placeholder="供应商备注" v-model="from.remark"></el-input>
+          </div>
+          <div class="input-box" style="width:100%">
+            <label class="input-label">上传附件</label>
+            <a href="javascript:;" class="a-upload">
+              <input multiple="multiple" @change="xhUploadFile" type="file" name id />点击这里上传文件(上限5个)
+            </a>
+            <ul class="uploadStyle">
+              <li v-for="(item,index) in fileList" :key="index">
+                <span>{{item.name}}</span>
+                <i @click="deleteUpload(index)" class="el-icon-close"></i>
+              </li>
+            </ul>
+          </div>
+          <el-table :data="tableData" stripe style="width: 100%">
+            <el-table-column label="联系人姓名" width="180">
+              <template slot="header" slot-scope="scope">
+                <span style="color:red">*</span>
+                <span>联系人姓名</span>
+              </template>
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.contactName" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="联系人电话" width="180">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.contactPhone" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="联系人生日">
+              <template slot-scope="scopr">
+                <el-date-picker
+                  value-format="yyyy-MM-dd"
+                  v-model="scopr.row.contactBirthday"
+                  type="date"
+                  placeholder="选择日期"
+                ></el-date-picker>
+              </template>
+            </el-table-column>
+            <el-table-column label="联系人邮箱">
+              <template slot="header" slot-scope="scope">
+                <span style="color:red">*</span>
+                <span>联系人邮箱</span>
+              </template>
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.contactEmail" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="联系人QQ">
+              <template slot-scope="scopr">
+                <el-input v-model="scopr.row.contactQq" clearable></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="联系人性别">
+              <template slot-scope="scopr">
+                <el-select v-model="scopr.row.contactGender" placeholder="请选择">
+                  <el-option
+                    v-for="item in gendertList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scopr">
+                <el-button style="color:#f56c6c" @click="deletClick(scopr.$index)" type="text">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </sections>
+      </div>
+      <div class="handle-bar">
+        <el-button icon="el-icon-plus" @click="appendClick" type="text">添加一行</el-button>
+        <el-button type="success" @click="successClick">确认</el-button>
+        <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../khxxgl/card/khxxCreateView";
+import sections from "../khxxgl/card/khxxSections";
+import {
+  crmGysAddOrUpdate,
+  crmGysValidateName,
+  crmGysFileAQueryByGysId
+} from "@/api/crm/gysxx";
+import { crmGysFileUpload } from "@/api/common";
+export default {
+  components: {
+    createView,
+    sections
+  },
+  name: "",
+  props: {
+    gyslistData: {
+      type: Object,
+      default: () => {
+        return {};
+      }
+    },
+    gysDetailTitle: {
+      type: String
+    }
+  },
+  watch: {
+    gyslistData: {
+      handler() {
+        this.from = this.gyslistData;
+        this.tableData = this.gyslistData.CrmGysContactList;
+        crmGysFileAQueryByGysId({
+          gysId: this.gyslistData.gysId
+        })
+          .then(res => {
+            this.fileList = res.data;
+          })
+          .catch(res => {});
+      }
+    }
+  },
+  data() {
+    return {
+      fileList: [],
+      tableData: [
+        {
+          contactId: "",
+          contactName: "",
+          contactPhone: "",
+          contactBirthday: "",
+          contactEmail: "",
+          contactQq: "",
+          contactGender: '1'
+        }
+      ],
+      gendertList: [
+        { id: '0', name: "保密" },
+        { id: '1', name: "男" },
+        { id: '2', name: "女" }
+      ],
+      loading: false,
+      from: {
+        gysId: "",
+        name: "",
+        code: "",
+        type: 1,
+        businessTele: "",
+        fax: "",
+        email: "",
+        address: "",
+        description: "",
+        remark: "",
+        crmGysContactList: []
+      },
+      selectList: [
+        { id: 1, name: "德语类" },
+        { id: 2, name: "英语类" },
+        { id: 3, name: "中文" },
+        { id: 4, name: "中英" }
+      ]
+    };
+  },
+
+  methods: {
+    deleteUpload(index) {
+      this.fileList.splice(index, 1);
+    },
+    /** 图片选择出发 */
+    xhUploadFile(event) {
+      var files = event.target.files;
+      if (files.length > 5) {
+        this.msgInfo("最多支持上传5个文件");
+        return;
+      } else {
+        if (files.length > 0) {
+          var self = this;
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            this.sendFileRequest(file);
+          }
+        }
+      }
+    },
+    sendFileRequest(file, result) {
+      var params = { file: file };
+      crmGysFileUpload(params)
+        .then(res => {
+          if (this.fileList.length > 4) {
+            return;
+          }
+          if (this.fileList.length > 4) {
+            return;
+          }
+          this.fileList.push({
+            name: res.name,
+            fileId: res.fileId,
+          });
+        })
+        .catch(() => {});
+    },
+    blurName() {
+      crmGysValidateName({
+        name: this.from.name,
+        id: this.from.gysId
+      })
+        .then(res => {})
+        .catch(res => {});
+    },
+    getName(val) {
+      var easyName = pinyin.getCamelChars(val);
+      this.from.code = easyName.toUpperCase();
+    },
+    successClick() {
+      if (this.from.name == "") {
+        this.msgInfo("请输入供应商名称");
+        return;
+      }
+      if (this.from.code == "") {
+        this.msgInfo("请选择供应商类型");
+        return;
+      }
+      for (var i in this.tableData) {
+        if (this.tableData[i].contactName == "") {
+          this.msgInfo("请输入联系人姓名");
+          return;
+        }
+        if (this.tableData[i].contactEmail == "") {
+          this.msgInfo("请输入联系人邮箱");
+          return;
+        }
+      }
+      let arr = [];
+      for (var i in this.fileList) {
+        arr.push(this.fileList[i].fileId);
+      }
+      this.from.fileIds = arr.join(",");
+      crmGysValidateName({
+        name: this.from.name,
+        id: this.from.gysId
+      })
+        .then(res => {
+          this.from.crmGysContactList = this.tableData;
+          crmGysAddOrUpdate(this.from)
+            .then(res => {
+              if (this.from.id == "") {
+                this.msgSuccess("新增成功");
+              } else {
+                this.msgSuccess("修改成功");
+              }
+              this.$emit("save-success");
+              this.$emit("close");
+            })
+            .catch(res => {});
+        })
+        .catch(res => {});
+    },
+    deletClick(val) {
+      if (this.tableData.length == 1) {
+        this.msgInfo("无法删除最后一条");
+      } else {
+        this.tableData.splice(val, 1);
+      }
+    },
+    appendClick() {
+      this.tableData.push({
+        contactName: "",
+        contactPhone: "",
+        contactBirthday: "",
+        contactEmail: "",
+        contactQq: "",
+        contactGender: 1
+      });
+    },
+    hidenView() {
+      this.$emit("close");
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.create-container {
+  position: relative;
+  height: 100%;
+}
+.handle-bar {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+}
+.content {
+  width: 100%;
+}
+.input-box {
+  width: 31%;
+  .el-input {
+    height: 0;
+  }
+  .input-label {
+    width: 105px;
+  }
+  .el-select {
+    width: 70%;
+  }
+}
+.a-upload {
+  padding: 4px 10px;
+  margin-top: 5px;
+  height: 30px;
+  line-height: 20px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+</style>

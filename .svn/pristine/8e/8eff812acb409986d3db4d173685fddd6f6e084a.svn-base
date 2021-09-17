@@ -1,0 +1,133 @@
+<template>
+  <div>
+    <div class="topStyle">
+      <el-button type="primary" @click="addPj">添加评价</el-button>
+    </div>
+    <el-table border max-height="650px" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="jwrName" label="交往人"></el-table-column>
+      <el-table-column prop="content" label="交往类容"></el-table-column>
+      <el-table-column prop="jwtime" label="交往时间"></el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button style="color:red" @click="deleteJwjl(scope.row)" type="text">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-dialog
+      :modal-append-to-body="false"
+      title="添加评价"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <span>
+        <el-input
+          type="textarea"
+          placeholder="请输入内容"
+          v-model="textarea"
+          maxlength="200"
+          :rows="6"
+          show-word-limit
+        ></el-input>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitPj">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import {
+  crmGysQueryGysJwjl,
+  crmGysAddContent,
+  crmGysDeleteGysJwjl,
+} from "@/api/crm/gysxx";
+
+export default {
+  name: "",
+  data() {
+    return {
+      textarea: "",
+      dialogVisible: false,
+      tableData: [],
+    };
+  },
+  watch: {
+    gysId: {
+      handler() {
+        this.pjData();
+      },
+    },
+  },
+  props: ["gysId"],
+  methods: {
+    pjData() {
+      console.log(this.gysId);
+      crmGysQueryGysJwjl({
+        gysId: this.gysId,
+      })
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    addPj() {
+      this.dialogVisible = true;
+      this.textarea = "";
+    },
+    submitPj() {
+      crmGysAddContent({
+        gysId: this.gysId,
+        content: this.textarea,
+      })
+        .then((res) => {
+          this.msgSuccess("新增成功");
+          this.dialogVisible = false;
+          this.pjData();
+        })
+        .catch((res) => {});
+    },
+    deleteJwjl(row) {
+      this.$confirm("请确认是否删除, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          crmGysDeleteGysJwjl({
+            id: row.id,
+          })
+            .then((res) => {
+              this.$message({
+                type: "success",
+                message: "删除成功!",
+              });
+              this.pjData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+  },
+
+  created() {},
+
+  mounted() {},
+};
+</script>
+<style lang='scss' scoped>
+.topStyle {
+  width: 100%;
+  height: 36px;
+}
+</style>

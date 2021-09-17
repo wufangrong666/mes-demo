@@ -1,0 +1,192 @@
+import request from '@/utils/request'
+// 业务往来
+
+// 销售往来
+
+// 预收款单查询列表
+export function yskdQueryPageList(data) {
+    return request({
+        url: 'yskd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 新建时查询单号
+export function yskdQueryForAdd(data) {
+    return request({
+        url: 'yskd/queryForAdd',
+        method: 'post',
+        data: data
+    })
+}
+export function yskdQueryHxjeByYskdId(data) {
+    return request({
+        url: 'yskd/queryHxjeByYskdId',
+        method: 'post',
+        data: data
+    })
+}
+// 管理员删除
+export function yskdAdminDeleteById(data) {
+    return request({
+        url: 'yskd/adminDeleteById',
+        method: 'post',
+        data: data
+    })
+}
+// 收款单新建信息查询
+export function yskdQueryJeByCustomerId(data) {
+    return request({
+        url: 'yskd/queryJeByCustomerId',
+        method: 'post',
+        data: data
+    })
+}
+// 新建时查询收款方式
+export function yskdQuerySkfs(data) {
+    return request({
+        url: 'yskd/querySkfs',
+        method: 'post',
+        data: data
+    })
+}
+// 新建时查询收款银行账户
+export function yskdQueryAccount(data) {
+    return request({
+        url: 'yskd/queryAccount',
+        method: 'post',
+        data: data
+    })
+}
+// 新增修改
+export function yskdAddOrUpdate(data) {
+    return request({
+        url: 'yskd/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 预收款单  删除
+export function yskdDeleteById(data) {
+    return request({
+        url: 'yskd/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+// 预收款单  审核修改状态
+export function yskdCheckStatus(data) {
+    return request({
+        url: 'yskd/checkStatus',
+        method: 'post',
+        data: data
+    })
+}
+
+
+
+// 收款单
+
+// 收款单查询列表
+export function skdQueryPageList(data) {
+    return request({
+        url: 'skd/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 收款单  审核修改状态
+export function skdCheckStatus(data) {
+    return request({
+        url: 'skd/checkStatus',
+        method: 'post',
+        data: data
+    })
+}
+// 收款单明细
+export function skdQueryById(data) {
+    return request({
+        url: 'skd/queryById',
+        method: 'post',
+        data: data
+    })
+}
+// 收款单  删除
+export function skdDeleteById(data) {
+    return request({
+        url: 'skd/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//公司账户管理---列表
+export function gszhglQueryPageList(data){
+    return request({
+        url: 'bankaccount/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//公司账户管理---删除
+export function gszhglDeleteById(data) {
+    return request({
+        url: 'bankaccount/deleteById',
+        method: 'post',
+        data: data
+    })
+}
+//公司账户管理---查询
+export function gszhglQueryById(data) {
+    return request({
+        url: 'bankaccount/queryById',
+        method: 'post',
+        data: data
+    })
+}
+//公司账户管理--新增编辑
+export function gszhglAddEdit(data){
+    return request({
+        url: 'bankaccount/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+export function yskdQueryById(data) {
+    return request({
+        url: 'yskd/queryById',
+        method: 'post',
+        data: data
+    })
+}
+export function yskdQueryAutoHx(data) {
+    return request({
+        url: 'yskd/queryAutoHx',
+        method: 'post',
+        data: data
+    })
+}
+export function yfkdAutoHx(data){
+    return request({
+        url: 'yskd/autoHx',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}

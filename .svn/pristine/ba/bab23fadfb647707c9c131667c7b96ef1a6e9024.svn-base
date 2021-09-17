@@ -1,0 +1,312 @@
+<template>
+  <div>
+    <div class="input-box">
+      <label class="input-label">起始IP</label>
+      <el-input v-model="startIpA"></el-input>
+      <span>-</span>
+      <el-input v-model="startIpB"></el-input>
+      <span>-</span>
+      <el-input v-model="startIpC"></el-input>
+      <span>-</span>
+      <el-input v-model="startIpD"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">结束IP</label>
+      <el-input v-model="endIpA"></el-input>
+      <span>-</span>
+      <el-input v-model="endIpB"></el-input>
+      <span>-</span>
+      <el-input v-model="endIpC"></el-input>
+      <span>-</span>
+      <el-input v-model="endIpD"></el-input>
+    </div>
+    <div class="input-box">
+      <el-button @click="sesucce" type="primary">查询</el-button>
+      <el-button @click="rest" type="info" plain>重置</el-button>
+      <el-button @click="showDialog" type="success">新增</el-button>
+    </div>
+    <el-table :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="startIp" label="起始IP"></el-table-column>
+      <el-table-column prop="endIp" label="结束IP"></el-table-column>
+      <el-table-column prop="status" label="状态">
+        <template slot-scope="scope">
+          <span v-if="scope.row.status == 1">启用</span>
+          <span v-else>禁用</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button @click="deleteClick(scope.row)" style="color:red" type="text">删除</el-button>
+          <el-button @click="editClick(scope.row)" type="text">编辑</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="[15, 30, 50, 100]"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <el-dialog
+      title="新增/修改IP信息"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <div style="float:left">
+        <div class="input-box">
+          <label class="input-label">起始IP</label>
+          <el-input v-model="addstartIpA"></el-input>
+          <span>-</span>
+          <el-input v-model="addstartIpB"></el-input>
+          <span>-</span>
+          <el-input v-model="addstartIpC"></el-input>
+          <span>-</span>
+          <el-input v-model="addstartIpD"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">结束IP</label>
+          <el-input v-model="addendIpA"></el-input>
+          <span>-</span>
+          <el-input v-model="addendIpB"></el-input>
+          <span>-</span>
+          <el-input v-model="addendIpC"></el-input>
+          <span>-</span>
+          <el-input v-model="addendIpD"></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addClick">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import {
+  ipwhitelistQueryPageList,
+  ipwhitelistDeleteByIds,
+  ipwhitelistAddAndUpdate
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      dialogVisible: false,
+      tableHeight: document.documentElement.clientHeight - 350, // 表的高度
+      startIpA: "",
+      startIpB: "",
+      startIpC: "",
+      startIpD: "",
+      endIpA: "",
+      endIpB: "",
+      endIpC: "",
+      endIpD: "",
+      from: {
+        startIp: "",
+        endIp: "",
+        page: 1,
+        limit: 15
+      },
+      tableData: [],
+      total: 0,
+      addstartIpA: "",
+      addstartIpB: "",
+      addstartIpC: "",
+      addstartIpD: "",
+      addendIpA: "",
+      addendIpB: "",
+      addendIpC: "",
+      addendIpD: "",
+      id: ""
+    };
+  },
+
+  methods: {
+    editClick(val) {
+      this.id = val.ipid;
+      this.addstartIpA = val.startIp.split(".")[0];
+      this.addstartIpB = val.startIp.split(".")[1];
+      this.addstartIpC = val.startIp.split(".")[2];
+      this.addstartIpD = val.startIp.split(".")[3];
+      this.addendIpA = val.endIp.split(".")[0];
+      this.addendIpB = val.endIp.split(".")[1];
+      this.addendIpC = val.endIp.split(".")[2];
+      this.addendIpD = val.endIp.split(".")[3];
+      this.dialogVisible = true;
+    },
+    addClick() {
+      let startIp = "";
+      let endIp = "";
+      if (
+        this.addstartIpA != "" &&
+        this.addstartIpB != "" &&
+        this.addstartIpC != "" &&
+        this.addstartIpD != ""
+      ) {
+        startIp =
+          this.addstartIpA +
+          "." +
+          this.addstartIpB +
+          "." +
+          this.addstartIpC +
+          "." +
+          this.addstartIpD;
+      } else {
+        this.msgInfo("请输入完整的起始IP");
+        return;
+      }
+      if (
+        this.addendIpA != "" &&
+        this.addendIpB != "" &&
+        this.addendIpC != "" &&
+        this.addendIpD != ""
+      ) {
+        endIp =
+          this.addendIpA +
+          "." +
+          this.addendIpB +
+          "." +
+          this.addendIpC +
+          "." +
+          this.addendIpD;
+      } else {
+        this.msgInfo("请输入完整的结束IP");
+        return;
+      }
+      ipwhitelistAddAndUpdate({
+        ipid: this.id,
+        startIp: startIp,
+        endIp: endIp
+      })
+        .then(res => {
+          if (this.id == "") {
+            this.msgSuccess("新增成功");
+          } else {
+            this.msgSuccess("修改成功");
+          }
+          this.dialogVisible = false;
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    showDialog() {
+      this.dialogVisible = true;
+      this.id = "";
+      this.addstartIpA = "";
+      this.addstartIpB = "";
+      this.addstartIpC = "";
+      this.addstartIpD = "";
+      this.addendIpA = "";
+      this.addendIpB = "";
+      this.addendIpC = "";
+      this.addendIpD = "";
+    },
+    deleteClick(id) {
+      ipwhitelistDeleteByIds({
+        ids: id.ipid
+      })
+        .then(res => {
+          this.msgSuccess("删除成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    sesucce() {
+      this.loginData();
+    },
+    rest() {
+      this.from.page = 1;
+      this.from.limit = 15;
+      this.from.startIp = "";
+      this.from.endIp = "";
+      this.startIpA = "";
+      this.startIpB = "";
+      this.startIpC = "";
+      this.startIpD = "";
+      this.endIpA = "";
+      this.endIpB = "";
+      this.endIpC = "";
+      this.endIpD = "";
+      this.loginData();
+    },
+    loginData() {
+      if (
+        this.startIpA != "" &&
+        this.startIpB != "" &&
+        this.startIpC != "" &&
+        this.startIpD != ""
+      ) {
+        this.from.startIp =
+          this.startIpA +
+          "." +
+          this.startIpB +
+          "." +
+          this.startIpC +
+          "." +
+          this.startIpD;
+      }
+      if (
+        this.endIpA != "" &&
+        this.endIpB != "" &&
+        this.endIpC != "" &&
+        this.endIpD != ""
+      ) {
+        this.from.endIp =
+          this.endIpA +
+          "." +
+          this.endIpB +
+          "." +
+          this.endIpC +
+          "." +
+          this.endIpD;
+      }
+      ipwhitelistQueryPageList(this.from)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = Number(res.data.totalRow);
+        })
+        .catch(res => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+    }
+  },
+
+  created() {},
+  activated(){
+    this.loginData();
+  },
+  mounted() {
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px;
+  width: 400px;
+  line-height: 34px;
+  span {
+    float: left;
+    margin: 0 5px;
+  }
+  .el-input {
+    width: 60px;
+  }
+}
+</style>

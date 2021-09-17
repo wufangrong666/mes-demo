@@ -1,0 +1,395 @@
+// 客户管理权限
+const customermanagementAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'crm',
+  twotype: 'khgl'
+}
+// 客户管理路由
+const customermanagementRouter = {
+  path: 'customermanagement',
+  redirect: 'customermanagement/publiccp',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'customer',
+    title: '客户管理',
+    requiresAuth: true,
+    index: 1,
+    type: 'crm',
+    subType: 'khgl'
+  },
+  hidden: false,  //控制二级菜单显隐
+  children: [
+    {
+      path: 'publiccp', // 公共见客户池
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      hidden: false,
+      meta: {
+        title: '公共客户池',
+        subType: 'ggkhc',
+        ...customermanagementAuth
+      }
+    },
+    {
+      path: 'cusinfomanage', // 客户信息管理
+      component: () => import('@/views/crm/khxxgl/khxxglIndex'),
+      hidden: false,
+      meta: {
+        title: '客户信息管理',
+        subType: 'khxxgl',
+        ...customermanagementAuth
+      }
+    },
+    {
+      path: 'recordmanagement', // 交往记录管理
+      component: () => import('@/views/crm/jwjl/jwIndex'),
+      hidden: false,
+      meta: {
+        title: '交往记录管理',
+        subType: 'jwjlgl',
+        ...customermanagementAuth,
+      }
+    },
+    {
+      path: 'overdueCustomerWarning', // 超期客户预警
+      component: () => import('@/views/crm/cqyj/cqyj'),
+      hidden: false,
+      meta: {
+        title: '超期客户预警',
+        subType: 'cqkhyj',
+        ...customermanagementAuth
+      }
+    },
+    {
+      path: 'custormBirDaySearch', // 客户生日查询
+      component: () => import('@/views/crm/khsrcx/khsrcx'),
+      hidden: false,
+      meta: {
+        title: '客户生日查询',
+        subType: 'khsrcx',
+        ...customermanagementAuth
+      }
+    },
+    {
+      path: 'customerCare', // 客户关怀
+      component: () => import('@/views/crm/khgh/khgh'),
+      hidden: false,
+      meta: {
+        title: '客户关怀',
+        subType: 'khgh',
+        ...customermanagementAuth
+      }
+    },
+    {
+      path: 'customerTransfer', // 客户转移
+      component: () => import('@/views/crm/khzy/khzyIndex'),
+      hidden: false,
+      meta: {
+        title: '客户转移',
+        subType: 'khzy',
+        ...customermanagementAuth
+      }
+    },
+    {
+      path: 'customerInitialization', // 客户信息初始化 
+      component: () => import('@/views/crm/khxxcsh/khxxcsh'),
+      hidden: false,
+      meta: {
+        title: '客户信息初始化',
+        subType: 'khxxcsh',
+        ...customermanagementAuth
+      }
+    }
+  ]
+}
+
+// 销售机会管理
+const purchasemanageAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'crm',
+  twotype: 'xsjhgl'
+}
+
+const purchasemanageRouter = {
+  path: 'purchasemanagement',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'example',
+    title: '销售机会管理',
+    requiresAuth: true,
+    index: 1,
+    type: 'crm',
+    subType: 'xsjhgl'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'itemChance', // 项目机会
+      component: () => import('@/views/crm/xmjh/xsjhIndex'),
+      meta: {
+        subType: 'xmjh',
+        title: '项目机会',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'quotationOrder', // 销售报价单
+      component: () => import('@/views/crm/xsbjd/xsbjdIndex'),
+      meta: {
+        subType: 'xsbjd',
+        title: '销售报价单',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'solution', // 解决方案
+      component: () => import('@/views/crm/jjfa/jjfa'),
+      meta: {
+        subType: 'jjfa',
+        title: '解决方案',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'quotations', // 询报价
+      component: () => import('@/views/crm/xbj/xbjIndex'),
+      meta: {
+        subType: 'xbj',
+        title: '询报价',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'rfqtracking', // 询报价追踪
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        subType: 'xbjzz',
+        title: '询报价追踪',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'ordertracking', // 订单追踪
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        subType: 'ddzz',
+        title: '订单追踪',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'quotationsForCus', // 询报价(按客户)
+      component: () => import('@/views/crm/xbjTable/xbjTableKh'),
+      meta: {
+        subType: 'xbjtjbkh',
+        title: '询报价统计表(按客户)',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'quotationsForBrand', // 询报价(按品牌)
+      component: () => import('@/views/crm/xbjTable/xbjTablePp'),
+      meta: {
+        subType: 'xbjtjbpp',
+        title: '询报价统计表(按品牌)',
+        ...purchasemanageAuth
+      }
+    },
+    {
+      path: 'quotationsForSalesman', // 询报价(按业务员)
+      component: () => import('@/views/crm/xbjTable/xbjTableYwy'),
+      meta: {
+        subType: 'xbjtjbywy',
+        title: '询报价统计表(按业务员)',
+        ...purchasemanageAuth
+      }
+    },
+  ]
+}
+
+// 产品管理
+
+const storemanageAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'crm',
+  twotype: 'cpgl'
+}
+const storemanageAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'crm',
+  twotype: 'cpgl',
+  threetype: 'cpjgcx'
+}
+
+const storemanageRouter = {
+  path: 'storemanage',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'product',
+    title: '产品管理', //1
+    requiresAuth: true,
+    index: 1,
+    type: 'crm',
+    subType: 'cpgl'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'ProductIndex', // 产品信息管理 2
+      name: 'ProductIndex',
+      component: () => import('@/views/crm/cpxxgl/cpxxIndex'),
+      meta: {
+        subType: 'cpxxgl',
+        title: '产品信息管理',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'brandManagement', // 品牌管理
+      name: 'brandManagement',
+      component: () => import('@/views/crm/ppgl/ppglIndex'),
+      meta: {
+        subType: 'ppgl',
+        title: '品牌管理',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'brandNameManagement', // 品名管理
+      name: 'brandNameManagement',
+      component: () => import('@/views/crm/pmgl/pmglIndex'),
+      meta: {
+        subType: 'pmgl',
+        title: '品名管理',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'productprice', // 产品价格查询2
+      name: 'productprice',
+      component: () => import('@/views/common/appview'),
+      //redirect: 'productprice/productAllPrice',
+      meta: {
+        subType: 'cpjgcx',
+        title: '产品价格查询',
+        ...storemanageAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'productAllPrice',  //产品全部价格 3
+          name: 'productAllPrice',
+          component: () => import('@/views/crm/cpjg/cpqbjg'),
+          meta: {
+            title: '产品全部价格',
+            subType: 'cpqbjg',
+            ...storemanageAuth2
+          },
+        },
+        {
+          path: 'productSalePrice', //产品销售价格
+          name: 'productSalePrice',
+          component: () => import('@/views/crm/cpjg/cpxsjg'),
+          meta: {
+            title: '产品销售价格',
+            subType: 'cpxsjg',
+            ...storemanageAuth2
+          },
+        },
+        {
+          path: 'productPurchasePrice', //产品采购价格
+          name: 'productPurchasePrice',
+          component: () => import('@/views/crm/cpjg/cpcgjg'),
+          meta: {
+            title: '产品采购价格',
+            subType: 'cpcgjg',
+            ...storemanageAuth2
+          },
+        },
+      ]
+    },
+    {
+      path: 'productInit', // 产品信息初始化
+      name: 'productInit',
+      component: () => import('@/views/crm/cpxxcsh/cpxxcsh'),
+      meta: {
+        title: '产品信息初始化',
+        subType: 'cpxxcsh',
+        ...storemanageAuth
+      },
+
+    }
+  ]
+}
+
+// 供应商管理
+
+const physicalAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'crm',
+  twotype: 'gysgl'
+}
+
+const physicalRouter = {
+  path: 'physical',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    index: 1,
+    requiresAuth: true,
+    type: 'crm',
+    subType: 'gysgl',
+    icon: 'versions',
+    title: '供应商管理'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'physicalInfo', // 供应商信息管理
+      component: () => import('@/views/crm/gys/gysxxIndex'),
+      hidden: false,
+      meta: {
+        title: '供应商信息管理',
+        subType: 'gysxxgl',
+        ...physicalAuth
+      }
+    },
+    {
+      path: 'physicalBirth', // 供应商生日查询
+      component: () => import('@/views/crm/gysBirth/gysIndex'),
+      hidden: false,
+      meta: {
+        title: '供应商生日查询',
+        subType: 'gyssrcx',
+        ...physicalAuth
+      }
+    },
+    {
+      path: 'purchaseInquiry', // 采购询价单
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      hidden: false,
+      meta: {
+        title: '采购询价单',
+        subType: 'cgxjd',
+        ...physicalAuth
+      }
+    },
+    {
+      path: 'purchaseInfoInit', // 供应商信息初始化
+      component: () => import('@/views/crm/gysxxcsh/gysxxcsh'),
+      hidden: false,
+      meta: {
+        title: '供应商信息初始化',
+        subType: 'gysxxcsh',
+        ...physicalAuth
+      }
+    },
+  ]
+}
+
+
+export const children = [...customermanagementRouter.children, ...purchasemanageRouter.children, ...storemanageRouter.children, ...physicalRouter.children]
+export const childrenMenu = [customermanagementRouter, purchasemanageRouter, storemanageRouter, physicalRouter]

@@ -1,0 +1,277 @@
+<template>
+  <div class="c-container">
+    <div class="title">{{title}}</div>
+
+    <!-- 新增更多 -->
+    <div class="right-container">
+      <el-dropdown trigger="click" v-if="moreTypes.length > 0" @command="handleTypeDrop">
+        <flexbox class="right-more-item">
+          <div>更多</div>
+          <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+        </flexbox>
+        <el-dropdown-menu style="height:100px" slot="dropdown">
+          <el-dropdown-item
+            v-for="(item, index) in moreTypes"
+            :key="index"
+            :command="item.type"
+          >{{item.name}}</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+    <el-table id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="mailTo" label="收件人"></el-table-column>
+      <el-table-column prop="mailUsername" label="发件人"></el-table-column>
+      <el-table-column prop="mailTitle" label="邮箱主题"></el-table-column>
+      <el-table-column prop="bjdCount" label="附件">
+        <template slot-scope="scopr">
+          <span v-text="scopr.row.isfile == 1?'有附件':'无附件'"></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="createDate" label="时间"></el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button style="color:#f56c6c" @click="deleteClick(scope.row)" type="text">删除</el-button>
+          <el-button @click="editClick(scope.row)" type="text">编辑</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="page"
+        :page-sizes="pageSizes"
+        :page-size.sync="limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <el-dialog
+      title="编辑"
+      :visible.sync="dialogVisible"
+      width="35%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div style="float:left;margin-bottom:20px">
+        <div class="input-box">
+          <label class="input-label">发件人</label>
+          <el-input placeholder="请输入收件人" clearable v-model="from.mailUsername"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">收件人</label>
+          <el-input placeholder="请输入收件人" clearable v-model="from.mailTo"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">主题</label>
+          <el-input placeholder="请输入收件人" clearable v-model="from.mailTitle"></el-input>
+        </div>
+        <div class="input-box">
+          <label class="input-label">附件</label>
+          <el-input placeholder="请输入收件人" clearable v-model="from.isfile"></el-input>
+        </div>
+        <div class="input-box" style="width:90%">
+          <label class="input-label">内容</label>
+          <el-input type="textarea" :rows="7" placeholder="请输入内容" v-model="from.mailContent"></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editConfirm">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script type="text/javascript">
+import {
+  mailSendFindDraftOrSendMail,
+  mailSendDelDraftOrSendMailBySendId,
+  mailSendUpdateMail,
+  mailSendFindMailInfoBySendId
+} from "@/api/email/email";
+export default {
+  name: "yxszIndex",
+  computed: {},
+  data() {
+    return {
+      from: {
+        sendId: "",
+        sendMail: "",
+        mailContent: "",
+        mailUsername: "",
+        mailTo: "",
+        mailTitle: "",
+        isfile: ""
+      },
+      value: "",
+      dialogVisible: false,
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 194, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      page: 1,
+      limit: 15,
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+  },
+  activated() {
+    this.loginData();
+  },
+  methods: {
+    editConfirm() {
+      this.from.isfile = this.from.isfile == "有附件" ? "1" : "0";
+      mailSendUpdateMail(this.from)
+        .then(res => {
+          this.msgSuccess("修改成功");
+          this.dialogVisible = false;
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    editClick(val) {
+      mailSendFindMailInfoBySendId({
+        sendId: val.sendId
+      })
+        .then(res => {
+          this.dialogVisible = true;
+          this.from.sendId = res.mail.sendId;
+          this.from.sendMail = res.mail.sendMail;
+          this.from.mailContent = res.mail.mailContent;
+          this.from.mailUsername = res.mail.mailUsername;
+          this.from.mailTo = res.mail.mailTo;
+          this.from.mailTitle = res.mail.mailTitle;
+          this.from.isfile = res.mail.isfile == 1 ? "有附件" : "无附件";
+        })
+        .catch(res => {});
+    },
+    deleteClick(val) {
+      mailSendDelDraftOrSendMailBySendId({
+        sendIds: val.sendId
+      })
+        .then(res => {
+          this.msgSuccess("删除成功");
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    //获取列表数据
+    loginData() {
+      mailSendFindDraftOrSendMail({
+        status: 0,
+        page: 1,
+        limit: 15
+      })
+        .then(res => {
+          this.tableData = res.data;
+          this.total = res.total;
+        })
+        .catch(res => {});
+    },
+    handleTypeDrop(command) {
+      if (command == "out") {
+        this.$emit("on-export");
+      } else if (command == "enter") {
+        this.showImport = true;
+      }
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    }
+  }
+};
+</script>
+<style lang="scss" scoped>
+@import "../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+  .input-box {
+    width: 275px;
+    margin: 20px 0 0 15px;
+    .el-date-editor {
+      width: 400px;
+    }
+  }
+  .input-dialog {
+    width: 100%;
+    .input-label {
+      float: left;
+      width: 30%;
+      line-height: 40px;
+    }
+    .el-input {
+      line-height: 40px;
+      width: 60%;
+    }
+    .el-select {
+      line-height: 40px;
+      width: 60%;
+    }
+  }
+  .right-container {
+    float: right;
+    margin-top: 20px;
+    position: relative;
+    .right-item {
+      float: left;
+      margin-right: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 2px;
+    }
+
+    .right-more-item {
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background-color: white;
+      font-size: 13px;
+      color: #777;
+      padding: 0 12px;
+      border-radius: 2px;
+      height: 31px;
+    }
+  }
+}
+</style>

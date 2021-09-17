@@ -1,0 +1,216 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <el-button @click="add" style="margin:10px" type="primary">新建追加说明</el-button>
+        <el-table :height="tableHeight" :data="tableData" style="width: 100%">
+          <el-table-column prop="realname" label="追加人"></el-table-column>
+          <el-table-column prop="zjsj" label="追加时间"></el-table-column>
+          <el-table-column prop="shnr" label="说明内容"></el-table-column>
+          <el-table-column label="操作">
+            <template slot-scope="scope">
+              <el-button @click="edit(scope.row)" type="text">编辑</el-button>
+              <el-button @click="deleteZjsm(scope.row)" style="color:red" type="text">删除</el-button>
+              <el-button style="color:red" type="text">管理员删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="p-contianer">
+          <el-button @click="hidenView" type="info">关闭</el-button>
+          <el-pagination
+            class="p-bar"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="page"
+            :page-sizes="[15,30,50,100]"
+            :page-size.sync="limit"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+          ></el-pagination>
+        </div>
+      </div>
+    </flexbox>
+    <el-dialog
+      :title="title"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :modal-append-to-body="false"
+      :before-close="handleClose"
+    >
+      <span>
+        <div class="dialog">
+          <span>追加人:</span>
+          <span v-text="creator"></span>
+        </div>
+        <div class="dialog">
+          <span>追加时间:</span>
+          <span v-text="createDate"></span>
+        </div>
+        <div>
+          <span>说明内容:</span>
+          <el-input
+            style="margin-top:10px"
+            type="textarea"
+            resize="none"
+            :rows="7"
+            placeholder="请输入内容"
+            v-model="shnr"
+          ></el-input>
+        </div>
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submintZjsm">保 存</el-button>
+      </span>
+    </el-dialog>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import Lockr from "lockr";
+import {
+  crmCustomerQueryZjsm,
+  crmCustomerAddOrUpdateZjsm,
+  crmCustomerDeleteZjsmById
+} from "@/api/crm/ggkhc";
+export default {
+  components: {
+    createView
+  },
+  name: "",
+  data() {
+    return {
+      loading: false,
+      tableData: [],
+      widowData: {},
+      dialogVisible: false,
+      title: "",
+      creator: "",
+      createDate: "",
+      shnr: "",
+      total: 0,
+      page: 1,
+      limit: 15,
+      tableHeight: document.documentElement.clientHeight - 150,
+      id: ""
+    };
+  },
+
+  methods: {
+    edit(row) {
+      this.dialogVisible = true;
+      this.shnr = row.shnr;
+      this.id = row.id;
+      this.title = "编辑追加说明";
+    },
+    deleteZjsm(row) {
+      this.$confirm("请确认是否删除, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          crmCustomerDeleteZjsmById({
+            id: row.id
+          })
+            .then(res => {
+              this.$message({
+                type: "success",
+                message: "删除成功!"
+              });
+              this.loginData();
+            })
+            .catch(res => {});
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    submintZjsm() {
+      crmCustomerAddOrUpdateZjsm({
+        id: this.id,
+        shnr: this.shnr,
+        customerId: this.widowData.id
+      })
+        .then(res => {
+          this.msgSuccess("增加成功");
+          this.dialogVisible = false;
+          this.loginData();
+        })
+        .catch(res => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    add() {
+      this.dialogVisible = true;
+      this.shnr = "";
+      this.title = "新建追加说明";
+    },
+    loginData() {
+      crmCustomerQueryZjsm({
+        page: this.page,
+        limit: this.limit,
+        customerId: this.widowData.id
+      })
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    // 更改每页展示数量
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginData();
+    },
+    // 更改当前页数
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginData();
+    },
+    hidenView() {
+      window.top.close();
+      window.opener.postMessage("child", window.location);
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.creator = Lockr.get("loginUserInfo").realname;
+    this.createDate = this.getTime();
+    this.loginData();
+  }
+};
+</script>
+<style lang='scss'>
+.create-flex .el-button{
+  padding: 0 5px; 
+  height: 30px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+
+.dialog {
+  width: 100%;
+  line-height: 35px;
+  span:nth-child(1) {
+    display: inline-block;
+    width: 100px;
+  }
+}
+.p-contianer {
+  text-align: center;
+  .el-button {
+    margin: 20px 0 0 20%;
+  }
+}
+</style>

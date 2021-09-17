@@ -1,0 +1,65 @@
+<template>
+  <div class="system-customer">
+    <div class="title">{{title}}</div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="采购订单条款" name="1">
+            <tableModel v-if="activeName == 1" :lx="activeName"></tableModel>
+          </el-tab-pane>
+          <el-tab-pane label="采购报价单条款" name="3">
+            <tableModel v-if="activeName == 3" :lx="activeName" ></tableModel>
+          </el-tab-pane>
+          <el-tab-pane label="销售订单条款" name="2">
+            <tableModel v-if="activeName == 2" :lx="activeName" ></tableModel>
+          </el-tab-pane>
+          <el-tab-pane label="销售报价单条款" name="4">
+            <tableModel v-if="activeName == 4" :lx="activeName"></tableModel>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import tableModel from "./tableModel";
+export default {
+  name: "",
+  components: {
+    tableModel
+  },
+  data() {
+    return {
+      title: "",
+      activeName: "1",
+      seleteData: []
+    };
+  },
+
+  methods: {
+    handleClick(val) {
+      this.activeName = val.name;
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+  }
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  margin: 20px 0 0 20px;
+  position: relative;
+  .prompt {
+    position: absolute;
+    left: 80px;
+    top: 100%;
+    color: #f56c6c;
+  }
+}
+</style>

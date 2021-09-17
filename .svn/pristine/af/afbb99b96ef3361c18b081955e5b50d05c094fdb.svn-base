@@ -1,0 +1,136 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="totle">客户信息必填项设置</div>
+      <div class="topStatus">
+        <el-checkbox
+          :value="from.khmcBtFlag == 1?true:false"
+          @change="val => $set(from,'khmcBtFlag',val ? 1 : 0)"
+        >客户名称</el-checkbox>
+        <el-checkbox
+          :value="from.khdhBtFlag == 1?true:false"
+          @change="val => $set(from,'khdhBtFlag',val ? 1 : 0)"
+        >客户电话</el-checkbox>
+        <el-checkbox
+          :value="from.khczBtFlag == 1?true:false"
+          @change="val => $set(from,'khczBtFlag',val ? 1 : 0)"
+        >客户传真</el-checkbox>
+        <el-checkbox
+          :value="from.khszsBtFlag == 1?true:false"
+          @change="val => $set(from,'khszsBtFlag',val ? 1 : 0)"
+        >客户所在省</el-checkbox>
+        <el-checkbox
+          :value="from.khcityBtFlag == 1?true:false"
+          @change="val => $set(from,'khcityBtFlag',val ? 1 : 0)"
+        >客户所在市</el-checkbox>
+        <el-checkbox
+          :value="from.khemailBtFlag == 1?true:false"
+          @change="val => $set(from,'khemailBtFlag',val ? 1 : 0)"
+        >客户EMAIL</el-checkbox>
+        <el-checkbox
+          :value="from.khxxdzBtFlag == 1?true:false"
+          @change="val => $set(from,'khxxdzBtFlag',val ? 1 : 0)"
+        >客户详细地址</el-checkbox>
+        <el-checkbox
+          :value="from.khshdz1BtFlag == 1?true:false"
+          @change="val => $set(from,'khshdz1BtFlag',val ? 1 : 0)"
+        >客户收货地址</el-checkbox>
+      </div>
+      <div class="totle">客户联系人信息必填项设置</div>
+      <div class="topStatus">
+        <el-checkbox
+          :value="from.lxrmcBtFlag == 1?true:false"
+          @change="val => $set(from,'lxrmcBtFlag',val ? 1 : 0)"
+        >客户联系人名称</el-checkbox>
+        <el-checkbox
+          :value="from.lxrsjBtFlag == 1?true:false"
+          @change="val => $set(from,'lxrsjBtFlag',val ? 1 : 0)"
+        >客户联系人手机</el-checkbox>
+        <el-checkbox
+          :value="from.lxrdhBtFlag == 1?true:false"
+          @change="val => $set(from,'lxrdhBtFlag',val ? 1 : 0)"
+        >客户联系人电话</el-checkbox>
+        <el-checkbox
+          :value="from.lxremailBtFlag == 1?true:false"
+          @change="val => $set(from,'lxremailBtFlag',val ? 1 : 0)"
+        >客户联系人EMAIL</el-checkbox>
+        <el-checkbox
+          :value="from.lxrczBtFlag == 1?true:false"
+          @change="val => $set(from,'lxrczBtFlag',val ? 1 : 0)"
+        >客户联系人传真</el-checkbox>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminKhszQueryKhszSet,
+  adminKhszUpdateKhszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    khlxfsData() {
+      adminKhszQueryKhszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminKhszUpdateKhszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.khlxfsData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.khlxfsData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .totle {
+    width: 100%;
+    line-height: 40px;
+    text-align: center;
+    background: #d9e6ee;
+  }
+  .topStatus {
+    width: 100%;
+    line-height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 5%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 95%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

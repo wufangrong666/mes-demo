@@ -1,0 +1,510 @@
+<template>
+  <create-view :loading="loading" :body-style="{ height: '100%'}">
+    <flexbox direction="column" align="stretch" class="crm-create-container">
+      <flexbox class="crm-create-header">
+        <div style="flex:1;font-size:17px;color:#333;">新建客户</div>
+        <img @click="hidenView" class="close" src="@/assets/img/task_close.png" />
+      </flexbox>
+      <div class="crm-create-flex">
+        <create-sections title="(带*为必填项)">
+          <flexbox direction="column" align="stretch">
+            <div class="crm-create-body">
+              <el-form :inline="true" :model="formInline" class="demo-form-inline">
+                <el-form-item
+                  :required="item.id == 0 ? true : false"
+                  :label="item.label"
+                  label-position="top"
+                  v-for="item in ruleForm.evidenceTemplateList"
+                  :key="item.id"
+                >
+                  <el-select v-if="item.id == 3" v-model="value" placeholder="请选择">
+                    <el-option
+                      v-for="option in item.options"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                    ></el-option>
+                  </el-select>
+
+                  <el-input v-else v-model="item.content" :placeholder="item.label"></el-input>
+                </el-form-item>
+              </el-form>
+            </div>
+          </flexbox>
+        </create-sections>
+        <create-sections title="地址信息和财务信息">
+          <flexbox direction="column" align="stretch">
+            <div class="crm-create-body">
+              <el-form :inline="true" :model="formInline" class="demo-form-inline">
+                <el-form-item label="收货国家：">
+                  <el-input v-model="formInline.name" placeholder="收货国家	"></el-input>
+                </el-form-item>
+                <el-form-item label="收货城市：">
+                  <el-input v-model="formInline.name" placeholder="收货城市"></el-input>
+                </el-form-item>
+                <br />
+                <el-form-item
+                  v-for="subitem in ruleForm.addressInfo"
+                  :key="subitem.id"
+                  :label="subitem.label"
+                  prop="name"
+                >
+                  <el-input v-model="formInline.name" :placeholder="subitem.label"></el-input>
+                </el-form-item>
+              </el-form>
+            </div>
+          </flexbox>
+        </create-sections>
+        <create-sections title="客户类型">
+          <flexbox direction="column" align="stretch">
+            <div class="crm-create-body">
+              <el-form :inline="true" :model="formInline" class="demo-form-inline">
+                <el-form-item
+                  v-for="customer in ruleForm.customerType"
+                  :key="customer.id"
+                  :label="customer.label"
+                >
+                  <el-input v-if="customer.id == 6" v-model="formInline.name"></el-input>
+                  <!-- <el-input v-else-if="customer.id == 7 " v-model="formInline.name"></el-input> -->
+                  <el-upload
+                    v-else-if="customer.id ==7"
+                    class="upload-demo"
+                    ref="upload"
+                    action="https://jsonplaceholder.typicode.com/posts/"
+                    :on-preview="handlePreview"
+                    :on-remove="handleRemove"
+                    :file-list="fileList"
+                    :auto-upload="false"
+                  >
+                    <el-button size="small" type="primary">点击上传</el-button>
+                    <div slot="tip" class="el-upload__tip inBox">只能上传jpg/png文件，且不超过500kb</div>
+                  </el-upload>
+                  <el-input
+                    v-else-if="customer.id == 8"
+                    type="textarea"
+                    autosize
+                    placeholder="请输入内容"
+                    v-model="textarea1"
+                  ></el-input>
+                  <el-input
+                    v-else-if="customer.id == 9"
+                    type="textarea"
+                    autosize
+                    placeholder="请输入内容"
+                    v-model="textarea1"
+                  ></el-input>
+                  <el-input
+                    v-else-if="customer.id == 10"
+                    type="textarea"
+                    autosize
+                    placeholder="请输入内容"
+                    v-model="textarea1"
+                  ></el-input>
+                  <el-select v-else v-model="value" placeholder="请选择">
+                    <el-option
+                      v-for="item in customer.options"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    ></el-option>
+                  </el-select>
+                </el-form-item>
+                <br />
+              </el-form>
+            </div>
+          </flexbox>
+        </create-sections>
+        <el-table :data="tableData" min-height="250" border style="width: 100%">
+          <el-table-column prop="name" label="姓名" width="120px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.name" placeholder="姓名"></el-input>
+              <span v-else>{{scope.row.name}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="sex" label="性别" width="120px">
+            <template slot-scope="scope">
+              <el-select v-if="scope.row.edit" v-model="scope.row.sex" placeholder="请选择">
+                <el-option label="男" value="1">男</el-option>
+                <el-option label="女" value="2">女</el-option>
+              </el-select>
+              <span v-else>
+                <p v-if="scope.row.sex==1">男</p>
+                <p v-if="scope.row.sex==2">女</p>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="important" label="重要程度" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.important" placeholder="重要程度"></el-input>
+              <span v-else>{{scope.row.important}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="job" label="职位" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.job" placeholder="职位"></el-input>
+              <span v-else>{{scope.row.job}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="phone" label="手机" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.phone" placeholder="手机"></el-input>
+              <span v-else>{{scope.row.phone}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="tel" label="工作电话" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.tel" placeholder="工作电话"></el-input>
+              <span v-else>{{scope.row.tel}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="tel" label="E-mail" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.email" placeholder="E-mail"></el-input>
+              <span v-else>{{scope.row.email}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="tel" label="QQ" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.qq" placeholder="QQ"></el-input>
+              <span v-else>{{scope.row.qq}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="fax" label="传真" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.fax" placeholder="传真"></el-input>
+              <span v-else>{{scope.row.fax}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="birth" label="生日" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.birth" placeholder="生日"></el-input>
+              <span v-else>{{scope.row.birth}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="pramy" label="备注" width="150px">
+            <template slot-scope="scope">
+              <el-input v-if="scope.row.edit" v-model="scope.row.pramy" placeholder="备注"></el-input>
+              <span v-else>{{scope.row.pramy}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作">
+            <template slot-scope="scope">
+              <el-button
+                v-if="scope.row.edit"
+                type="text"
+                size="medium"
+                @click="confirmAdd(scope.row)"
+              >
+                <i class="el-icon-check" aria-hidden="true"></i>
+              </el-button>
+              <div v-else>
+                <el-button type="text" size="medium" @click="deleteData(scope.row,scope.$index)">删除</el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <el-divider></el-divider>
+      <el-row center="true">
+        <el-button type="text" @click="addData">添加一行</el-button>
+        <el-button @click="submitData">保存</el-button>
+        <el-button @click="closeDemo">关闭</el-button>
+      </el-row>
+    </flexbox>
+  </create-view>
+</template>
+
+<script>
+import CreateView from "@/components/CreateView";
+import CreateSections from "@/components/CreateSections";
+
+export default {
+  data() {
+    return {
+      tableData: [
+        {
+          name: "王小虎",
+          sex: "男",
+          important: "A级客户",
+          job: "经理",
+          phone: "166789",
+          tel: "021-45678",
+          email: "123@123.com",
+          qq: "166789",
+          birth: "1880-10-29",
+          fax: "166789",
+          pramy: "哎哎哎",
+          opera: "删除"
+        }
+      ],
+      titleData: [
+        { id: 0, label: "姓名", prop: "name" },
+        // {id: 1,label: "性别",prop: "sex"},
+        { id: 2, label: "重要程度", prop: "important" },
+        { id: 3, label: "职位", prop: "job" },
+        { id: 4, label: "手机", prop: "phone" },
+        { id: 5, label: "工作电话", prop: "tel" },
+        { id: 6, label: "E-mail", prop: "email" },
+        { id: 7, label: "QQ", prop: "qq" },
+        { id: 8, label: "传真", prop: "fax" },
+        { id: 9, label: "生日", prop: "birth" },
+        { id: 10, label: "备注", prop: "pramy" },
+        { id: 11, label: "操作", prop: "opera" }
+      ],
+      textarea1: "",
+      fileList: [],
+      loading: false,
+      labelPosition: "right",
+      formInline: {
+        name: ""
+      },
+      title: "",
+      value: "",
+      ruleForm: {
+        name: "",
+        region: "",
+        evidenceTemplateList: [
+          { id: 0, label: "客户名称:", content: "", width: 240 },
+          { id: 1, label: "所属集团:", content: "", width: 240 },
+          { id: 2, label: "客户编码:", content: "", width: 100 },
+          {
+            id: 3,
+            label: "规模：",
+            options: [
+              {
+                value: "选项1",
+                label: "微型(10人以下)"
+              },
+              {
+                value: "选项2",
+                label: "小型(10-100人)"
+              },
+              {
+                value: "选项3",
+                label: "中小型(100-500人)"
+              },
+              {
+                value: "选项4",
+                label: "中型(500-1000人)"
+              },
+              {
+                value: "选项5",
+                label: "大型(1000人以上)"
+              }
+            ],
+            content: "",
+            width: 80
+          },
+
+          { id: 4, label: "所在国家:", content: "" },
+          { id: 5, label: "手机号码:", content: "" },
+          { id: 7, label: "创建日期:", content: "" },
+          { id: 6, label: "创建人:", content: "" },
+          { id: 8, label: "详细地址:", content: "" },
+          { id: 10, label: "所在省份:", content: "" },
+          { id: 9, label: "Q Q 号：", content: "" },
+          { id: 11, label: "电 话：", content: "" },
+          { id: 12, label: "邮政编码:", content: "" },
+          { id: 14, label: "所在市：", content: "" },
+          { id: 13, label: "skype：", content: "" },
+          { id: 15, label: "网址：", content: "" },
+          { id: 16, label: "旺旺号码:", content: "" },
+          { id: 17, label: "所在县：", content: "" },
+          { id: 18, label: "Email：", content: "" },
+          { id: 19, label: "共享人：", content: "" }
+        ],
+        addressInfo: [
+          // { id: 0, label: "收货国家", content: "" },
+          // { id: 1, label: "收货城市", content: "" },
+          { id: 2, label: "收货地址 1", content: "" },
+          { id: 3, label: "收货地址2：", content: "" },
+          { id: 4, label: "收货地址3:", content: "" },
+          { id: 5, label: "收货地址4:", content: "" },
+          { id: 6, label: "开 户 行 ：", content: "" },
+          { id: 7, label: " 开 户 名 ：", content: "" },
+          { id: 8, label: "银行卡号：", content: "" },
+          {
+            id: 9,
+            label: "信用额度：",
+            options: [
+              { value: "选项1", label: "高" },
+              { value: "选项2", label: "中" },
+              { value: "选项3", label: "低" }
+            ]
+          },
+          { id: 11, label: "开户地址：", content: "" },
+          { id: 10, label: "税号：", content: "" },
+          { id: 12, label: "交往频繁超期预警:", content: "" },
+          { id: 13, label: "欠款额度:", content: "" },
+          { id: 14, label: "收款期限限制:", content: "" },
+          { id: 15, label: "超期无购买提示:", content: "" }
+        ],
+        customerType: [
+          {
+            id: 0,
+            label: "客户来源",
+            options: [
+              { value: "选项1", label: "网络搜索" },
+              { value: "选项2", label: "客户介绍" },
+              { value: "选项3", label: "广告" },
+              { value: "选项4", label: "报纸杂志" },
+              { value: "选项5", label: "户外媒体" },
+              { value: "选项6", label: "朋友推荐" },
+              { value: "选项7", label: "其他" }
+            ]
+          },
+          {
+            id: 1,
+            label: "客户类型",
+            options: [
+              { value: "选项1", label: "一般客户" },
+              { value: "选项2", label: "VIP客户" },
+              { value: "选项3", label: "潜在客户" },
+              { value: "选项4", label: "长期跟踪客户" },
+              { value: "选项5", label: "重要客户" },
+              { value: "选项6", label: "一般合作客户" },
+              { value: "选项7", label: "已流失客户" },
+              { value: "选项8", label: "C客户" },
+              { value: "选项9", label: "A客户" }
+            ]
+          },
+          {
+            id: 2,
+            label: "销售方式",
+            options: [
+              { value: "选项1", label: "直接销售" },
+              { value: "选项2", label: "OEM" },
+              { value: "选项3", label: "一级经销商" },
+              { value: "选项4", label: "代理" },
+              { value: "选项5", label: "二级经销商" }
+            ]
+          },
+          {
+            id: 3,
+            label: "预设售价",
+            options: [
+              { value: "选项1", label: "参考出售价" },
+              { value: "选项2", label: "一级批发价" },
+              { value: "选项3", label: "二级批发价" },
+              { value: "选项4", label: "三级批发价" },
+              { value: "选项5", label: "四级批发价" },
+              { value: "选项6", label: "五级批发价" }
+            ]
+          },
+          {
+            id: 4,
+            label: "行业属性",
+            options: [
+              { value: "选项1", label: "机电" },
+              { value: "选项2", label: "食品" },
+              { value: "选项3", label: "生物化工" },
+              { value: "选项4", label: "IT" },
+              { value: "选项5", label: "磨具" },
+              { value: "选项6", label: "机械重工" }
+            ]
+          },
+          {
+            id: 5,
+            label: "企业性质",
+            options: [
+              { value: "选项1", label: "私营企业" },
+              { value: "选项2", label: "合资企业" },
+              { value: "选项3", label: "外资企业" },
+              { value: "选项4", label: "独资企业" },
+              { value: "选项5", label: "国家事业" }
+            ]
+          },
+          { id: 6, label: "法定代表人", content: "" },
+          { id: 7, label: "添加附件", content: "" },
+          { id: 8, label: "所询产品信息：", content: "" },
+          { id: 9, label: "企业描述", content: "" },
+          { id: 10, label: "备注", content: "" }
+        ]
+      }
+    };
+  },
+  components: {
+    CreateView,
+    CreateSections
+  },
+  methods: {
+    closeDemo() {
+      this.$emit("hiden-view");
+    },
+    hidenView() {
+      this.$emit("hiden-view");
+    },
+    submitUpload() {
+      this.$refs.upload.submit();
+    },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file)
+    },
+    addData() {
+      this.tableData.push({
+        edit: true
+      })
+    },
+    //确认添加
+    confirmAdd(row) {
+      row.edit = false;
+    },
+    //删除
+    deleteData(row, index) {
+      this.tableData.splice(index, 1);
+    },
+    // 提交
+    submitData() {
+      alert(JSON.stringify(this.tableData),this.ruleForm.evidenceTemplateList);
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.crm-create-container {
+  position: relative;
+  height: 100%;
+}
+
+.crm-create-flex {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.crm-create-header {
+  height: 40px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  .close {
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin-right: -10px;
+    padding: 10px;
+    cursor: pointer;
+  }
+}
+.crm-create-body {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.red {
+  color: #f00;
+}
+.headStyle {
+  background-color: #a3c7f1;
+}
+.inBox {
+  display: inline-block;
+  margin: 0 10px;
+}
+</style>

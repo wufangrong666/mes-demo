@@ -1,0 +1,101 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="title">
+            <ul>
+              <li>从</li>
+              <li style="color:red" v-text="item[0]"></li>
+              <li>到</li>
+              <li style="color:red" v-text="item[1]"></li>
+              <li>：给</li>
+              <li style="color:red" v-text="gysName"></li>
+              <li>付款情况如下：</li>
+            </ul>
+          </div>
+          <el-table :data="tableData" style="width: 100%" :height="tableHeight">
+            <el-table-column prop="createDate" label="单据日期"></el-table-column>
+            <el-table-column prop="dh" label="单据号"></el-table-column>
+            <el-table-column prop="djlx" label="单据类型"></el-table-column>
+            <el-table-column prop="je" label="金额"></el-table-column>
+            <el-table-column prop="zk" label="整单折扣(%)"></el-table-column>
+            <el-table-column prop="hj" label="合计"></el-table-column>
+            <el-table-column prop="yjke" label="已结款额"></el-table-column>
+          </el-table>
+          <div style="text-align:center;line-height:40px">
+            <el-button @click="hidenView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrQueryShouldByGysId } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      item: "",
+      loading: false,
+      gysName: "",
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 140, // 表的高度
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    mxData() {
+      cgbbGrQueryShouldByGysId({
+        gysId: this.widowData.list.gysId,
+      })
+        .then((res) => {
+          this.tableData = res.data
+        })
+        .catch((res) => {});
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.list = JSON.parse(this.widowData.list);
+    this.gysName = this.widowData.list.gysName;
+    this.item = this.widowData.item;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.mxData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.title {
+  ul {
+    width: 100%;
+    line-height: 40px;
+    li {
+      float: left;
+      font-size: 18px;
+    }
+  }
+}
+</style>

@@ -1,0 +1,271 @@
+<template>
+  <slide-view
+    v-empty="!canShowDetail"
+    xs-empty-icon="nopermission"
+    xs-empty-text="暂无权限"
+    @side-close="hideView"
+    v-clickoutside="hideView"
+    :body-style="{padding: 0, height: '100%'}"
+  >
+    <flexbox
+      v-if="canShowDetail"
+      v-loading="loading"
+      direction="column"
+      align="stretch"
+      class="d-container"
+    >
+      <flexbox class="selection-items-box">
+        <img @click="hideView" class="t-close" src="@/assets/img/task_close.png" />
+        <div class="header">{{name}}</div>
+        <flexbox
+          class="selection-item"
+          v-for="(item, index) in getSelectionHandleItemsInfo()"
+          :key="index"
+          @click.native="selectionBarClick(item.type)"
+        >
+          <img class="selection-item-icon" :src="item.icon" />
+          <div class="selection-item-name">{{item.name}}</div>
+        </flexbox>
+      </flexbox>
+      <template>
+        <div style="width:100%;background:#F5F6F9;line-height:40px;text-indent:20px">基本信息</div>
+        <ul class="details">
+          <li v-for="(item,index) in detailData.arr" :key="index">
+            <span v-text="item.label"></span>
+            <span v-text="detailData.formData[item.value]"></span>
+          </li>
+        </ul>
+        <ul class="detailsA">
+           <li >
+              <span>姓名</span>
+              <span>性别  </span>
+              <span>生日</span>
+              <span>电话</span>
+              <span>QQ</span>
+              <span>邮箱</span>
+          </li>
+          <li v-for="(item,index) in detailData.formData.customerContact" :key="index">
+              <span>{{item.contactName}}</span>
+              <span>{{item.contactGender == '1'?'男':'女'}}</span>
+              <span>{{item.contactBirthday}}</span>
+              <span>{{item.contactPhone}}</span>
+              <span>{{item.contactQq}}</span>
+              <span>{{item.contactEmail}}</span>
+          </li>
+        </ul>
+      </template>
+    </flexbox>
+    <createView
+      v-if="isCreate"
+      :dataList="createData"
+      :listType="listType"
+      :action="createActionInfo"
+      @hiden-view="hideView"
+    ></createView>
+    
+  </slide-view>
+</template>
+
+<script>
+import SlideView from "@/components/SlideView";
+import detail from "../../manage/mixins/detail";
+import table from "../../manage/mixins/table";
+import { crmCustomerqueryById, crmCustomerdelete } from "@/api/crm/ggkhc";
+import dataList from "../../components/Json";
+import createView from "../../components/createView"; // 新建页面
+
+export default {
+  name: "",
+  components: {
+    SlideView,
+    createView
+  },
+  mixins: [detail, table],
+
+  props: {
+    listType: {
+      type: String,
+      default: ""
+    },
+    // 详情信息id
+    id: [String, Number]
+  },
+  data() {
+    return {
+      detailData: {},
+      name: "",
+      isCreate: false, // 编辑操作
+      createData: {},
+      createActionInfo: { type: "edit", source: "detail" }
+    };
+  },
+
+  methods: {
+    hideView() {
+      this.$emit("hide-view");
+      this.$store.commit("edit")
+    },
+    selectionBarClick(type) {
+      let self = this;
+      if (type == "delete") {
+        var message = "";
+        if (type == "delete") {
+          message = "确定要删除这些数据吗?";
+        }
+        this.$confirm(message, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            self.confirmHandle(type);
+          })
+          .catch(() => {
+            this.msgInfo("已取消操作");
+          });
+      } else if(type == 'edit'){
+        this.isCreate = !this.isCreate;
+        this.createData = this.detailData
+      }
+    },
+    confirmHandle(type) {
+      if (type === "delete") {
+        let self = this;
+        let request = {
+          crm_customerpool: crmCustomerdelete
+        }[this.listType];
+        if (this.listType == "crm_customerpool") {
+          var ids = this.selectionList.map(function(item, index, array) {
+            return item.customerId;
+          });
+          request({
+            customerIds: this.id
+          })
+            .then(res => {
+              this.msgSuccess("删除成功");
+              this.$emit("hide-view");
+              this.$store.commit("edit");
+            })
+            .catch(res => {});
+        }
+      }
+    },
+    getSelectionHandleItemsInfo() {
+      let handleInfos = {
+        delete: {
+          name: "删除",
+          type: "delete",
+          icon: require("@/assets/img/selection_delete.png")
+        }
+      };
+      if (this.listType == "crm_customerpool") {
+        return this.forSelectionHandleItems(handleInfos, [
+          "delete",
+        ]);
+      }
+    },
+    forSelectionHandleItems(handleInfos, array) {
+      var tempsHandles = [];
+      for (let index = 0; index < array.length; index++) {
+        tempsHandles.push(handleInfos[array[index]]);
+      }
+      return tempsHandles;
+    },
+    getDetial() {
+      this.loading = true;
+      crmCustomerqueryById({
+        customerId: this.id
+      })
+        .then(res => {
+          this.loading = false;
+          dataList.crm_customer.formData = res.data;
+          this.name = res.data.name;
+          this.detailData = dataList.crm_customer;
+        })
+        .catch(() => {
+          this.loading = false;
+        });
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/crmdetail.scss";
+.header {
+  width: 30%;
+  line-height: 80px;
+  font-size: 20px;
+  text-indent: 20px;
+}
+.d-container {
+  position: relative;
+}
+.t-close {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-left: 20px;
+  padding: 10px;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.selection-items-box {
+  overflow-x: auto;
+  overflow-y: hidden;
+  .selection-item {
+    width: auto;
+    padding: 15px;
+    flex-shrink: 0;
+    .selection-item-icon {
+      display: block;
+      margin-right: 5px;
+      width: 15px;
+      height: 15px;
+    }
+    .selection-item-name {
+      cursor: pointer;
+      color: #777;
+    }
+    .selection-item-name:hover {
+      color: $xr-color-primary;
+    }
+  }
+}
+.details {
+  width: 100%;
+  height: 300px;
+  overflow: auto;
+  li {
+    width: 50%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span:nth-child(1) {
+      display: inline-block;
+      width: 150px;
+    }
+  }
+}
+.detailsA {
+  width: 100%;
+  height: 300px;
+  overflow: auto;
+  li {
+    width: 100%;
+    line-height: 40px;
+    float: left;
+    text-indent: 20px;
+    span{
+      height: 40px;
+      float: left;
+      width: 16%;
+    }
+  }
+}
+</style>

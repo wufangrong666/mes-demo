@@ -1,0 +1,159 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="操作记录">
+          <div style="height: 700px;overflow: auto;">
+            <flexbox
+              v-for="(item, index) in cajlList"
+              :key="index"
+              class="ha-cont"
+              align="stretch"
+              justify="flex-start"
+            >
+              <div class="ha-week">{{item.operateTime}}</div>
+              <div class="ha-circle"></div>
+              <div
+                v-photo="item"
+                v-lazy:background-image="$options.filters.filterUserLazyImg(item.img)"
+                class="div-photo ha-img"
+              ></div>
+              <div class="ha-name">{{item.realname}}</div>
+              <div class="ha-content">
+                <p v-for="(info, infoIndex) in item.content" :key="infoIndex">{{info}}</p>
+              </div>
+              <div class="ha-line"></div>
+            </flexbox>
+          </div>
+          <div class="handle-bar">
+            <el-button class="handle-button" @click.native="hidenView">关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import { xbjCzjl, bjdCzjl, jxcXsddCzjl } from "@/api/crm/xbjTable";
+import createView from "./createView";
+import sections from "./sections";
+export default {
+  components: {
+    createView,
+    sections
+  },
+  name: "",
+  data() {
+    return {
+      cajlList: [],
+      loading: false
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    czjlData() {
+      if (this.widowData.type == "jxc_xsdd") {
+        jxcXsddCzjl({
+          djmxIds: this.widowData.id
+        })
+          .then(res => {
+            this.cajlList = res.data;
+          })
+          .catch(res => {});
+      } else if (this.widowData.type == "crm_xbj") {
+        xbjCzjl({
+          djmxIds: this.widowData.id
+        })
+          .then(res => {
+            this.cajlList = res.data;
+          })
+          .catch(res => {});
+      } else if (this.widowData.type == "crm_bjd") {
+        bjdCzjl({
+          djmxIds: this.widowData.id
+        })
+          .then(res => {
+            this.cajlList = res.data;
+          })
+          .catch(res => {});
+      }
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.czjlData();
+  }
+};
+</script>
+<style lang='scss' scoped>
+.ha-cont {
+  font-size: 12px;
+  position: relative;
+  line-height: 20px;
+  min-height: 40px;
+  padding-top: 3px;
+  .ha-week {
+    margin: 0 17px 0 10px;
+    flex-shrink: 0;
+    color: #777;
+    width: 120px;
+  }
+  .ha-time {
+    padding: 0 10px 0 24px;
+    flex-shrink: 0;
+    color: #aaa;
+  }
+  .ha-circle {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: white;
+    border: 5px solid #a5ecd7;
+    z-index: 2;
+  }
+  .ha-img {
+    flex-shrink: 0;
+    margin: -3px 10px 0 10px;
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+  }
+  .ha-name {
+    padding: 0 10px;
+    flex-shrink: 0;
+    color: #333;
+  }
+  .ha-content {
+    padding: 0px 10px 10px 10px;
+    flex: 1;
+    color: #333;
+  }
+  .ha-line {
+    position: absolute;
+    z-index: 1;
+    width: 1px;
+    top: 3px;
+    bottom: -3px;
+    left: 155px;
+    background-color: #999;
+  }
+}
+.handle-bar {
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  .el-button {
+    padding: 6px 12px;
+  }
+}
+</style>

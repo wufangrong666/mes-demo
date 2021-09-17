@@ -1,0 +1,116 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">采购订单是否启用仓库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cgddCk" :label="0">否</el-radio>
+          <el-radio v-model="from.cgddCk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">销售订单是否启用仓库：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.xsddCk" :label="0">否</el-radio>
+          <el-radio v-model="from.xsddCk" :label="1">是</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库收发货物时列表显示：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.cklbxs" :label="1">客户(供应商)名称</el-radio>
+          <el-radio v-model="from.cklbxs" :label="2">客户(供应商)编码</el-radio>
+          <el-radio v-model="from.cklbxs" :label="3">客户(供应商)名称与编码均不显示</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">仓库收发货物时查看显示：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.ckckxs" :label="1">联系人、电话和地址显示</el-radio>
+          <el-radio v-model="from.ckckxs" :label="2">联系人、电话和地址不显示</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">是否允许负库存设置：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.fkc" :label="0">不允许</el-radio>
+          <el-radio v-model="from.fkc" :label="1">允许</el-radio>
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">库存单价取值：</div>
+        <div class="rightStatus">
+          <el-radio v-model="from.kcdjqz" :label="1">未税单价</el-radio>
+          <el-radio v-model="from.kcdjqz" :label="2">含税单价</el-radio>
+          <span style="color:red">请切忌反复修改“库存单价取值”，若反复修改，会导致库存单价与单据中单价不一致情况出现！</span>
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  adminCkszQueryCkszSet,
+  adminCkszUpdateCkszSet,
+} from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    ckData() {
+      adminCkszQueryCkszSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminCkszUpdateCkszSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.ckData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.ckData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

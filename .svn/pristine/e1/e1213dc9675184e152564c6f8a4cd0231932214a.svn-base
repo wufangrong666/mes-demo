@@ -1,0 +1,303 @@
+<template>
+  <el-container>
+    <el-header class="nav-container">
+      <navbar :navIndex="0" @nav-items-click="navClick"></navbar>
+    </el-header>
+    <el-container>
+      <el-aside width="auto" class="aside-container">
+        <sidebar
+          :items="crmRouters.children"
+          :addOffset="quickAddOffset"
+          createButtonTitle="快速创建"
+          mainRouter="crm"
+        >
+          <div slot="add" class="quick-add">
+            <div class="quick-add-content">
+              <p v-for="(item, index) in quickAddList" :key="index" @click="addSkip(item)">
+                <i class="wukong" :class="'wukong-' + item.icon"></i>
+                <span>{{item.label}}</span>
+              </p>
+            </div>
+          </div>
+        </sidebar>
+      </el-aside>
+      <el-main id="crm-main-container" style="padding:15px;">
+        <app-main></app-main>
+      </el-main>
+    </el-container>
+    <khxxglDetail
+      :khxxglDetailTitle="khxxglDetailTitle"
+      @save-success="createSaveSuccess"
+      :dataList="createData"
+      @close="khxxglDetail=false"
+      v-if="khxxglDetail"
+    ></khxxglDetail>
+
+    <createView
+      v-if="isCreate"
+      :addTitle="addTitle"
+      :dataList="createData"
+      :list-type="listType"
+      :action="createActionInfo"
+      @save-success="createSaveSuccess"
+      @hiden-view="hideView"
+    ></createView>
+
+    <xbjDetail
+      :titleName="titleName"
+      @save-success="createSaveSuccess"
+      :xbjDetailData="xbjDetailData"
+      :xbjDetailDataFlag="xbjDetailDataFlag"
+      v-if="xbjDetail"
+      @close="xbjDetail=false"
+    ></xbjDetail>
+
+    <gysDetail
+      :gyslistData="gyslistData"
+      @save-success="createSaveSuccess"
+      v-if="gysDetail"
+      @close="gysDetail=false"
+      :gysDetailTitle="gysDetailTitle"
+    ></gysDetail>
+
+    <cpxxDetail
+      :cpxxDetailId="cpxxDetailId"
+      @save-success="createSaveSuccess"
+      @close="cpxxDetail=false"
+      :cpxxDetailTitle="cpxxDetailTitle"
+      v-if="cpxxDetail"
+    ></cpxxDetail>
+  </el-container>
+</template>
+
+<script>
+import gysDetail from "../crm/gys/gysDetail";
+import dataList from "../components/Json";
+import { childrenMenu } from "@/router/modules/crm/crm";
+import { mapGetters } from "vuex";
+import { Navbar, Sidebar, AppMain } from "./components";
+import createView from "../components/createView";
+import xbjDetail from "../crm/xbj/xbjDetail";
+import cpxxDetail from "../crm/cpxxgl/cpxxDetail";
+
+export default {
+  name: "Layout",
+  components: {
+    Navbar,
+    Sidebar,
+    AppMain,
+    createView,
+    xbjDetail,
+    gysDetail,
+    cpxxDetail,
+  },
+
+  computed: {
+    ...mapGetters(["crm", "crmRouters", "operAuth"]),
+    crmRoutesItems() {
+      for (let index = 0; index < childrenMenu.length; index++) {
+        const routerMenuItem = childrenMenu[index];
+        routerMenuItem.hidden = this.crm[routerMenuItem.meta.subType]
+          ? false
+          : true;
+      }
+      return childrenMenu;
+    },
+    // 快捷添加
+    quickAddList() {
+      var addItems = [];
+      if (
+        this.crm.khgl &&
+        this.crm.khgl.ggkhc &&
+        this.operAuth.crmqx != undefined &&
+        this.operAuth.crmqx.khbjqx
+      ) {
+        addItems.push({
+          icon: "customer",
+          index: "customer",
+          label: "客户",
+        });
+      }
+      if (
+        this.crm.cpgl &&
+        this.crm.cpgl.cpxxgl &&
+        this.operAuth.crmqx != undefined &&
+        this.operAuth.crmqx.tjcpqx
+      ) {
+        addItems.push({
+          icon: "help_tips",
+          index: "contacts",
+          label: "产品",
+        });
+      }
+      if (
+        this.crm.gysgl &&
+        this.crm.gysgl.gysxxgl &&
+        this.operAuth.crmqx != undefined
+      ) {
+        addItems.push({
+          icon: "product",
+          index: "product",
+          label: "供应商",
+        });
+      }
+      if (
+        this.crm.xsjhgl &&
+        this.operAuth.crmqx != undefined &&
+        this.operAuth.crmqx.xbjscqx
+      ) {
+        addItems.push({
+          icon: "polling",
+          index: "polling",
+          label: "询价单",
+        });
+      }
+      return addItems;
+    },
+    quickAddOffset() {
+      return Math.round(this.quickAddList.length / 2) * 25;
+    },
+  },
+
+  data() {
+    return {
+      khxxglDetailTitle: "新增客户信息",
+      createData: {},
+      isShowHeader: false,
+      isCreate: false,
+      createCRMType: "",
+      khxxglDetail: false,
+      titleType: "",
+      addTitle: "新增",
+      createActionInfo: { type: "add", source: "layout" },
+      xbjDetail: false,
+      xbjDetailData: {},
+      xbjDetailDataFlag: false,
+      type: "",
+      gysDetail: false,
+      gyslistData: {},
+      gysDetailTitle: "",
+      titleName: "",
+      cpxxDetailId: {},
+      cpxxDetail: false,
+      cpxxDetailTitle: "",
+    };
+  },
+
+  created() {
+    // this.getcrmMessagNum();
+    // this.getcrmSettingConfig();
+  },
+
+  mounted() {},
+
+  methods: {
+    navClick() {},
+    addSkip(item) {
+      let type = item.index;
+      if (type == "money") {
+        type = "receivables";
+      } else if (type == "clue") {
+        type = "leads";
+      } else if (type == "contacts") {
+        type = "contacts";
+      }
+      if (item.index == "customer") {
+        this.windowOpen("/customerAdd", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (item.index == "contacts") {
+        this.windowOpen("/cpxxAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (item.index == "product") {
+        this.windowOpen("/gysAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      } else if (item.index == "polling") {
+        this.windowOpen("/xbjAddEdit", {
+          id: this.encode(""),
+          type: "add",
+        });
+      }
+      this.createCRMType = type;
+    },
+
+    /**
+     * 获取消息数
+     */
+    getcrmMessagNum() {
+      this.$store
+        .dispatch("GetMessageNum")
+        .then((res) => {})
+        .catch(() => {});
+    },
+    hideView() {
+      this.isCreate = false;
+    },
+    /**
+     * 获取客户管理配置信息
+     */
+    getcrmSettingConfig() {
+      this.$store.dispatch("CRMSettingConfig");
+    },
+
+    /**
+     * 新建客户同时新建联系人
+     */
+    // 创建数据页面 保存成功
+    createSaveSuccess() {
+      if (this.type == "polling") {
+        //询报价
+        this.$router.push({
+          path: "/crm/purchasemanagement/quotations",
+        });
+      } else if (this.type == "customer") {
+        //客户信息
+        this.$router.push({
+          path: "/crm/customermanagement/cusinfomanage",
+        });
+      } else if (this.type == "product") {
+        //供应商
+        this.$router.push({
+          path: "/crm/physical/physicalInfo",
+        });
+      } else if (this.type == "contacts") {
+        //产品
+        this.$router.push({
+          path: "/crm/storemanage/ProductIndex",
+        });
+      }
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+@import "./styles/common.scss";
+.el-container {
+  min-height: 0;
+}
+.aside-container {
+  position: relative;
+  background-color: #001529;
+  box-sizing: border-box;
+  border-right: solid 1px #e6e6e6;
+}
+
+.nav-container {
+  padding: 0;
+  // box-shadow: 0px 1px 2px #dbdbdb;
+  z-index: 100;
+  min-width: 1200px;
+}
+.clear-border {
+  border: none !important;
+}
+.clear-border:hover {
+  background: "#F7F8FA" !important;
+}
+</style>

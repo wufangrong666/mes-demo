@@ -1,0 +1,995 @@
+  <template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <div>
+      <el-tabs v-model="activeNameEdit" @tab-click="handleClick">
+        <el-tab-pane label="初始供应商信息" name="csxx">
+          <flexbox direction="column" align="stretch" class="create-container">
+            <div class="create-flex">
+              <sections title="基本信息">
+                <div class="input-right"></div>
+                <div class="input-box">
+                  <label class="input-label">
+                    <span style="color:red">*</span>
+                    供应商名称:
+                  </label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.name" v-text="from.name"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">供应商编码:</label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.code"  v-text="from.code"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">付款期限设置:</label>
+                  <div style="display: inline-block;width:60px;float:left" v-text="from.fkqxszFlag"></div>
+                  <div style="display: inline-block;width:20px;float:left" v-text="from.fkqxszDays"></div>
+                  <span style="line-height:25px;float:left">天为收款期限</span>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">
+                    <span style="color:red">*</span>供应商类型:
+                  </label>
+                  <div v-text="typeName"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">
+                    <span style="color:red">*</span>采购员:
+                  </label>
+                  <div v-text="cgyName"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">电话:</label>
+                  <div v-text="from.businessTele"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">所在国家:</label>
+                  <div v-text="from.szgj"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">传真:</label>
+                  <div v-text="from.fax"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">所在省:</label>
+                  <div v-text="from.szsf"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">网址:</label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.website" v-text="from.website"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">所在市:</label>
+                  <div v-text="from.szcs"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">开户行:</label>
+                  <div v-text="from.khyh"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">地址:</label>
+                  <div v-text="from.address"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">账号:</label>
+                  <div v-text="from.khzh"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">邮政编码:</label>
+                  <div v-text="from.postcode"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">税号:</label>
+                  <div v-text="from.sh"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">法定代表人:</label>
+                  <div v-text="from.fddbr"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">委托代理人:</label>
+                  <div v-text="from.wtdlr"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">共享人:</label>
+                  <div v-text="from.gxrName == ''?'':from.gxrName.map(res =>{ return res.realname}).join(',')"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">对应客户:</label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="customerName"  v-text="customerName"></div>
+                </div>
+                <div class="input-box" style="width:100%">
+                  <label class="input-label">上传附件</label>
+                  <ul class="uploadStyle">
+                    <li v-for="(item,index) in fileList" :key="index">
+                      <span>{{item.name}}</span>
+                    </li>
+                  </ul>
+                </div>
+              </sections>
+            </div>
+            <div class="create-flex">
+              <sections title="经营范围">
+                <div class="input-boxB">
+                  <label class="input-label">经营范围:</label>
+                  <div v-text="from.jyfw"></div>
+                </div>
+              </sections>
+            </div>
+            <div class="create-flex">
+              <sections title="备注">
+                <div class="input-boxB">
+                  <label class="input-label">备注:</label>
+                  <div v-text="from.remark"></div>
+                </div>
+              </sections>
+            </div>
+            <div class="create-flex">
+              <sections title="联系人">
+                <el-table :data="tableDataLxr" style="width: 100%">
+                  <el-table-column label="姓名">
+                    <template slot="header" slot-scope="scope">
+                      <span>姓名</span>
+                      <span style="color:red">*</span>
+                    </template>
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactName"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="性别">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactGender == '1'?'男':'女'"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="重要程度">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.zycd"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="职位">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.zw"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="手机">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.sj"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="工作电话">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactPhone"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="E-mail">
+                    <template slot="header" slot-scope="scope">
+                      <span>E-mail</span>
+                      <span style="color:red">*</span>
+                    </template>
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactEmail"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="QQ">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactQq"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="传真">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.fax"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="生日">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactBirthday"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="备注">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.remark"></div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </sections>
+            </div>
+          </flexbox>
+        </el-tab-pane>
+        <el-tab-pane label="修改供应商信息" name="editxx">
+          <flexbox direction="column" align="stretch" class="create-container">
+            <div class="create-flex">
+              <sections title="基本信息">
+                <div class="input-right"></div>
+                <div class="input-box">
+                  <label class="input-label">
+                    <span style="color:red">*</span>
+                    供应商名称:
+                  </label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.name" v-text="from.name"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">供应商编码:</label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.code" v-text="from.code"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">付款期限设置:</label>
+                  <div style="display: inline-block;width:60px;float:left" v-text="from.fkqxszFlag"></div>
+                  <div style="display: inline-block;width:20px;float:left" v-text="from.fkqxszDays"></div>
+                  <span style="line-height:25px;float:left">天为收款期限</span>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">
+                    <span style="color:red">*</span>供应商类型:
+                  </label>
+                  <div v-text="typeName"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">
+                    <span style="color:red">*</span>采购员:
+                  </label>
+                  <div v-text="cgyName"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">电话:</label>
+                  <div v-text="from.businessTele"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">所在国家:</label>
+                  <div v-text="from.szgj"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">传真:</label>
+                  <div v-text="from.fax"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">所在省:</label>
+                  <div v-text="from.szsf"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">网址:</label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.website"  v-text="from.website"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">所在市:</label>
+                  <div v-text="from.szcs"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">开户行:</label>
+                  <div v-text="from.khyh"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">地址:</label>
+                  <div v-text="from.address"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">账号:</label>
+                  <div v-text="from.khzh"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">邮政编码:</label>
+                  <div v-text="from.postcode"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">税号:</label>
+                  <div v-text="from.sh"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">法定代表人:</label>
+                  <div v-text="from.fddbr"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">委托代理人:</label>
+                  <div v-text="from.wtdlr"></div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">共享人:</label>
+                  <div v-text="from.gxrName == ''?'':from.gxrName.map(res =>{ return res.realname}).join(',')">{{}}</div>
+                </div>
+                <div class="input-box">
+                  <label class="input-label">对应客户:</label>
+                  <div style="float:left;overflow: hidden;white-space: nowrap" :title="customerName"   v-text="customerName"></div>
+                </div>
+                <div class="input-box" style="width:100%">
+                  <label class="input-label">上传附件</label>
+                  <ul class="uploadStyle">
+                    <li v-for="(item,index) in fileList" :key="index">
+                      <span>{{item.name}}</span>
+                    </li>
+                  </ul>
+                </div>
+              </sections>
+            </div>
+            <div class="create-flex">
+              <sections title="经营范围">
+                <div class="input-boxB">
+                  <label class="input-label">经营范围:</label>
+                  <div v-text="from.jyfw"></div>
+                </div>
+              </sections>
+            </div>
+            <div class="create-flex">
+              <sections title="备注">
+                <div class="input-boxB">
+                  <label class="input-label">备注:</label>
+                  <div v-text="from.remark"></div>
+                </div>
+              </sections>
+            </div>
+            <div class="create-flex">
+              <sections title="联系人">
+                <el-table :data="tableDataLxr" style="width: 100%">
+                  <el-table-column label="姓名">
+                    <template slot="header" slot-scope="scope">
+                      <span>姓名</span>
+                      <span style="color:red">*</span>
+                    </template>
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactName"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="性别">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactGender == '1'?'男':'女'"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="重要程度">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.zycd"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="职位">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.zw"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="手机">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.sj"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="工作电话">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactPhone"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="E-mail">
+                    <template slot="header" slot-scope="scope">
+                      <span>E-mail</span>
+                      <span style="color:red">*</span>
+                    </template>
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactEmail"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="QQ">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactQq"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="传真">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.fax"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="生日">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.contactBirthday"></div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="备注">
+                    <template slot-scope="scope">
+                      <div v-text="scope.row.remark"></div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </sections>
+            </div>
+            <div class="handle-bar">
+              <el-button type="success" @click="auditClick">审核</el-button>
+              <el-button @click="hidenView" type="info">关闭</el-button>
+            </div>
+          </flexbox>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import {
+  deptQueryDeptTreeAndUser,
+  roleQueryRoleAndUser
+} from "@/api/crm/ggkhc";
+import {
+  crmGysAddOrUpdate,
+  crmGysValidateName,
+  crmGysFileAQueryByGysId,
+  crmGysQueryById,
+  crmGysQueryEditById,
+  crmGysCheckStatus
+} from "@/api/crm/gysxx";
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+import { usersList, crmGysFileUpload } from "@/api/common";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections
+  },
+  data() {
+    return {
+      activeNameEdit: "editxx",
+      defaultProps: {
+        label: "name",
+        children: "children"
+      },
+      defaultPropsR: {
+        label: "roleName",
+        children: "user"
+      },
+      dialogVisible: false,
+      treeData: [],
+      treeDataR: [],
+      activeName: "department",
+      loadingCity: false,
+      provinces: [],
+      cities: [],
+      cgyName: "",
+      gxrName: "",
+      shData: "",
+      kpData: "",
+      radio: "",
+      toViewType: false,
+      typeList: [
+        { name: "德语类", code: 1 },
+        { name: "英语类", code: 2 },
+        { name: "中文类", code: 3 },
+        { name: "中英类", code: 4 }
+      ],
+      tableDataLxr: [
+        {
+          contactName: "",
+          contactGender: "",
+          zw: "",
+          sj: "",
+          contactPhone: "",
+          contactEmail: "",
+          contactQq: "",
+          fax: "",
+          contactBirthday: "",
+          remark: "",
+          zycd: ""
+        }
+      ],
+      typeName: "",
+      from: {
+        gysId: "", //	主键，供应商ID
+        name: "", //应商名称
+        code: "", //供应商编码
+        fkqxszFlag: "", //	收货后开票后
+        fkqxszDays: "", //付款期限设置 天数
+        type: "", //	供应商类型：1德语类 2英语类  3中文 4中英（用于选择邮件模板）
+        cgy: "", //	采购员
+        businessTele: "", //	电话
+        szgj: "", //	varchar所在国家
+        fax: "", //	传真
+        szsf: "", //	所在省份
+        szcs: "", //	所在城市
+        website: "", //	网址
+        khyh: "", //	开户行
+        khzh: "", //	账号
+        postcode: "", //	邮政编码
+        sh: "", //	税号
+        fddbr: "", //	法定代表人
+        wtdlr: "", //	委托代理人
+        customer: "", //	客户
+        gxr: "", //共享人
+        jyfw: "", //	经营范围
+        email: "", //	邮箱
+        address: "", //	地址
+        description: "" //	供应商描述
+      },
+      customerName: "",
+      loading: false,
+      dialogYwy: false,
+      dialogGxr: false,
+      realtableData: [],
+      realStatusList: [],
+      realname: "",
+      realStatus: "1",
+      realStatusList: [
+        { name: "在职", id: "1" },
+        { name: "离职", id: "0" }
+      ],
+      contactGenderList: [{ name: "男" }, { name: "女" }],
+      zycdList: [
+        { name: "关键联系人" },
+        { name: "重要联系人" },
+        { name: "普通联系人" },
+        { name: "一般联系人" },
+        { name: "特别联系人" },
+        { name: "主管" }
+      ],
+      realRadio: "",
+      fileList: [],
+      dialogFrom: {
+        name: "",
+        code: "",
+        page: 1,
+        limit: 15
+      },
+      tableData: [],
+      total: 0,
+      kpReadonly: true,
+      shReadonly: true
+    };
+  },
+
+  methods: {
+    auditClick() {
+      this.$confirm("请确认审核信息, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          crmGysCheckStatus({
+            gysId: this.widowData.id,
+            type:1
+          })
+            .then(res => {
+              this.loading = true
+              this.message("审核成功");
+            })
+            .catch(res => {
+              this.loading = false
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    handleClick(val) {
+      if (this.widowData.type == "audit") {
+        if (val.index == 1) {
+          this.editData();
+        } else {
+          this.loginData();
+        }
+      }
+    },
+    deleteTable(scope) {
+      this.tableDataLxr.splice(scope.$index, 1);
+    },
+    shhChage() {
+      this.kpData = "";
+      this.kpReadonly = true;
+      this.shReadonly = false;
+    },
+    kphChange() {
+      this.shData = "";
+      this.shReadonly = true;
+      this.kpReadonly = false;
+    },
+    queryName(row) {
+      this.customerName = row.name;
+      this.from.customer = row.customerId;
+      this.dialogVisible = false;
+    },
+    search() {
+      this.dialogData();
+    },
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    customerDialog() {
+      if (this.from.customer != "") {
+        this.dialogFrom.name = this.from.ssjt;
+      }
+      this.dialogVisible = true;
+      this.dialogData();
+    },
+    submitGxr() {
+      this.dialogGxr = false;
+    },
+    downGxr() {
+      this.dialogGxr = false;
+      this.from.gxr = "";
+      this.gxrName = "";
+    },
+    gxrDialog() {
+      this.dialogYwyTree();
+      this.activeName = "department";
+      this.dialogGxr = true;
+      if (this.from.gxr != "") {
+        this.$refs.treeGxr.setCheckedKeys(this.from.gxr.join(","));
+      }
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then(res => {
+          this.treeData = res.data;
+          if (this.from.ywy != "") {
+            if (this.widowData.id != "") {
+            } else {
+              this.$refs.tree.setCheckedKeys([this.from.ywy]);
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    message(val) {
+      this.$message({
+        message: val,
+        type: "success",
+        onClose: () => {
+          this.resetGetList();
+          this.hidenView();
+          this.loading = false;
+        }
+      });
+    },
+    resetGetList() {
+      window.opener.postMessage("child", window.location);
+    },
+    hidenView() {
+      window.top.close();
+    },
+    realRadioChange(val) {
+      this.from.ywy = val.userId;
+      this.ywyName = val.realname;
+    },
+    tabsClick(tab) {
+      if (tab.index == 0) {
+        this.dialogYwyTree();
+        if (this.from.ywy != "") {
+          this.$refs.tree.setCheckedKeys([this.from.ywy]);
+        }
+      } else if (tab.index == 1) {
+        this.dialogUserTree();
+        if (this.from.ywy != "") {
+          this.$refs.treeR.setCheckedKeys([this.xsfzrRoleId]);
+        }
+      } else {
+      }
+    },
+    handleCloseGxr() {
+      this.dialogGxr = false;
+    },
+    handleTreeClickGxrRole() {
+      let str = [];
+      let ids = [];
+      let list = this.$refs.treeGxrR.getCheckedNodes();
+      for (var i in list) {
+        ids.push(list[i].userId);
+        str.push(list[i].realname);
+      }
+      this.gxrName = str.join(",");
+      this.from.gxr = ids.join(",");
+    },
+    handleTreeClickGxrBm() {
+      let str = [];
+      let ids = [];
+      let list = this.$refs.treeGxr.getCheckedNodes();
+      for (var i in list) {
+        ids.push(list[i].userId);
+        str.push(list[i].name);
+      }
+      this.gxrName = str.join(",");
+      this.from.gxr = ids.join(",");
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    handleTreeClickR(data, checked, node) {
+      if (checked == true) {
+        this.$refs.treeR.setCheckedNodes([data]);
+      }
+    },
+    nodeClickR(data, checked, node) {
+      this.$refs.treeR.setCheckedNodes([data]);
+    },
+    handleCloseYwy() {
+      this.dialogYwy = false;
+    },
+    realSearch() {
+      this.duakigReal();
+    },
+    downYwy() {
+      this.dialogYwy = false;
+    },
+    submitYwy() {
+      this.dialogYwy = false;
+      if (this.activeName == "department") {
+        if (this.$refs.tree.getCheckedKeys().length == 0) {
+          this.from.cgy = "";
+          this.cgyName = "";
+        } else {
+          this.from.cgy = this.$refs.tree.getCheckedKeys().join("");
+          this.cgyName = this.$refs.tree.getCheckedNodes()[0].name;
+        }
+      } else if (this.activeName == "role") {
+        if (this.$refs.treeR.getCheckedNodes().length == 0) {
+          this.from.cgy = "";
+          this.cgyName = "";
+          this.xsfzrRoleId = "";
+        } else {
+          this.from.cgy = this.$refs.treeR.getCheckedNodes()[0].userId;
+          this.cgyName = this.$refs.treeR.getCheckedNodes()[0].realname;
+          this.xsfzrRoleId = this.$refs.treeR.getCheckedKeys().join("");
+        }
+      }
+    },
+    ywyDialog() {
+      this.dialogYwy = true;
+      this.dialogYwyTree();
+      this.activeName = "department";
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    },
+    dialogYwyTree() {
+      deptQueryDeptTreeAndUser()
+        .then(res => {
+          this.treeData = res.data;
+          if (this.from.ywy != "") {
+            if (this.widowData.id != "") {
+            } else {
+              this.$refs.tree.setCheckedKeys([this.from.ywy]);
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    dialogUserTree() {
+      roleQueryRoleAndUser()
+        .then(res => {
+          this.treeDataR = res.data;
+          for (var i in this.treeDataR) {
+            for (var k in this.treeDataR[i].user) {
+              this.treeDataR[i].user[k].roleName = this.treeDataR[i].user[
+                k
+              ].realname;
+              this.treeDataR[i].user[k].id =
+                this.treeDataR[i].user[k].roleId +
+                "" +
+                this.treeDataR[i].user[k].userId;
+            }
+          }
+        })
+        .catch(res => {});
+    },
+    duakigReal() {
+      usersList({
+        page: 1,
+        limit: 15,
+        realname: this.realname,
+        status: this.realStatus
+      })
+        .then(res => {
+          this.realtableData = res.data.list;
+        })
+        .catch(res => {});
+    },
+    getName(val) {
+      var easyName = pinyin.getCamelChars(val);
+      this.from.code = easyName.toUpperCase();
+    },
+    //省市联动选择
+    provinceChanged(value) {
+      if (value !== "") {
+        this.loadingCity = true;
+        for (var item of this.provinces) {
+          if (item.name === value) {
+            this.cities = item.cities;
+            this.city = "";
+            this.loadingCity = false;
+            break;
+          } else {
+            continue;
+          }
+        }
+      } else {
+        this.cities = [];
+        this.city = "";
+      }
+      this.$emit("selectChange", this.province, this.city);
+    },
+    loginData() {
+      crmGysQueryById({
+        gysId: this.widowData.id
+      })
+        .then(res => {
+          this.from = res.data;
+          this.tableDataLxr = res.data.CrmGysContactList;
+          this.gxrName = res.data.gxrName;
+          this.cgyName = res.data.cgyName;
+          this.customerName = res.data.customerName;
+          for (var i in this.typeList) {
+            if (this.typeList[i].code == res.data.type) {
+              this.typeName = this.typeList[i].name;
+            }
+          }
+          if (res.data.fkqxszFlag == "收货后") {
+            this.shData = res.data.fkqxszDays;
+            this.shReadonly = false;
+          } else {
+            this.kpData = res.data.fkqxszDays;
+            this.kpReadonly = false;
+          }
+        })
+        .catch(res => {});
+      crmGysFileAQueryByGysId({
+        gysId: this.widowData.id
+      })
+        .then(res => {
+          this.fileList = res.data;
+        })
+        .catch(res => {});
+    },
+    editData() {
+      crmGysQueryEditById({
+        gysId: this.widowData.id
+      })
+        .then(res => {
+          this.from = res.data;
+          this.tableDataLxr = res.data.CrmGysContactList;
+          this.gxrName = res.data.gxrName;
+          this.cgyName = res.data.cgyName;
+          this.customerName = res.data.customerName;
+          for (var i in this.typeList) {
+            if (this.typeList[i].code == res.data.type) {
+              this.typeName = this.typeList[i].name;
+            }
+          }
+          if (res.data.fkqxszFlag == "收货后") {
+            this.shData = res.data.fkqxszDays;
+            this.shReadonly = false;
+          } else {
+            this.kpData = res.data.fkqxszDays;
+            this.kpReadonly = false;
+          }
+        })
+        .catch(res => {});
+      crmGysFileAQueryByGysId({
+        gysId: this.widowData.id
+      })
+        .then(res => {
+          this.fileList = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.editData();
+  }
+};
+</script>
+<style lang='scss'>
+.create-flex .el-input__inner {
+  height: 25px;
+}
+.create-flex .el-input-group__append {
+  line-height: 23px;
+}
+.create-flex .el-input__icon {
+  line-height: 25px;
+}
+.el-dialog__body {
+  padding-top: 0;
+}
+.create-flex .el-button {
+  padding: 3px 12px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.el-tab-department {
+  height: 400px;
+  overflow: auto;
+}
+.input-box {
+  width: 30%;
+}
+.input-boxB {
+  width: 100%;
+  float: left;
+  .input-label {
+    width: 120px;
+    line-height: 25px;
+    float: left;
+    display: block;
+    text-align: left;
+    color: #666;
+    font-size: 14px;
+  }
+  .el-textarea {
+    width: 90%;
+    margin-bottom: 5px;
+  }
+}
+.input-right {
+  width: 35%;
+  height: 300px;
+  float: right;
+}
+.a-upload {
+  padding: 0 10px;
+  margin-top: 5px;
+  height: 25px;
+  line-height: 25px;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  *display: inline;
+  *zoom: 1;
+  float: left;
+}
+
+.a-upload input {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer;
+}
+
+.a-upload:hover {
+  color: #444;
+  background: #eee;
+  border-color: #ccc;
+  text-decoration: none;
+}
+.uploadStyle {
+  width: 60%;
+  float: left;
+  line-height: 40px;
+  li {
+    min-width: 100px;
+    float: left;
+    margin: 0 5px;
+  }
+}
+.el-icon-close {
+  color: red;
+  cursor: pointer;
+}
+.handle-bar {
+  margin-top: 5px;
+}
+.createDate {
+  float: left;
+}
+</style>

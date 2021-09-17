@@ -1,0 +1,480 @@
+import request from '@/utils/request'
+// 查询图片
+export function logoQueryLogo(data) {
+    return request({
+        url: 'logo/queryLogo',
+        method: 'post',
+        data: data
+    })
+}
+// 修改上传logo设置
+export function logoUploadLogo(data) {
+    return request({
+        url: 'logo/uploadLogo',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
+// 保存图片信息
+export function logoSave(data) {
+    return request({
+        url: 'logo/save',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 日志查询
+export function systemlogQueryPageList(data) {
+    return request({
+        url: 'systemlog/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+//  根据id删除系统日志信息
+export function systemlogDeleteByIds(data) {
+    return request({
+        url: 'systemlog/deleteByIds',
+        method: 'post',
+        data: data,
+    })
+}
+// 日志查询
+export function systemlogdeleteQueryPageList(data) {
+    return request({
+        url: 'systemlogdelete/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+//  根据id删除系统日志信息
+export function systemlogdeleteDeleteByIds(data) {
+    return request({
+        url: 'systemlogdelete/deleteByIds',
+        method: 'post',
+        data: data,
+    })
+}
+
+// 白名单ip查询
+export function ipwhitelistQueryPageList(data) {
+    return request({
+        url: 'ipwhitelist/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 白名删除
+export function ipwhitelistDeleteByIds(data) {
+    return request({
+        url: 'ipwhitelist/deleteByIds',
+        method: 'post',
+        data: data
+    })
+}
+// 白名单新增
+export function ipwhitelistAddAndUpdate(data) {
+    return request({
+        url: 'ipwhitelist/addAndUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 黑名单ip查询
+export function ipblacklistQueryPageList(data) {
+    return request({
+        url: 'ipblacklist/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 黑名单新增
+export function ipblacklistAddAndUpdate(data) {
+    return request({
+        url: 'ipblacklist/addAndUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 白名删除
+export function ipblacklistDeleteByIds(data) {
+    return request({
+        url: 'ipblacklist/deleteByIds',
+        method: 'post',
+        data: data
+    })
+}
+// 查询所有邮件模板供应商子类型
+export function mailYjmbGyszlxFindAll(data) {
+    return request({
+        url: 'mailYjmbGyszlx/findAll',
+        method: 'post',
+        data: data
+    })
+}
+// 查询所有邮件模板供应商子类型
+export function mailYjmbGetYjmb(data) {
+    return request({
+        url: 'mailYjmb/getYjmb',
+        method: 'post',
+        data: data
+    })
+}
+// 修改邮件模板内容
+export function mailYjmbUpdateYjmb(data) {
+    return request({
+        url: 'mailYjmb/updateYjmb',
+        method: 'post',
+        data: data
+    })
+}
+// 查询打印模板
+export function htmbGetHtmbByType(data) {
+    return request({
+        url: 'htmb/getHtmbByType',
+        method: 'post',
+        data: data
+    })
+}
+
+// 新增编辑打印模板
+export function htmbAddAndUpdateHtmb(data) {
+    return request({
+        url: 'htmb/addAndUpdateHtmb',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
+// 数据权限---列表查询
+export function adminSjqxQuerySjqxSet(data) {
+    return request({
+        url: 'adminSjqx/querySjqxSet',
+        method: 'post',
+        data: data
+    })
+}
+// 数据权限---保存
+export function adminSjqxUpdateSjqxSet(data) {
+    return request({
+        url: 'adminSjqx/updateSjqxSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 查询预留字段设置信息
+export function adminYszdQueryYlzdSet(data) {
+    return request({
+        url: 'adminYszd/queryYlzdSet',
+        method: 'post',
+        data: data
+    })
+}
+// 预留字段设置---保存
+export function adminYszdUpdateYlzdSet(data) {
+    return request({
+        url: 'adminYszd/updateYlzdSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 批号
+export function adminCpphQueryCpphSet(data) {
+    return request({
+        url: 'adminCpph/queryCpphSet',
+        method: 'post',
+        data: data
+    })
+}
+// 批号----设置
+export function adminCpphUpdateCpphSet(data) {
+    return request({
+        url: 'adminCpph/updateCpphSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 序列号
+export function adminCpxlhQueryCpxlhSet(data) {
+    return request({
+        url: 'adminCpxlh/queryCpxlhSet',
+        method: 'post',
+        data: data
+    })
+}
+// 序列号----保存
+export function adminCpxlhUpdateCpxlhSet(data) {
+    return request({
+        url: 'adminCpxlh/updateCpxlhSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 收付款设置
+export function adminSfkQuerySfkSet(data) {
+    return request({
+        url: 'adminSfk/querySfkSet',
+        method: 'post',
+        data: data
+    })
+}
+// 收付款设置----保存
+export function adminSfkUpdateSfkSet(data) {
+    return request({
+        url: 'adminSfk/updateSfkSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 价格控制体系
+export function adminJgkztxQueryJgkztxSet(data) {
+    return request({
+        url: 'adminJgkztx/queryJgkztxSet',
+        method: 'post',
+        data: data
+    })
+}
+// 价格控制体系----保存
+export function adminJgkztxUpdateJgkztxSet(data) {
+    return request({
+        url: 'adminJgkztx/updateJgkztxSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 价格控制体系
+export function adminMrpQueryMrpSet(data) {
+    return request({
+        url: 'adminMrp/queryMrpSet',
+        method: 'post',
+        data: data
+    })
+}
+// 价格控制体系----保存
+export function adminMrpUpdateMrpSet(data) {
+    return request({
+        url: 'adminMrp/updateMrpSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 申购单设置
+export function adminSgdQuerySgdSet(data) {
+    return request({
+        url: 'adminSgd/querySgdSet',
+        method: 'post',
+        data: data
+    })
+}
+// 申购单设置----保存
+export function adminSgdUpdateSgdSet(data) {
+    return request({
+        url: 'adminSgd/updateSgdSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 利润计算设置
+export function adminProfitcalQueryProfitcalSet(data) {
+    return request({
+        url: 'adminProfitcal/queryProfitcalSet',
+        method: 'post',
+        data: data
+    })
+}
+// 利润计算设置----保存
+export function adminProfitcalUpdateProfitcalSet(data) {
+    return request({
+        url: 'adminProfitcal/updateProfitcalSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 小数点设置
+export function adminPointQueryPointSet(data) {
+    return request({
+        url: 'adminPoint/queryPointSet',
+        method: 'post',
+        data: data
+    })
+}
+// 小数点设置----保存
+export function adminSgdQpdateSgdSet(data) {
+    return request({
+        url: 'adminPoint/updatePointSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 实收实发数量控制
+export function adminSssfQuerySssfSet(data) {
+    return request({
+        url: 'adminSssf/querySssfSet',
+        method: 'post',
+        data: data
+    })
+}
+// 实收实发数量控制----保存
+export function adminSssfUpdateSssfSet(data) {
+    return request({
+        url: 'adminSssf/updateSssfSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 单据现结设置
+export function adminDjxjQueryDjxjSet(data) {
+    return request({
+        url: 'adminDjxj/queryDjxjSet',
+        method: 'post',
+        data: data
+    })
+}
+// 单据现结设置----保存
+export function adminDjxjUpdateDjxjSet(data) {
+    return request({
+        url: 'adminDjxj/updateDjxjSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 仓库
+export function adminCkszQueryCkszSet(data) {
+    return request({
+        url: 'adminCksz/queryCkszSet',
+        method: 'post',
+        data: data
+    })
+}
+// 仓库----保存
+export function adminCkszUpdateCkszSet(data) {
+    return request({
+        url: 'adminCksz/updateCkszSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 客户
+export function adminKhszQueryKhszSet(data) {
+    return request({
+        url: 'adminKhsz/queryKhszSet',
+        method: 'post',
+        data: data
+    })
+}
+// 客户----保存
+export function adminKhszUpdateKhszSet(data) {
+    return request({
+        url: 'adminKhsz/updateKhszSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 供应商设置
+export function adminGysszQueryGysszSet(data) {
+    return request({
+        url: 'adminGyssz/queryGysszSet',
+        method: 'post',
+        data: data
+    })
+}
+// 供应商设置----保存
+export function adminGysszUpdateGysszSet(data) {
+    return request({
+        url: 'adminGyssz/updateGysszSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+// 供应商设置
+export function adminXtaqszQueryXtaqszSet(data) {
+    return request({
+        url: 'adminXtaqsz/queryXtaqszSet',
+        method: 'post',
+        data: data
+    })
+}
+// 供应商设置----保存
+export function adminXtaqszUpdateXtaqszSet(data) {
+    return request({
+        url: 'adminXtaqsz/updateXtaqszSet',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}

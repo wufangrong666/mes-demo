@@ -1,0 +1,196 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">单位名称</label>
+            <el-input style="width:15%" placeholder="单位名称" v-model="from.nameCn"></el-input>
+            <el-checkbox
+              :value="from.isdefault== 1"
+              @change="val => $set(from,'isdefault',val ? 1 : 0)"
+            >
+              <span style="color:red">设为默认单位抬头</span>
+            </el-checkbox>
+          </div>
+          <div class="input-box">
+            <label class="input-label">单位英文名称</label>
+            <el-input
+              @keyup.native="from.nameEn=from.nameEn.replace(/[^a-zA-Z]/g,'')"
+              placeholder="单位英文名称"
+              v-model="from.nameEn"
+            ></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">电话</label>
+            <el-input placeholder="电话" v-model="from.tele"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">传真</label>
+            <el-input placeholder="传真" v-model="from.cz"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">邮编</label>
+            <el-input placeholder="邮编" v-model="from.postcode"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">地址</label>
+            <el-input placeholder="地址" v-model="from.location"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">网站</label>
+            <el-input placeholder="网站" v-model="from.website"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">电子信箱</label>
+            <el-input @blur="contactEmailInput(from.email)" placeholder="电子信箱" v-model="from.email"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">开户行</label>
+            <el-input placeholder="单位名称" v-model="from.banks"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">账号</label>
+            <el-input placeholder="账号" v-model="from.bankofaccount"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">税号</label>
+            <el-input placeholder="税号" v-model="from.taxofaccount"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">法定代表人</label>
+            <el-input placeholder="法定代表人" v-model="from.legalperson"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">委托代理人</label>
+            <el-input placeholder="委托代理人" v-model="from.entrustperson"></el-input>
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购单据增值税率</label>
+            <el-input placeholder="采购单据增值税率" v-model="from.purchaseZzsl"></el-input>%
+          </div>
+          <div class="input-box">
+            <label class="input-label">采购单据普通税率</label>
+            <el-input placeholder="采购单据普通税率" v-model="from.purchasePtsl"></el-input>%
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售单据增值税率</label>
+            <el-input placeholder="销售单据增值税率" v-model="from.saleZzsl"></el-input>%
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售单据普通税率</label>
+            <el-input placeholder="销售单据普通税率" v-model="from.salePtsl"></el-input>%
+          </div>
+          <div class="input-box" style="margin-top:20px">
+            <el-button @click="submi" style="margin-left:200px" type="primary">保存</el-button>
+            <el-button @click="handView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { companyAddOrUpdate, customerRead } from "@/api/manage/SystemConfig";
+export default {
+  components: { createView, sections },
+  name: "",
+  data() {
+    return {
+      loading: false,
+      from: {
+        id: "",
+        nameCn: "",
+        nameEn: "",
+        tele: "",
+        cz: "",
+        postcode: "",
+        location: "",
+        website: "",
+        email: "",
+        banks: "",
+        bankofaccount: "",
+        taxofaccount: "",
+        legalperson: "",
+        entrustperson: "",
+        purchaseZzsl: "0",
+        purchasePtsl: "0",
+        saleZzsl: "0",
+        salePtsl: "0",
+        isdefault: 0,
+      },
+    };
+  },
+
+  methods: {
+    submi() {
+      companyAddOrUpdate({ entity: this.from })
+        .then((res) => {
+          this.loading = true;
+          let str = "";
+          if (this.widowData.type == "add") {
+            str = "新增成功";
+          } else {
+            str = "编辑成功";
+          }
+          this.$message({
+            message: str,
+            type: "success",
+            onClose: () => {
+              window.opener.postMessage("child", window.location);
+              window.top.close();
+              this.loading = false;
+            },
+          });
+        })
+        .catch((res) => {});
+    },
+    handView() {
+      window.top.close();
+    },
+    contactEmailInput(contactEmail) {
+      var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+      if (reg.test(contactEmail)) {
+      } else {
+        this.from.email = "";
+        this.msgInfo("邮箱格式不正确");
+      }
+    },
+    comData() {
+      customerRead({
+        companyId: this.widowData.id,
+      })
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    if (this.widowData.type == "edit") {
+      this.comData();
+    }
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 100%;
+  .el-input {
+    width: 20%;
+  }
+  .el-checkbox {
+    margin-left: 15px;
+  }
+}
+</style>

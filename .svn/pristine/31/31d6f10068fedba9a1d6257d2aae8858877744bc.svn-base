@@ -1,0 +1,383 @@
+import request from '@/utils/request'
+
+/**
+ *
+ * @param {*} data
+ */
+export function usersList(data) {
+  return request({
+    url: 'system/user/queryUserList',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
+ * type
+ * @param {*} data
+ */
+export function depList(data) {
+  return request({
+    url: 'system/dept/queryDeptTree',
+    method: 'post',
+    data: data
+  })
+}
+
+// 获取权限范围内部门接口
+export function adminStructuresSubIndex(data) {
+  return request({
+    url: 'system/dept/queryDeptByAuth',
+    method: 'post',
+    data: data
+  })
+}
+// 获取权限范围内部门接口
+export function getUserByDeptId(data) {
+  return request({
+    url: 'system/user/queryUserByDeptId',
+    method: 'post',
+    data: data
+  })
+}
+
+
+// 部门下的员工
+export function userListByStructid(data) {
+  return request({
+    url: 'admin/users/userListByStructid',
+    method: 'post',
+    data: data
+  })
+}
+
+/**
+ *
+ * @param {*} data
+ */
+export const crmFileSaveUrl = process.env.BASE_API + 'file/upload'
+
+export function crmFileSave(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'file/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//询价单附件上传
+export function xjdFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'xjdFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//报价单附件上传
+export function bjdFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'bjdFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+//销售订单附件上传
+export function jxcXsddFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'jxcXsddFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+//客户管理附件上传
+export function crmCustomerFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'crmCustomerFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//产品上传
+export function crmProductFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'crmProductFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//供应商附件上传
+export function crmGysFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'crmGysFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//销售开单附件上传
+export function jxcXskdFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'jxcXskdFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//申购单附件上传
+export function sgdFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'sgdFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//采购单附件上传
+export function cgddFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'cgddFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//采购收货单附件上传
+export function cgshFileUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'cgshFile/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//邮件发送附件上传
+export function mailSendUpload(data) {
+  var param = new FormData()
+  Object.keys(data).forEach(key => {
+    param.append(key, data[key])
+  })
+  return request({
+    url: 'mailSend/upload',
+    method: 'post',
+    data: param,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+//产品图片上传
+export function crmProductUploadImg(data) {
+  return request({
+    url: 'crmProduct/uploadImg',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+export function crmFileFormDataSave(data) {
+  return request({
+    url: 'file/upload',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 附件列表
+export function crmFileIndex(data) {
+  return request({
+    url: 'file/queryByBatchId',
+    method: 'post',
+    data: data
+  })
+}
+export function mailInfoFindCount(data) {
+  return request({
+    url: 'mailInfo/findCount',
+    method: 'post',
+    data: data
+  })
+}
+/** 暂时客户管理里面也有 */
+// 附件删除接口
+export function crmFileDelete(data) {
+  return request({
+    url: 'file/removeById',
+    method: 'post',
+    data: data
+  })
+}
+
+// 附件重命名
+export function crmFileUpdate(data) {
+  return request({
+    url: 'file/renameFileById',
+    method: 'post',
+    data: data
+  })
+}
+
+// crm 自定义字段的添加
+/**
+ *
+ * @param {*} data
+ */
+export function filedGetField(data) {
+  return request({
+    url: 'field/queryField',
+    method: 'post',
+    data: data
+  })
+}
+
+// 权限数据返回
+export function adminIndexAuthList(data) {
+  return request({
+    url: 'system/role/auth',
+    method: 'post',
+    data: data
+  })
+}
+
+// 查询提示信息条数
+export function noticeGetNoticeNumber(data) {
+  return request({
+    url: 'notice/getNoticeNumber',
+    method: 'post',
+    data: data
+  })
+}
+// 按模块查询消息
+export function noticeGetNoticeByModule(data) {
+  return request({
+    url: 'notice/getNoticeByModule',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+// 修改为已读状态
+export function noticeCheckStatus(data) {
+  return request({
+    url: 'notice/checkStatus',
+    method: 'post',
+    data: data
+  })
+}
+// 修改为已读状态
+export function noticeCheckAllStatus(data) {
+  return request({
+    url: 'notice/checkAllStatus',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+// 根据Id删除
+export function noticeDeleteMessageById(data) {
+  return request({
+    url: 'notice/deleteMessageById',
+    method: 'post',
+    data: data
+  })
+}
+// 修改为已读状态
+export function noticeDeleteMessageByRead(data) {
+  return request({
+    url: 'notice/deleteMessageByRead',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+// 版本申明
+export function versionQueryLatestVersion(data) {
+  return request({
+    url: 'version/queryLatestVersion',
+    method: 'post',
+    data: data
+  })
+}

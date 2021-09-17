@@ -1,0 +1,94 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="合同打印">
+          <div class="input-box">
+            <label class="input-label">销售合同模板</label>
+            <el-select v-model="mb" placeholder="请选择" @change="mbChagne">
+              <el-option v-for="item in mbList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+            </el-select>
+          </div>
+          <div style="float:left">
+            <div id="printTest">
+              <span v-html="content"></span>
+            </div>
+          </div>
+          <span class="bottomSpan">
+            <el-button @click="handleClose">关闭</el-button>
+            <el-button type="primary" v-print="'#printTest'">打印预览</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import { htmbPrintByHtmb } from "@/api/crm/xsbjd";
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      mb: "",
+      mbList: [],
+      content: "",
+      loading: false,
+      listData: {},
+    };
+  },
+
+  methods: {
+    mbChagne(val) {
+      this.logData();
+    },
+    handleClose() {
+      window.top.close();
+    },
+    logData() {
+      htmbPrintByHtmb({
+        djid: this.widowData.id,
+        mbid: this.mb,
+        type: "xsdd",
+      })
+        .then((res) => {
+          this.content = res.data;
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.listData = JSON.parse(this.$route.query.xsddMblist);
+    this.mbList = this.listData["xsdd"];
+    this.mb = this.listData["xsdd"][0].id;
+    this.content = this.listData["xsdd"][0].content;
+    this.logData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 100%;
+  .el-select {
+    width: 10%;
+  }
+}
+.bottomSpan {
+  float: left;
+  width: 100%;
+  text-align: center;
+}
+</style>

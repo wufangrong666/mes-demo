@@ -1,0 +1,1020 @@
+// 销售管理路由
+const buyandsaleAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'jxc',
+  twotype: 'xsgl'
+}
+
+const buyandsaleAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'xsgl',
+  threetype: 'grxsbb',
+}
+const buyandsaleAuth3 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'xsgl',
+  threetype: 'gsxsbb',
+}
+const buyandsaleAuth4 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'xsgl',
+  threetype: 'xslrtj',
+}
+const buyandsaleRouter = {
+  path: 'buyandsale',
+  redirect: 'buyandsale/saleorder',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    icon: 'BI_Leaderboard',
+    requiresAuth: true,
+    title: '销售管理',
+    index: 1,
+    type: 'jxc',
+    subType: 'xsgl'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'saleorder',
+      name: 'saleorder',
+      component: () => import('@/views/jxc/xsgl/xsdd'),
+      meta: {
+        title: '销售订单',
+        subType: 'xsdd',
+        ...buyandsaleAuth
+      }
+    },
+    {
+      path: 'openorder',
+      name: 'openorder',
+      component: () => import('@/views/jxc/xsgl/xskd'),
+      meta: {
+        title: '销售开单',
+        subType: 'xskd',
+        ...buyandsaleAuth
+      }
+    },
+    {
+      path: 'salereturn',
+      name: 'salereturn',
+      component: () => import('@/views/jxc/xsgl/xsyd'),
+      meta: {
+        title: '销售异动',
+        subType: 'xsyd',
+        ...buyandsaleAuth
+      }
+    },
+    {
+      path: 'ownSaleReport',
+      name: 'ownSaleReport',
+      redirect: 'ownSaleReport/enquiryReceive',
+      // component: () => import('@/views/buyandsale/salemanager/ownSaleReport'),
+      component: () => import('@/views/common/appview'),
+
+      meta: {
+        title: '个人销售报表',
+        subType: 'grxsbb',
+        ...buyandsaleAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'enquiryReceive',
+          name: 'enquiryReceive',
+          component: () => import('@/views/jxc/xsgl/bb/grxsbb/yscx'),
+          meta: {
+            title: '应收查询',
+            subType: 'yscx',
+            ...buyandsaleAuth2
+          }
+        },
+        {
+          path: 'hadReceive',
+          name: 'hadReceive',
+          component: () => import('@/views/jxc/xsgl/bb/grxsbb/yingScx'),
+          meta: {
+            title: '已收查询',
+            subType: 'yiscx',
+            ...buyandsaleAuth2
+          }
+        },
+        {
+          path: 'salesStatisticForCus',
+          name: 'salesStatisticForCus',
+          component: () => import('@/views/jxc/xsgl/bb/grxsbb/xstj'),
+          meta: {
+            title: '销售统计(按客户)',
+            subType: 'xstjakh',
+            ...buyandsaleAuth2
+          }
+        },
+        {
+          path: 'customerReconciliation',
+          name: 'customerReconciliation',
+          component: () => import('@/views/jxc/xsgl/bb/grxsbb/khdzb'),
+          meta: {
+            title: '客户对账表',
+            subType: 'khdzb',
+            ...buyandsaleAuth2
+          }
+        },
+      ]
+    },
+    {
+      path: 'componarySaleReport',
+      name: 'componarySaleReport',
+      redirect: 'componarySaleReport/comSaleStatistics',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '公司销售报表',
+        subType: 'gsxsbb',
+        ...buyandsaleAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'comSaleStatistics',
+          name: 'comSaleStatistics',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xsddtj'),
+          meta: {
+            title: '销售订单统计',
+            subType: 'xsddtj',
+            ...buyandsaleAuth3
+          }
+        },
+        {
+          path: 'comUnissuedDetail',
+          name: 'comUnissuedDetail',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xsddWfmx'),
+          meta: {
+            title: '销售订单未发明细',
+            subType: 'xsddwfmx',
+            ...buyandsaleAuth3
+          }
+        },
+        {
+          path: 'comOpenList',
+          name: 'comOpenList',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xskdylb'),
+          meta: {
+            title: '销售开单一览表',
+            subType: 'xskdylb',
+            ...buyandsaleAuth3
+          }
+        },
+        {
+          path: 'saleStatisticForCus',
+          name: 'saleStatisticForCus',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xstjKh'),
+          meta: {
+            title: '销售统计(按客户)',
+            subType: 'xstjakh',
+            ...buyandsaleAuth3
+          }
+        },
+        {
+          path: 'saleStatisticForPro',
+          name: 'saleStatisticForPro',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xstjCp'),
+          meta: {
+            title: '销售统计(按产品)',
+            subType: 'xstjacp',
+            ...buyandsaleAuth3
+          }
+        },
+        {
+          path: 'saleStatisticForSalesman',
+          name: 'saleStatisticForSalesman',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/xstjYwy'),
+          meta: {
+            title: '销售统计(按业务员)',
+            subType: 'xstjaywy',
+            ...buyandsaleAuth3
+          }
+        },
+        {
+          path: 'comCustomerReconciliat',
+          name: 'comCustomerReconciliat',
+          component: () => import('@/views/jxc/xsgl/bb/gsxsbb/khdzb'),
+          meta: {
+            title: '客户对账表',
+            subType: 'khdzb',
+            ...buyandsaleAuth3
+          }
+        }
+      ]
+    },
+    {
+      path: 'salesProfit',
+      name: 'salesProfit',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '销售利润统计',
+        subType: 'xslrtj',
+        ...buyandsaleAuth
+      },
+      hidden: false,
+      children: [
+        {
+          path: 'saleSingleList',
+          name: 'saleSingleList',
+          component: () => import('@/views/jxc/xsgl/bb/xslrtj/xsadlrb'),
+          meta: {
+            title: '销售按单利润表',
+            subType: 'xsadlrb',
+            ...buyandsaleAuth4
+          }
+        },
+        {
+          path: 'saleSumList',
+          name: 'saleSumList',
+          component: () => import('@/views/jxc/xsgl/bb/xslrtj/xslrhzb'),
+          meta: {
+            title: '销售利润汇总表',
+            subType: 'xslrhzb',
+            ...buyandsaleAuth4
+          }
+        },
+      ]
+    }
+
+  ]
+}
+
+// 采购管理路由
+
+const purchaseAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'jxc',
+  twotype: 'cggl'
+}
+const purchaseAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'cggl',
+  threetype: 'bggl'
+}
+const purchaseAuth3 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'cggl',
+  threetype: 'grcgbb'
+}
+const purchaseAuth4 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'cggl',
+  threetype: 'gscgbb'
+}
+const purchaseRouter = {
+  path: 'purchase',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    requiresAuth: true,
+    icon: 'marketing',
+    title: '采购管理',
+    index: 1,
+    type: 'jxc',
+    subType: 'cggl'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'applypurchaseorder',
+      name: 'applypurchaseorder',
+      component: () => import('@/views/jxc/cggl/sgdd'),
+      meta: {
+        title: '申购单管理',
+        subType: 'sgd',
+        ...purchaseAuth
+      }
+    },
+    {
+      path: 'purchaseorder',
+      name: 'purchaseorder',
+      component: () => import('@/views/jxc/cggl/cgdd'),
+      meta: {
+        title: '采购订单',
+        subType: 'cgdd',
+        ...purchaseAuth
+      }
+    },
+    {
+      path: 'purchasereceive',
+      name: 'purchasereceive',
+      component: () => import('@/views/jxc/cggl/cgsh'),
+      meta: {
+        title: '采购收货',
+        subType: 'cgsh',
+        ...purchaseAuth
+      }
+    },
+    {
+      path: 'purchareturnlist',
+      name: 'purchareturnlist',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '采购到货清单',
+        subType: 'cgdhqd',
+        ...purchaseAuth
+      }
+    },
+    {
+      path: 'purchaseReturn',
+      name: 'purchaseReturn',
+      component: () => import('@/views/jxc/cggl/cgyd'),
+      meta: {
+        title: '采购退货',
+        subType: 'cgth',
+        ...purchaseAuth
+      }
+    },
+    {
+      path: 'bgmanage',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '报关管理',
+        subType: 'bggl',
+        ...purchaseAuth
+      },
+      children: [
+        {
+          path: 'forecast',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '预报单管理',
+            subType: 'ybdgl',
+            ...purchaseAuth2
+          }
+        },
+        {
+          path: 'declarat',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '申报单管理',
+            subType: 'sbdgl',
+            ...purchaseAuth2
+          }
+        },
+      ]
+    },
+    {
+      path: 'ownPurchaseList',
+      component: () => import('@/views/common/appview'),
+      redirect: 'ownPurchaseList/queryPayable',
+      meta: {
+        title: '个人采购报表',
+        subType: 'grcgbb',
+      },
+      children: [
+        {
+          path: 'queryPayable',
+          component: () => import('@/views/jxc/cggl/bb/grcgbb/yingfcx'),
+          meta: {
+            title: '应付查询',
+            subType: 'yfcx',
+            ...purchaseAuth3
+          }
+        },
+        {
+          path: 'queryPaid',
+          component: () => import('@/views/jxc/cggl/bb/grcgbb/yiFcx'),
+          meta: {
+            title: '已付查询',
+            subType: 'yifcx',
+            ...purchaseAuth3
+          }
+        },
+        {
+          path: 'supplierReconciliat',
+          component: () => import('@/views/jxc/cggl/bb/grcgbb/gysdzb'),
+          meta: {
+            title: '供应商对账表',
+            subType: 'gysdzb',
+            ...purchaseAuth3
+          }
+        },
+        {
+          path: 'purchaseStatistics',
+          component: () => import('@/views/jxc/cggl/bb/grcgbb/cgtjGys'),
+          meta: {
+            title: '采购统计[按供应商]',
+            subType: 'cgtjagys',
+            ...purchaseAuth3
+          }
+        },
+      ]
+    },
+    {
+      path: 'comPurchaseList',
+      name: 'comPurchaseList',
+      component: () => import('@/views/common/appview'),
+      redirect: 'comPurchaseList/comOrderStatistic',
+      meta: {
+        title: '公司采购报表',
+        subType: 'sbdgl',
+      },
+      children: [
+        {
+          path: 'comOrderStatistic',
+          name: 'comOrderStatistic',
+          component: () => import('@/views/jxc/cggl/bb/gscgbb/cgddtj'),
+          meta: {
+            title: '采购订单统计',
+            subType: 'cgddtj',
+            ...purchaseAuth4
+          }
+        },
+        {
+          path: 'comOrderUnissued',
+          name: 'comOrderUnissued',
+          component: () => import('@/views/jxc/cggl/bb/gscgbb/cgddWjmx'),
+          meta: {
+            title: '采购订单未进明细',
+            subType: 'cgddwjmx',
+            ...purchaseAuth4
+          }
+        },
+        {
+          path: 'comOrderReceive',
+          name: 'comOrderReceive',
+          component: () => import('@/views/jxc/cggl/bb/gscgbb/cgshylb'),
+          meta: {
+            title: '采购收货一览表',
+            subType: 'cgshylb',
+            ...purchaseAuth4
+          }
+        },
+        {
+          path: 'comSupplierReconc',
+          name: 'comSupplierReconc',
+          component: () => import('@/views/jxc/cggl/bb/gscgbb/gysdzb'),
+          meta: {
+            title: '供应商对帐表',
+            subType: 'gysdzb',
+            ...purchaseAuth4
+          }
+        },
+        {
+          path: 'comPurchaseForPro',
+          name: 'comPurchaseForPro',
+          component: () => import('@/views/jxc/cggl/bb/gscgbb/cgtjCp'),
+          meta: {
+            title: '采购统计[按产品]',
+            subType: 'cgtjacp',
+            ...purchaseAuth4
+          }
+        },
+        {
+          path: 'comPurchaseStatic',
+          name: 'comPurchaseStatic',
+          component: () => import('@/views/jxc/cggl/bb/gscgbb/cgtjGys'),
+          meta: {
+            title: '采购统计[按供应商]',
+            subType: 'cgtjagys',
+            ...purchaseAuth4
+          }
+        },
+      ] 
+    }
+  ]
+}
+// 仓库管理路由
+
+const storemanageAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'jxc',
+  twotype: 'ckgl'
+}
+const storemanageAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'ckgl',
+  threetype: 'ywlrck'
+}
+const storemanageAuth3 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'ckgl',
+  threetype: 'qtlrc'
+}
+const storemanageAuth4 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'ckgl',
+  threetype: 'bbzx'
+}
+
+const storemanageRouter = {
+  path: 'storemanage',
+  name: 'storemanage',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    requiresAuth: true,
+    icon: 'dashboard',
+    title: '仓库管理',
+    index: 1,
+    type: 'jxc',
+    subType: 'ckgl'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'sBusInOut',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '业务类入出库',
+        subType: 'ywlrck',
+        ...storemanageAuth
+      },
+      children: [
+        {
+          path: 'spurReceive',
+          component: () => import('@/views/jxc/ckgl/ywlrck/cgshrk'),
+          meta: {
+            title: '采购收货入库',
+            subType: 'cgshrk',
+            ...storemanageAuth2
+
+          }
+        },
+        {
+          path: 'sSalesIssue',
+          component: () => import('@/views/jxc/ckgl/ywlrck/xskdck'),
+          meta: {
+            title: '销售开单出库',
+            subType: 'xskdck',
+            ...storemanageAuth2
+          }
+        },
+        {
+          path: 'sPurchaseReturn',
+          component: () => import('@/views/jxc/ckgl/ywlrck/cgthck'),
+          meta: {
+            title: '采购退货出库',
+            subType: 'cgthck',
+            ...storemanageAuth2
+          }
+        },
+        {
+          path: 'sSaleReceipt',
+          component: () => import('@/views/jxc/ckgl/ywlrck/xsthrk'),
+          meta: {
+            title: '销售退货入库',
+            subType: 'xsthrk',
+            ...storemanageAuth2
+          }
+        },
+      ]
+    },
+    {
+      path: 'sOthersInOut',
+      component: () => import('@/views/common/appview'),
+      // redirect: 'sOthersInOut/sReceiptOrder',
+      meta: {
+        title: '其它类入出库',
+        subType: 'qtlrck',
+        ...storemanageAuth
+      },
+      children: [
+        {
+          path: 'sReceiptOrder',
+          component: () => import('@/views/jxc/ckgl/qtlrck/qtlrkd'),
+          meta: {
+            title: '其他类入库单',
+            subType: 'qtlrkd',
+            ...storemanageAuth3
+          }
+        },
+        {
+          path: 'sIssueOrder',
+          component: () => import('@/views/jxc/ckgl/qtlrck/qtlckd'),
+          meta: {
+            title: '其他类出库单',
+            subType: 'qtlckd',
+            ...storemanageAuth3
+          }
+        },
+      ]
+    },
+    {
+      path: 'spicking',
+      name: 'spicking',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '领料',
+        subType: 'll',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'swithdrawal',
+      name: 'swithdrawal',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '退料',
+        subType: 'tl',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'sproInstore',
+      name: 'sproInstore',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '产品进仓',
+        subType: 'cpjc',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'sCheckList',
+      name: 'sCheckList',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '盘点单',
+        subType: 'pdd',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'sAllocation',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '仓库调拨',
+        subType: 'ckdb',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'sPurchaseList',
+      name: 'sPurchaseList',
+      component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+      meta: {
+        title: '备库申购单',
+        subType: 'bksgd',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'sStoreManage',
+      name: 'sStoreManage',
+      component: () => import('@/views/jxc/ckgl/ckgl/cklist'),
+      meta: {
+        title: '仓库管理',
+        subType: 'ckgl',
+        ...storemanageAuth
+      }
+    },
+    {
+      path: 'reportCenter',
+      component: () => import('@/views/common/appview'),
+      meta: {
+        title: '报表中心',
+        subType: 'bbzx',
+        ...storemanageAuth
+      },
+      children: [
+        {
+          path: 'inventoryDetails',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '库存明细汇总表',
+            subType: 'kcmxhzb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'inventoryNum',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '库存数量汇总表',
+            subType: 'kcslhzb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'inventoryNumType',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '库存数量汇总表[类别]',
+            subType: 'kcslhzblb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'inventDistribut',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '库存分布汇总表',
+            subType: 'kcfbhzb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'availnumSum',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '可用库存数量汇总表',
+            subType: 'kykcslhzb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'dullAnalysis',
+          component: () => import('@/views/jxc/ckgl/bbzx/dzpfxb'),
+          meta: {
+            title: '呆滞品分析表',
+            subType: 'dzpfxb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'pickList',
+          component: () => import('@/views/jxc/ckgl/bbzx/llylb'),
+          meta: {
+            title: '领料一览表',
+            subType: 'llylb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'wareDetail',
+          component: () => import('@/views/jxc/ckgl/bbzx/rckmxhz'),
+          meta: {
+            title: '入出库明细汇总表',
+            subType: 'rckmxhzb',
+            ...storemanageAuth4
+          }
+        },
+        {
+          path: 'wareSum',
+          component: () => import('@/views/jxc/ckgl/bbzx/rckslhz'),
+          meta: {
+            title: '入出库数量汇总表',
+            subType: 'rckslhzb',
+            ...storemanageAuth4
+          }
+        }
+      ]
+    },
+  ]
+}
+
+// 物流管理
+const physicalAuth = {
+  requiresAuth: true,
+  index: 2,
+  onetype: 'jxc',
+  twotype: 'wlgl'
+}
+const physicalAuth2 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'wlgl',
+  threetype: 'ywlwl'
+}
+const physicalAuth3 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'wlgl',
+  threetype: 'fplwl'
+}
+const physicalAuth4 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'wlgl',
+  threetype: 'qtkdgl'
+}
+const physicalAuth5 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'wlgl',
+  threetype: 'wlgsfygl'
+}
+const physicalAuth6 = {
+  requiresAuth: true,
+  index: 3,
+  onetype: 'jxc',
+  twotype: 'wlgl',
+  threetype: 'wlgssz'
+}
+const physicalRouter = {
+  path: 'physical', //物流管理
+  name: 'physical',
+  component: () => import('@/views/common/appview'),
+  meta: {
+    requiresAuth: true,
+    icon: 'activity-task',
+    title: '物流管理',
+    index: 1,
+    type: 'jxc',
+    subType: 'wlgl'
+  },
+  hidden: false,
+  children: [
+    {
+      path: 'busPhysical',  //业务类物流
+      component: () => import('@/views/common/appview'),
+      redirect: 'busPhysical/purCostStatistic',
+      meta: {
+        title: '业务类物流',
+        subType: 'ywlwl',
+        ...physicalAuth
+      },
+      children: [
+        {
+          path: 'purCostStatistic',
+          name: 'purCostStatistic',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '采购收货费用统计',
+            subType: 'cgshfytj',
+            ...physicalAuth2
+          },
+        },
+        {
+          path: 'purLogTrack',
+          name: 'purLogTrack',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '采购物流跟踪',
+            subType: 'cgwlgz',
+            ...physicalAuth2
+          },
+        },
+        {
+          path: 'saleCostStatis',
+          name: 'saleCostStatis',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '销售发货费用统计',
+            subType: 'xsfhfytj',
+            ...physicalAuth2
+          }
+        },
+        {
+          path: 'saleLogTrack',
+          name: 'saleLogTrack',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '销售物流跟踪',
+            subType: 'xswlgz',
+            ...physicalAuth2
+          }
+        }
+      ]
+    },
+    {
+      path: 'invoiceLog', //发票类物流
+      name: 'invoiceLog',
+      component: () => import('@/views/common/appview'),
+      redirect: 'invoiceLog/inInvoiceLogCost',
+      meta: {
+        title: '发票类物流',
+        subType: 'fplwl',
+        ...physicalAuth
+      },
+      children: [
+        {
+          path: 'inInvoiceLogCost',
+          name: 'inInvoiceLogCost',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '进项发票物流费用',
+            subType: 'jxfpwlfy',
+            ...physicalAuth3
+          }
+        },
+        {
+          path: 'saleInvoiceLogCost',
+          name: 'saleInvoiceLogCost',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '销项发票物流费用',
+            subType: 'xxfpwlfy',
+            ...physicalAuth3
+          }
+        },
+      ]
+    },
+    {
+      path: 'otherLog',
+      name: 'otherLog',
+      component: () => import('@/views/common/appview'),
+      // redirect: 'otherLog/storeTransCost',
+      meta: {
+        title: '其它类物流',
+        subType: 'qtlwl',
+        ...physicalAuth
+      },
+      children: [
+        {
+          path: 'storeTransCost',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '仓库调拨费用统计',
+            subType: 'ckdbfytj',
+          }
+        }
+      ]
+    },
+    {
+      path: 'otherFastMailLog',
+      name: 'otherFastMailLog',
+      component: () => import('@/views/common/appview'),
+      redirect: 'otherFastMailLog/otherFastMail',
+      meta: {
+        title: '其它快递管理',
+        subType: 'qtkdgl',
+        ...physicalAuth
+      },
+      children: [
+        {
+          path: 'otherFastMail',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '其他快递管理',
+            subType: 'qtkdgl1',
+            ...physicalAuth4
+          }
+        }
+      ]
+    },
+    {
+      path: 'logCostManage',
+      name: 'logCostManage',
+      component: () => import('@/views/common/appview'),
+      redirect: 'logCostManage/logQuery',
+      meta: {
+        title: '物流公司费用管理',
+        subType: 'wlgsfygl',
+        ...physicalAuth
+      },
+      children: [
+        {
+          path: 'logQuery',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '应付查询',
+            subType: 'yfcx',
+            ...physicalAuth5
+          }
+        },
+        {
+          path: 'logPay',
+          component: () => import('@/views/crm/ggkhc/ggkhcIndex'),
+          meta: {
+            title: '物流付款',
+            subType: 'wlfk',
+            ...physicalAuth5
+          }
+        }
+      ]
+    },
+    {
+      path: 'logComSet',
+      name: 'logComSet',
+      component: () => import('@/views/common/appview'),
+      redirect: 'logComSet/logComManage',
+      meta: {
+        title: '物流公司设置',
+        subType: 'wlgssz',
+        ...physicalAuth
+      },
+      children: [
+        {
+          path: 'logComManage',
+          component: () => import('@/views/jxc/wlgl/wlgssz/wlgsgl'),
+          meta: {
+            title: '物流公司管理',
+            subType: 'wlgsgl',
+            ...physicalAuth6
+          }
+        }
+      ]
+    }
+  ]
+}
+
+export const children = [...buyandsaleRouter.children, ...purchaseRouter.children, ...storemanageRouter.children, ...physicalRouter.children]
+export const childrenMenu = [buyandsaleRouter, purchaseRouter, storemanageRouter, physicalRouter]

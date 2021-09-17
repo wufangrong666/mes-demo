@@ -1,0 +1,222 @@
+<template>
+  <div class="c-container">
+    <zdyListHeader :title="title" placeholder="供应商名称/供应商编码" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="gysCode" label="供应商编码"></el-table-column>
+      <el-table-column prop="gysName" label="供应商名称">
+        <template slot-scope="scope">
+          <el-button @click="gysClick(scope.row)" type="text">{{scope.row.gysName}}</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="cshqk" label="初始化欠款"></el-table-column>
+      <el-table-column prop="dqyfe" label="当期应付额"></el-table-column>
+      <el-table-column label="前期付款情况">
+        <el-table-column prop="dqcge" label="当前采购额"></el-table-column>
+        <el-table-column prop="yfkzj" label="应收款增加"></el-table-column>
+        <el-table-column prop="yfkjs" label="应收款减少"></el-table-column>
+        <el-table-column prop="dqyfk" label="当期已付款"></el-table-column>
+        <el-table-column prop="dqystk" label="当期已收退款"></el-table-column>
+        <el-table-column prop="dqthcdje" label="当期退货冲抵金额"></el-table-column>
+        <el-table-column prop="dqyfe" label="当期应付款">
+          <template slot="header" slot-scope="scope">
+            <span>当期应付款</span>
+            <el-tooltip
+              class="item"
+              effect="dark"
+              content="当期应付额 = 当期采购额 - 当期已付款 - 当期退货冲抵金额+
+当期应付款增加-当期应付款减少"
+              placement="top"
+            >
+              <el-button type="text">说明</el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+      </el-table-column>
+      <el-table-column prop="ysze" label="应付总额">
+        <template slot="header" slot-scope="scope">
+          <span>应收总</span>
+          <el-tooltip class="item" effect="dark" content="当期采购额+
+前期应付款增加-前期应付款减少" placement="top">
+            <el-button type="text">说明</el-button>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+      <el-table-column prop="dqthcdje" label="操作" width="280px">
+        <template slot-scope="scope">
+          <el-button @click="dzmx1(scope.row)" type="text">对账明细1</el-button>
+          <el-button @click="dzmx2(scope.row)" type="text">对账明细2</el-button>
+          <el-button @click="dzmx3(scope.row)" type="text">对账明细3</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { cgbbGrQueryGysdzb } from "@/api/jxc/jxc";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  computed: {},
+  components: {
+    zdyListHeader,
+    zdyTableHeader,
+  },
+  data() {
+    return {
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        startDate: "",
+        endDate: "",
+        code: "",
+        rqlb: "cjrq",
+        search: "",
+      },
+      rqlbList: [
+        { name: "创建日期", code: "cjrq" },
+        { name: "收货日期", code: "qtrq" },
+      ],
+      item: [],
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      gxrDialogStatus: false,
+      listType: "jxc_grcgbb_gysdzb",
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.item.push(this.getCurrentMonthFirst());
+    this.item.push(this.getCurrentMonthLast());
+    this.loginData();
+  },
+  methods: {
+    companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.name = "";
+      this.from.code = "";
+      this.from.rqlb = "";
+      for (var i in list) {
+        if (list[i].name == "gysmc") {
+          this.$set(this.from, "name", list[i].value);
+        } else if (list[i].name == "gysbm") {
+          this.$set(
+            this.from,
+            "code",
+            list[i].value == "创建日期" ? "cjrq" : "qtrq"
+          );
+        } else if (list[i].name == "rqlb") {
+          this.$set(this.from, "rqlb", list[i].value);
+        } else if (list[i].name == "itemData") {
+          this.item = list[i].value;
+        }
+      }
+      this.loginData();
+    },
+    dzmx1(row) {
+      this.windowOpen("/gysdzMx1", {
+        id: this.encode(row.gysId),
+        type: "gysdzMx1",
+        item: this.item,
+        gys: row.gysName,
+      });
+    },
+    dzmx2(row) {
+      this.windowOpen("/gysdzMx2", {
+        id: this.encode(row.gysId),
+        type: "gysdzMx2",
+        item: this.item,
+        gys: row.gysName,
+      });
+    },
+    dzmx3(row) {
+      this.windowOpen("/gysdzMx3", {
+        id: this.encode(row.gysId),
+        type: "gysdzMx3",
+        item: this.item,
+        gys: row.gysName,
+      });
+    },
+    gysClick(row) {
+      this.windowOpen("/gysAddEdit", {
+        id: this.encode(row.gysId),
+        type: "lookCard",
+      });
+    },
+    //获取列表数据
+    loginData() {
+      if (this.item.length) {
+        this.from.startDate = this.item[0];
+        this.from.endDate = this.item[1];
+      }
+      cgbbGrQueryGysdzb(this.from)
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+.c-container .el-date-editor .el-range-separator {
+  line-height: 28px;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+</style>

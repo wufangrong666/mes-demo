@@ -1,0 +1,134 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="input-box">
+            <label class="input-label">客户名称:</label>
+            <div style="float:left;overflow: hidden;white-space: nowrap" :title="from.name" v-text="from.name"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">客户编码:</label>
+            <div  style="float:left;overflow: hidden" :title="from.code" v-text="from.code"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">客户手机:</label>
+            <div v-text="from.khsjhm"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">销售负责人:</label>
+            <div v-text="from.ywyName"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在省:</label>
+            <div v-text="from.khsf"></div>
+          </div>
+          <div class="input-box">
+            <label class="input-label">所在市:</label>
+            <div v-text="from.khcs"></div>
+          </div>
+        </sections>
+      </div>
+      <el-tabs v-model="activeName" type="border-card" class="tabsEl" @tab-click="handleClick">
+        <el-tab-pane label="详细信息" name="first">
+          <userTabs :from="from"></userTabs>
+        </el-tab-pane>
+        <el-tab-pane label="分配/转移记录" name="second">
+          <fpzyjl :activeName="activeName" :customerId="customerId"></fpzyjl>
+        </el-tab-pane>
+        <el-tab-pane label="交往记录" name="third">
+          <jwjl :activeName="activeName" :customerName='from.name'></jwjl>
+        </el-tab-pane>
+        <el-tab-pane label="销售机会" name="xsjh"></el-tab-pane>
+        <el-tab-pane label="报价单" name="bjd"></el-tab-pane>
+        <el-tab-pane label="解决方案" name="jjfa"></el-tab-pane>
+        <el-tab-pane label="销售订单" name="xsdd"></el-tab-pane>
+        <el-tab-pane label="销售开单" name="xskd"></el-tab-pane>
+        <el-tab-pane label="销售收款" name="xssk"></el-tab-pane>
+        <el-tab-pane label="销售退货" name="xsth"></el-tab-pane>
+        <el-tab-pane label="应收查询" name="yscx"></el-tab-pane>
+        <el-tab-pane label="已开发票" name="ykfp"></el-tab-pane>
+        <el-tab-pane label="代开发票列表" name="dkfplb"></el-tab-pane>
+        <el-tab-pane label="销开已开发票列表" name="xkfp"></el-tab-pane>
+        <el-tab-pane label="欠款初始化" name="csh"></el-tab-pane>
+        <el-tab-pane label="收件箱" name="sjx"></el-tab-pane>
+        <el-tab-pane label="外部邮件已发送" name="wbyj"></el-tab-pane>
+      </el-tabs>
+      <div class="handle-bar">
+        <el-button @click="hidenView" type="info">关闭</el-button>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+import { crmCustomerQueryById } from "@/api/crm/ggkhc";
+import userTabs from "./detail/user";
+import fpzyjl from "./detail/fpzyjl";
+import jwjl from "./detail/jwjl";
+export default {
+  components: {
+    createView,
+    sections,
+    userTabs,
+    fpzyjl,
+    jwjl
+  },
+  name: "",
+  data() {
+    return {
+      loading: false,
+      widowData: {},
+      from: {},
+      activeName: "first",
+      customerId: ""
+    };
+  },
+
+  methods: {
+    hidenView() {
+      window.top.close();
+    },
+    handleClick(val) {
+      if (val.index == 1) {
+        this.customerId = this.widowData.id;
+      }
+    },
+    loginData() {
+      crmCustomerQueryById({
+        customerId: this.widowData.id
+      })
+        .then(res => {
+          this.from = res.data;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.loginData();
+  }
+};
+</script>
+<style lang='scss'>
+.tabsEl .el-tabs__content {
+  height: 700px;
+  overflow: auto;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 33%;
+}
+.handle-bar {
+  margin: 5px 0 20px 0;
+}
+</style>

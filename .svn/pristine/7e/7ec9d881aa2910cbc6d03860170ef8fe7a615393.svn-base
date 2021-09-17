@@ -1,0 +1,126 @@
+<template>
+  <div>
+    <el-dialog
+      title="客户列表"
+      :visible.sync="dialogVisible"
+      width="60%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div class="dialog-box">
+        <label class="input-label">客户名称</label>
+        <el-input placeholder="请输入客户名称" clearable v-model="dialogFrom.name"></el-input>
+      </div>
+      <div class="dialog-box">
+        <label class="input-label">客户编码</label>
+        <el-input placeholder="请输入客户编码" clearable v-model="dialogFrom.code"></el-input>
+      </div>
+      <div class="dialog-box">
+        <el-button type="primary" @click="search">查询</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+      <div class="table-box">
+        <el-table :data="tableData" style="width: 100%" height="500">
+          <el-table-column label="客户名称">
+            <template slot-scope="scope">
+              <span
+                @click="queryName(scope.row)"
+                style="color: #3E84E9;cursor: pointer"
+                v-text="scope.row.name"
+              ></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="客户编码"></el-table-column>
+        </el-table>
+      </div>
+      <div class="p-contianer">
+        <el-pagination
+          class="p-bar"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="dialogFrom.page"
+          :page-size="dialogFrom.limit"
+          layout="prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleClose">取 消</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { xbjQueryCustomer } from "@/api/crm/xbjTable";
+
+export default {
+  name: "",
+  props: ["dialogVisible"],
+  watch: {
+    dialogVisible: {
+      handler() {
+        if (this.dialogVisible) {
+          this.dialogData();
+        }
+      }
+    }
+  },
+  data() {
+    return {
+      dialogFrom: {
+        page: 1,
+        limit: 15,
+        name: "",
+        code: ""
+      },
+      tableData: [],
+      total: 0
+    };
+  },
+
+  methods: {
+    reset() {
+      this.dialogFrom.page = 1;
+      this.dialogFrom.limit = 15;
+      this.dialogFrom.name = "";
+      this.dialogFrom.code = "";
+      this.dialogData();
+    },
+    queryName(data) {
+      this.$emit("hkDialog", data.name, data.customerId,data.code);
+      this.$emit("colse");
+    },
+    search() {
+      this.dialogData();
+    },
+    handleClose() {
+      this.$emit("colse");
+    },
+    handleSizeChange(val) {
+      this.dialogFrom.limit = val;
+      this.dialogData();
+    },
+    handleCurrentChange(val) {
+      this.dialogFrom.page = val;
+      this.dialogData();
+    },
+    dialogData() {
+      xbjQueryCustomer(this.dialogFrom)
+        .then(res => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch(res => {});
+    }
+  },
+
+  created() {},
+
+  mounted() {}
+};
+</script>
+<style lang='scss' scoped>
+@import "../manage/styles/table.scss";
+@import "../../styles/detail.scss";
+</style>

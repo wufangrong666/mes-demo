@@ -1,0 +1,103 @@
+<template>
+  <div class="c-container">
+    <!-- 标题查询 -->
+    <div class="title">{{title}}</div>
+    <div class="header">
+      <div class="header-top">个人设置</div>
+      <div class="header-top">
+        <span class="leftStule">收件箱刷新时间间隔：</span>
+        <div class="rightStule">
+          <el-radio v-model="newTime" label="10">10分钟</el-radio>
+          <el-radio v-model="newTime" label="15">15分钟</el-radio>
+          <el-radio v-model="newTime" label="20">20分钟</el-radio>
+          <el-radio v-model="newTime" label="25">25分钟</el-radio>
+          <el-radio v-model="newTime" label="30">30分钟</el-radio>
+          <el-radio v-model="newTime" label="0">不刷新</el-radio>
+        </div>
+      </div>
+      <div class="header-top">
+        <span class="leftStule">自动添加联系人：</span>
+        <div class="rightStule">
+          <el-checkbox v-model="checked">自动添加收件人到通讯录</el-checkbox>
+        </div>
+      </div>
+      <div class="header-top">
+        <span class="leftStule">邮件接收状态：</span>
+        <div class="rightStule">
+          <el-radio disabled v-model="radio" label="1">接收中</el-radio>
+          <el-radio v-model="radio" label="2">未接收</el-radio>
+        </div>
+      </div>
+      <div class="header-top" style="text-indent:250px">
+        <el-button @click="addClick" type="primary">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { mailCronMailCronUpdate } from "@/api/email/email";
+export default {
+  name: "grglIndex",
+  computed: {},
+  data() {
+    return {
+      title: "",
+      radio: "1",
+      checked: false,
+      newTime:""
+    };
+  },
+  mounted() {
+    this.title = this.$route.meta.title;
+  },
+  methods: {
+    addClick() {
+      mailCronMailCronUpdate({
+        newTime:this.newTime
+      })
+        .then(res => {
+          this.msgSuccess("修改成功")
+        })
+        .catch(res => {});
+    }
+  }
+};
+</script>
+<style lang="scss" scoped>
+@import "../../../manage/styles/table.scss";
+.header {
+  width: 100%;
+  height: 300px;
+  border: 1px solid #e6e6e6;
+  float: left;
+  background: #fff;
+  .header-top {
+    width: 100%;
+    line-height: 40px;
+    border-bottom: 1px solid #e6e6e6;
+    text-indent: 20px;
+    float: left;
+  }
+  .leftStule {
+    width: 15%;
+    border-right: 1px solid #e6e6e6;
+    float: left;
+  }
+  .rightStule {
+    width: 85%;
+    float: left;
+  }
+}
+.c-container {
+  height: 60px;
+  position: relative;
+  z-index: 100;
+  .title {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 60px;
+  }
+}
+</style>

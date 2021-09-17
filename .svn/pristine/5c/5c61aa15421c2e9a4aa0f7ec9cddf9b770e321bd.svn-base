@@ -1,0 +1,239 @@
+<template>
+  <div class="system-customer">
+    <div class="title">
+      <span>{{title}}</span>
+      <el-dropdown trigger="click" v-if="excelQx" @command="handleTypeDrop">
+        <flexbox class="right-more-item">
+          <div>更多</div>
+          <i class="el-icon-arrow-down el-icon--right" style="color:#777;"></i>
+        </flexbox>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item>导出</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+    <div class="customer-content">
+      <div class="system-view-table">
+        <div class="tabs-bar">
+          <el-tabs v-model="activeName" @tab-click="handleClick">
+            <el-tab-pane label="本周供应商生日" name="week">
+              <el-table
+                id="table"
+                :height="tableHeight"
+                :data="weekList"
+                stripe
+                style="width: 100%"
+              >
+                <el-table-column prop="contactName" label="供应商姓名"></el-table-column>
+                <el-table-column label="供应商性别">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.contactGender | contactGender}}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="contactPhone" label="手机号码"></el-table-column>
+                <el-table-column prop="businessTele" label="工作电话"></el-table-column>
+                <el-table-column prop="name" label="所属供应商"></el-table-column>
+                <el-table-column prop="contactBirthday" label="生日"></el-table-column>
+              </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="本月供应商生日" name="month">
+              <el-table
+                id="table"
+                :height="tableHeight"
+                :data="monthList"
+                stripe
+                style="width: 100%"
+              >
+                <el-table-column prop="contactName" label="供应商姓名"></el-table-column>
+                <el-table-column label="供应商性别">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.contactGender | contactGender}}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="contactPhone" label="手机号码"></el-table-column>
+                <el-table-column prop="businessTele" label="工作电话"></el-table-column>
+                <el-table-column prop="name" label="所属供应商"></el-table-column>
+                <el-table-column prop="contactBirthday" label="生日"></el-table-column>
+              </el-table>
+            </el-tab-pane>
+          </el-tabs>
+          <div class="p-contianer">
+            <el-pagination
+              class="p-bar"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="page"
+              :page-sizes="pageSizes"
+              :page-size="limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+            ></el-pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { crmGysBirthday } from "@/api/crm/gys";
+import { mapGetters } from "vuex";
+export default {
+  name: "",
+  computed: {
+    ...mapGetters(["operAuth"]),
+    excelQx() {
+      return (
+        this.operAuth.othersqx !== undefined && this.operAuth.othersqx.dcExcelqx
+      );
+    },
+  },
+  data() {
+    return {
+      title: "",
+      tableData: [],
+      page: 1,
+      limit: 15,
+      activeName: "week",
+      weekList: [],
+      monthList: [],
+      page: 1,
+      pageSizes: [15, 30, 60, 100],
+      limit: 15,
+      total: 10,
+      tableHeight: document.documentElement.clientHeight - 260,
+    };
+  },
+  filters: {
+    contactGender: function (value) {
+      if (value == 0) {
+        return "保密";
+      } else if (value == "1") {
+        return "男";
+      } else if (value == "2") {
+        return "女";
+      } else {
+        return "未添加性别";
+      }
+    },
+  },
+  methods: {
+    handleTypeDrop() {
+      if (
+        this.operAuth.othersqx !== undefined &&
+        this.operAuth.othersqx.dcExcelqx
+      ) {
+        let tHeader = [
+          "供应商姓名",
+          "供应商性别",
+          "手机号码",
+          "工作电话",
+          "所属供应商",
+          "生日",
+        ];
+        let filterVal = [
+          "contactName",
+          "contactGenderName",
+          "contactPhone",
+          "businessTele",
+          "name",
+          "contactBirthday",
+        ];
+        this.exportInfos(tHeader, filterVal, this.tableData, "供应商生日");
+      }
+    },
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginData(this.activeName);
+    },
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginData(this.activeName);
+    },
+    handleClick(val) {
+      this.loginData(val.name);
+      this.activeName = val.name;
+    },
+    loginData(index) {
+      this.tableData = []
+      if (index == "week") {
+        crmGysBirthday({
+          page: this.page,
+          limit: this.limit,
+          range: index,
+        })
+          .then((res) => {
+            this.weekList = res.data.list;
+            this.tableData = res.data.list
+            this.total = res.data.totalRow;
+          })
+          .catch((res) => {});
+      } else {
+        crmGysBirthday({
+          page: this.page,
+          limit: this.limit,
+          range: index,
+        })
+          .then((res) => {
+            this.monthList = res.data.list;
+            this.tableData = res.data.list
+            this.total = res.data.totalRow;
+          })
+          .catch((res) => {});
+      }
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+
+  created() {},
+  activated() {
+    this.loginData(this.activeName);
+  },
+  mounted() {
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.title = this.$route.meta.title;
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.title {
+  margin: 0;
+}
+.el-dropdown-menu {
+  height: 65px;
+}
+.el-dropdown {
+  position: relative;
+  color: #333;
+  font-size: 13px;
+  float: right;
+  .right-more-item {
+    cursor: pointer;
+    border: 1px solid #dcdfe6;
+    background-color: white;
+    font-size: 13px;
+    color: #777;
+    padding: 0 12px;
+    border-radius: 2px;
+    height: 31px;
+  }
+  .el-dropdown-menu__item {
+    list-style: none;
+    line-height: 36px;
+    padding: 0 20px;
+    margin: 0;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+  }
+}
+</style>

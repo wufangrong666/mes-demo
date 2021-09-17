@@ -1,0 +1,130 @@
+<template>
+  <div>
+    <div class="dataStatus">
+      <div class="topStatus">
+        <div class="leftStatus">MRP运算是依据:</div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">
+          <el-radio v-model="from.mrpCalculate" :label="1">实际库存</el-radio>
+        </div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">
+          <el-radio v-model="from.mrpCalculate" :label="2">实际库存-预定数量</el-radio>
+        </div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">
+          <el-radio v-model="from.mrpCalculate" :label="3">实际库存-预定数量-下限数量</el-radio>
+        </div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">
+          <el-radio v-model="from.mrpCalculate" :label="4">实际库存+在途数量</el-radio>
+        </div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">
+          <el-radio v-model="from.mrpCalculate" :label="5">实际库存+在途数量-预定数量</el-radio>
+        </div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">
+          <el-radio v-model="from.mrpCalculate" :label="6">实际库存+在途数量-预定数量-下限数量</el-radio>
+        </div>
+        <div class="rightStatus"></div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">预定数量：</div>
+        <div class="rightStatus">
+          1、销售订单审核未发货数量
+          2、领料审核未出库数量
+          3、采购退货审核未出库数量
+          4、借出开单审核未出库数量
+          5、借进开单出库未还回数量
+          6、生产计划已审核对应BOM原料数量
+        </div>
+      </div>
+      <div class="topStatus">
+        <div class="leftStatus">在途数量：</div>
+        <div class="rightStatus">
+          1、采购订单已审核未入库数量
+          2、委托加工出库数量
+          3、委托加工入库数量
+          4、借出未还回数量
+          5、借进未入库数量
+        </div>
+      </div>
+      <div class="bottomStatus">
+        <el-button style="margin-left:25%" type="primary" @click="submit">保存</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { adminMrpQueryMrpSet, adminMrpUpdateMrpSet } from "@/api/manage/xtsz";
+export default {
+  name: "",
+  data() {
+    return {
+      from: {},
+    };
+  },
+
+  methods: {
+    mrpData() {
+      adminMrpQueryMrpSet()
+        .then((res) => {
+          this.from = res.data;
+        })
+        .catch((rse) => {});
+    },
+    submit() {
+      adminMrpUpdateMrpSet(this.from)
+        .then((res) => {
+          this.msgSuccess("保存成功");
+          this.mrpData();
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.mrpData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.dataStatus {
+  width: 96%;
+  margin: 10px 2%;
+  .topStatus {
+    width: 100%;
+    height: 40px;
+    .leftStatus {
+      line-height: 40px;
+      width: 14%;
+      float: left;
+    }
+    .rightStatus {
+      line-height: 40px;
+      width: 86%;
+      float: left;
+    }
+  }
+  .bottomStatus {
+    width: 100%;
+    height: 40px;
+  }
+}
+</style>

@@ -1,0 +1,254 @@
+<template>
+  <div class="c-container">
+     <zdyListHeader :title="title" placeholder="供应商名称/供应商编码/订单单号" @on-search="companySearch"></zdyListHeader>
+    <zdyTableHeader @gjcxData="gjcxData" :listType="listType"></zdyTableHeader>
+    <!-- <div class="input-box">
+      <label class="input-label">供应商名称</label>
+      <el-input placeholder="请输入供应商名称" clearable v-model="from.name"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">收货单号</label>
+      <el-input placeholder="请输入收货单号" clearable v-model="from.dh"></el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">业务员</label>
+      <el-input :readonly="true" clearable placeholder="请选择业务员" v-model="ywyName">
+        <el-button @click="ywyDialog" slot="append" icon="el-icon-plus"></el-button>
+      </el-input>
+    </div>
+    <div class="input-box">
+      <label class="input-label">收货类型</label>
+      <el-select v-model="from.ddlx" placeholder="请选择">
+        <el-option v-for="item in ddlxList" :key="item.name" :label="item.name" :value="item.name"></el-option>
+      </el-select>
+    </div>
+    <div class="input-box">
+      <el-button @click="search" type="primary">查询</el-button>
+      <el-button @click="reset">重置</el-button>
+    </div> -->
+    <el-table border id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="xskdDh" label="采购收货单号" width="125px">
+        <template slot-scope="scope">
+          <span
+            style="color:#3E84E9; cursor: pointer"
+            @click="xsddDhClick(scope.row)"
+            v-text="scope.row.xskdDh"
+          ></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="createDate" label="创建日期">
+        <template slot-scope="scope">{{scope.row.createDate.substring(0,10)}}</template>
+      </el-table-column>
+      <el-table-column prop="shrq" label="收货日期" width="125px"></el-table-column>
+      <el-table-column prop="customerName" label="供应商名称" min-width="125px"></el-table-column>
+      <el-table-column prop="xsddDh" label="供应商编码"></el-table-column>
+      <el-table-column prop="ckName" label="仓库"></el-table-column>
+      <el-table-column prop="productModelnum" label="品牌"></el-table-column>
+      <el-table-column prop="measureName" label="计量单位"></el-table-column>
+      <el-table-column prop="quantity" label="实发数量"></el-table-column>
+      <el-table-column prop="productSl" label="税率"></el-table-column>
+      <el-table-column prop="hsdj" label="含税单价"></el-table-column>
+      <el-table-column prop="zdzk" label="整单折扣(%)"></el-table-column>
+      <el-table-column prop="xj" label="小计"></el-table-column>
+      <el-table-column prop="zy" label="摘要"></el-table-column>
+      <el-table-column prop="hq" label="对应采购订单单号"></el-table-column>
+      <el-table-column prop="ysk" label="合同号"></el-table-column>
+      <el-table-column prop="ysk" label="已付款额"></el-table-column>
+      <el-table-column prop="kpquantity" label="开票数量"></el-table-column>
+      <el-table-column prop="kpje" label="开票金额"></el-table-column>
+      <el-table-column prop="fphm" label="发票号码"></el-table-column>
+      <el-table-column prop="fhf" label="发货方"></el-table-column>
+      <el-table-column prop="fhdh" label="发货单号"></el-table-column>
+      <el-table-column prop="wlfy" label="物流费用"></el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="from.page"
+        :page-sizes="pageSizes"
+        :page-size.sync="from.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+import { cgbbGsCgshYlb } from "@/api/jxc/jxc";
+import { adminYszdGetYlzdSetByType } from "@/api/crm/xbjTable";
+import zdyListHeader from "../../../../components/zdyListHeader";
+import zdyTableHeader from "../../../../components/zdyTableHeader";
+export default {
+  name: "",
+  components: {
+    zdyListHeader,
+    zdyTableHeader
+  },
+  computed: {},
+  data() {
+    return {
+      zdyName1: "",
+      zdyName2: "",
+      zdyName3: "",
+      zdyName4: "",
+      zdyName5: "",
+      zdyName6: "",
+      zdyName7: "",
+      zdyName8: "",
+      zdyName9: "",
+      zdyName10: "",
+      ylzdType1: "",
+      ylzdType2: "",
+      ylzdType3: "",
+      ylzdType4: "",
+      ylzdType5: "",
+      ylzdType6: "",
+      ylzdType7: "",
+      ylzdType8: "",
+      ylzdType9: "",
+      ylzdType10: "",
+      tableData: [],
+      total: 0,
+      tableHeight: document.documentElement.clientHeight - 230, // 表的高度
+      pageSizes: [15, 30, 60, 100], //切换每页显示
+      from: {
+        page: 1,
+        limit: 15,
+        name: "",
+        dh: "",
+        ywy: "",
+        ddlx: "",
+        search:''
+      },
+      title: "",
+      inputContent: "",
+      /** 更多操作 */
+      moreTypes: [],
+      // 导入
+      showImport: false,
+      dialogStatus: false,
+      treeId: "",
+      bmDialogStatus: false,
+      listType:'jxc_gscgbb_cgshylb'
+    };
+  },
+  mounted() {
+    // 线索和客户判断更多操作
+    this.title = this.$route.meta.title;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.loginData();
+  },
+  methods: {
+     companySearch(search) {
+      this.from.search = search;
+      this.loginData();
+    },
+    gjcxData(list) {
+      this.from.name = "";
+      this.from.dh = "";
+      this.from.ywy = "";
+      this.from.ddlx = "";
+      for (var i in list) {
+        if (list[i].name == "gysmc") {
+          this.$set(this.from, "name", list[i].value);
+        } else if (list[i].name == "dddh") {
+          this.$set(this.from, "dh", list[i].value);
+        } else if (list[i].name == "ywy") {
+          this.$set(this.from, "ywy", list[i].value);
+        } else if (list[i].name == "ddlx") {
+          this.$set(this.from, "ddlx", list[i].value);
+        }
+      }
+      this.loginData();
+    },
+    //获取列表数据
+    loginData() {
+      cgbbGsCgshYlb(this.from)
+        .then((res) => {
+          this.tableData = res.data.list;
+          this.total = res.data.totalRow;
+        })
+        .catch((res) => {});
+      adminYszdGetYlzdSetByType({
+        type: 1,
+      })
+        .then((res) => {
+          for (var i in res.data) {
+            let num = res.data[i].ylzdName.substring(
+              res.data[i].ylzdName.indexOf("d") + 1,
+              res.data[i].ylzdName.length
+            );
+            if (num == "1") {
+              this.zdyName1 = res.data[i].zdyName;
+              this.ylzdType1 = res.data[i].from;
+            } else if (num == "2") {
+              this.zdyName2 = res.data[i].zdyName;
+              this.ylzdType2 = res.data[i].from;
+            } else if (num == "3") {
+              this.zdyName3 = res.data[i].zdyName;
+              this.ylzdType3 = res.data[i].from;
+            } else if (num == "4") {
+              this.zdyName4 = res.data[i].zdyName;
+              this.ylzdType4 = res.data[i].from;
+            } else if (num == "5") {
+              this.zdyName5 = res.data[i].zdyName;
+              this.ylzdType5 = res.data[i].from;
+            } else if (num == "6") {
+              this.zdyName6 = res.data[i].zdyName;
+              this.ylzdType6 = res.data[i].from;
+            } else if (num == "7") {
+              this.zdyName7 = res.data[i].zdyName;
+              this.ylzdType7 = res.data[i].from;
+            } else if (num == "8") {
+              this.zdyName8 = res.data[i].zdyName;
+              this.ylzdType8 = res.data[i].from;
+            } else if (num == "9") {
+              this.zdyName9 = res.data[i].zdyName;
+              this.ylzdType9 = res.data[i].from;
+            } else if (num == "10") {
+              this.zdyName10 = res.data[i].zdyName;
+              this.ylzdType10 = res.data[i].from;
+            }
+          }
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.from.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.from.page = val;
+      this.loginData();
+    },
+    /**
+     * 更新表高
+     */
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.tableData).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-range-separator {
+  width: 10%;
+}
+.c-container .el-date-editor .el-range-separator {
+  line-height: 28px;
+}
+</style>
+<style lang="scss" scoped>
+@import "../../../../manage/styles/table.scss";
+#table {
+  border: 1px solid #e6e6e6;
+}
+</style>

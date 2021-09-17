@@ -1,0 +1,134 @@
+import request from '@/utils/request'
+// 给角色设置数据权限
+export function crmCustomerPoolqueryPageList(data) {
+    return request({
+        url: 'crmCustomerPool/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//根据ID删除客户信息
+export function crmCustomerdelete(data) {
+    return request({
+        url: 'crmCustomerPool/deleteByIds',
+        method: 'post',
+        data: data
+    })
+}
+//根据ID查询客户信息
+export function crmCustomerqueryById(data) {
+    return request({
+        url: 'crmCustomerPool/queryById',
+        method: 'post',
+        data: data
+    })
+}
+//新增、修改客户信息（保存）  
+export function crmCustomeraddOrUpdate(data) {
+    return request({
+        url: 'crmCustomer/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//销售负责人查询
+export function queryDeptTreeAndUser(data) {
+    return request({
+        url: 'system/dept/queryDeptTreeAndUser',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//根据角色查询用户
+export function roleQueryRoleAndUser(data) {
+    return request({
+        url: 'system/role/queryRoleAndUser',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//分配客户
+export function crmCustomerPoolAssignmentCustomer(data) {
+    return request({
+        url: 'crmCustomerPool/assignmentCustomer',
+        method: 'post',
+        data: data
+    })
+}
+//根据部门查询用户  
+export function deptQueryDeptTreeAndUser(data) {
+    return request({
+        url: 'system/dept/queryDeptTreeAndUser',
+        method: 'post',
+        data: data
+    })
+}
+//根据customerId查询初始信息  
+export function crmCustomerQueryById(data) {
+    return request({
+        url: 'crmCustomer/queryById',
+        method: 'post',
+        data: data
+    })
+}
+//公共客户池编辑 
+export function crmCustomerPoolUpdate(data) {
+    return request({
+        url: 'crmCustomerPool/update',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//追加说明查询 
+export function crmCustomerQueryZjsm(data) {
+    return request({
+        url: 'crmCustomer/queryZjsm',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//追加说明新增编辑
+export function crmCustomerAddOrUpdateZjsm(data) {
+    return request({
+        url: 'crmCustomer/addOrUpdateZjsm',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//追加说明删除
+export function crmCustomerDeleteZjsmById(data) {
+    return request({
+        url: 'crmCustomer/deleteZjsmById',
+        method: 'post',
+        data: data
+    })
+}
+//客户区分
+export function crmCustomerPoolQueryKhqf(data) {
+    return request({
+        url: 'crmCustomerPool/queryKhqf',
+        method: 'post',
+        data: data
+    })
+}

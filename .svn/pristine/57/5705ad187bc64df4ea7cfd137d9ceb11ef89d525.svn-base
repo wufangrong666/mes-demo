@@ -1,0 +1,359 @@
+<template>
+  <div class="c-container">
+    <div class="title">{{title}}</div>
+    <div style="width:20%;height:60px;float:left">
+      <el-tabs v-model="group" @tab-click="handleClickTabs">
+        <el-tab-pane label="OA" name="1"></el-tab-pane>
+        <el-tab-pane label="销售" name="2"></el-tab-pane>
+        <el-tab-pane label="采购" name="3"></el-tab-pane>
+        <el-tab-pane label="财务" name="4"></el-tab-pane>
+      </el-tabs>
+    </div>
+    <div class="input-box" style="margin-top:10px">
+      <label class="input-label">名称关键字</label>
+      <el-input placeholder="任务名称关键字" clearable v-model="fileName"></el-input>
+    </div>
+    <div class="input-box" style="margin-top:10px">
+      <el-button type="primary" @click="success">查询</el-button>
+      <el-button type="info" plain @click="reset">重置</el-button>
+    </div>
+    <el-table id="table" :height="tableHeight" :data="tableData" stripe style="width: 100%">
+      <el-table-column prop="size" label="文件大小"></el-table-column>
+      <el-table-column prop="name" label="文件名称"></el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button style="color:red" @click="deleteClick(scope.row)" type="text">删除</el-button>
+          <el-button @click="editClick(scope.row)" type="text">编辑</el-button>
+          <!-- <el-button @click="details(scope.row)" type="text">详情</el-button> -->
+          <el-button @click="download(scope.row)" type="text">下载</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="p-contianer">
+      <el-pagination
+        class="p-bar"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="page"
+        :page-sizes="[15,30,50,100]"
+        :page-size.sync="limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
+    </div>
+    <el-dialog
+      title="确认删除"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+      :modal-append-to-body="false"
+    >
+      <div style="text-align: center">
+        <el-button type="danger" @click="idClick">id删除</el-button>
+        <el-button type="danger" @click="groupClick">group删除</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="编辑"
+      :visible.sync="dialogEdit"
+      width="30%"
+      :before-close="handleCloseE"
+      :modal-append-to-body="false"
+    >
+      <div style="text-align: center">
+        <div class="input-box" style="width:300px">
+          <label class="input-label">文件名</label>
+          <el-input placeholder="请输入文件名" clearable v-model="name"></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogEdit = false">取 消</el-button>
+        <el-button type="primary" @click="dialogEditClick">确 定</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog
+      title="详情"
+      :visible.sync="detailsVisible"
+      width="30%"
+      :before-close="detailsClose"
+      :modal-append-to-body="false"
+    >
+      <div style="text-align: center">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="个人" name="first">
+            <div class="input-box">
+              <label class="input-label">文件名</label>
+              <el-input placeholder="文件名" :readonly="true" clearable v-model="first.name"></el-input>
+            </div>
+            <div class="input-box">
+              <label class="input-label">文件类型</label>
+              <el-input placeholder="文件类型" :readonly="true" clearable v-model="first.fileType"></el-input>
+            </div>
+            <div class="input-box">
+              <label class="input-label">创建时间</label>
+              <el-input placeholder="创建时间" :readonly="true" clearable v-model="first.createTime"></el-input>
+            </div>
+            <div class="input-box">
+              <label class="input-label">文件大小</label>
+              <span style="line-height: 40px;">{{this.first.size +'KB'}}</span>
+            </div>
+            <div class="input-box">
+              <label class="input-label">文件路径</label>
+              <el-input placeholder="文件路径" :readonly="true" clearable v-model="first.filePath"></el-input>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="公共" name="fourth" style="height:400px;overflow: auto">
+            <div v-for="(item,index) in fourth" :key="index">
+              <div class="input-box">
+                <label class="input-label">文件名</label>
+                <el-input placeholder="文件名" :readonly="true" clearable v-model="item.name"></el-input>
+              </div>
+              <div class="input-box">
+                <label class="input-label">文件路径</label>
+                <el-input placeholder="文件路径" :readonly="true" clearable v-model="item.filePath"></el-input>
+              </div>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="detailsVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogEditClick">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import {
+  oaDownloadQueryFileByGroup,
+  oaDownloadRemoveById,
+  oaDownloadRemoveByGroup,
+  oaDownloadDownload,
+  oaDownloadRenameFileById,
+  oaDownloadQueryById,
+  oaDownloadQueryByGroup,
+} from "@/api/oa/personCenter";
+export default {
+  name: "",
+  data() {
+    return {
+      activeName: "first",
+      name: "",
+      fileId: "",
+      title: "",
+      tableHeight: document.documentElement.clientHeight - 194, // 表的高度
+      tableData: [],
+      dialogVisible: false,
+      dialogEdit: false,
+      detailsVisible: false,
+      row: {},
+      first: {},
+      fourth: [],
+      fileName: "",
+      group: "1",
+      page: 1,
+      limit: 15,
+      total: 0,
+    };
+  },
+
+  methods: {
+    success() {
+      this.loginData();
+    },
+    reset() {
+      this.fileName = "";
+      this.group = "1";
+      this.loginData();
+    },
+    handleClickTabs() {
+      this.loginData();
+    },
+    handleClick() {},
+    details(data) {
+      this.detailsVisible = true;
+      oaDownloadQueryById({
+        id: data.fileId,
+      })
+        .then((res) => {
+          this.first = res.data;
+        })
+        .catch((res) => {});
+      oaDownloadQueryByGroup({
+        group: data.group,
+      })
+        .then((res) => {
+          this.fourth = res.data;
+        })
+        .catch((res) => {});
+    },
+    detailsClose() {
+      this.detailsVisible = false;
+    },
+    handleCloseE() {
+      this.dialogEdit = false;
+    },
+    dialogEditClick() {
+      oaDownloadRenameFileById({
+        name: this.name,
+        fileId: this.fileId,
+      })
+        .then((res) => {
+          this.msgSuccess("修改成功");
+          this.dialogEdit = false;
+          this.loginData();
+        })
+        .catch((res) => {});
+    },
+    editClick(data) {
+      this.dialogEdit = true;
+      this.name = data.name;
+      this.fileId = data.fileId;
+    },
+    download(data) {
+      window.location.href = data.filePath
+      // const data = this.response;
+      // const url = window.URL.createObjectURL(data.filePath);
+      // var a = document.createElement("a");
+      // a.download = 'aaa';
+      // a.href = url;
+      // document.body.appendChild(a);
+      // a.click();
+      // document.body.removeChild(a);
+      // window.URL.revokeObjectURL(url);
+      // window.location.href =  data.filePath;
+      // oaDownloadDownload({
+      //   fileId: data.fileId,
+      // })
+      //   .then((res) => {
+      //     window.open(res.file.filePath);
+      //   })
+      //   .catch((res) => {});
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    deleteClick(val) {
+      this.row = val;
+      this.dialogVisible = true;
+    },
+    idClick() {
+      this.$confirm("此操作将删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          oaDownloadRemoveById({
+            id: this.row.fileId,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.dialogVisible = false;
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("已取消删除");
+        });
+    },
+    groupClick() {
+      this.$confirm("此操作将删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          oaDownloadRemoveByGroup({
+            group: this.row.group,
+          })
+            .then((res) => {
+              this.msgSuccess("删除成功");
+              this.dialogVisible = false;
+              this.loginData();
+            })
+            .catch((res) => {});
+        })
+        .catch(() => {
+          this.msgInfo("已取消删除");
+        });
+    },
+    loginData() {
+      oaDownloadQueryFileByGroup({
+        group: this.group,
+        fileName: this.fileName,
+        page: this.page,
+        limit: this.limit,
+      })
+        .then((res) => {
+          this.tableData = res.data;
+          this.total = res.totalRow;
+        })
+        .catch((res) => {});
+    },
+    handleSizeChange(val) {
+      this.limit = val;
+      this.loginData();
+    },
+    handleCurrentChange(val) {
+      this.page = val;
+      this.loginData();
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.title = this.$route.meta.title;
+    this.loginData();
+  },
+};
+</script>
+<style lang='scss'>
+.c-container .el-input__inner {
+  height: 25px;
+}
+</style>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+.input-box {
+  width: 400px;
+  margin-top: 10px;
+  .el-input {
+    height: 25px;
+  }
+}
+.c-container {
+  height: 50px;
+  position: relative;
+  z-index: 100;
+  .title {
+    margin: 0;
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 50px;
+  }
+  .input-box {
+    width: 16%;
+    margin: 20px 0 0 50px;
+    .el-date-editor {
+      width: 400px;
+    }
+    .el-select,
+    .el-cascader,
+    .el-input {
+      width: 50%;
+    }
+  }
+  .center {
+    width: 100%;
+    float: left;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    height: 100%;
+  }
+}
+</style>

@@ -1,0 +1,39 @@
+import request from '@/utils/request'
+// 给角色设置数据权限
+export function crmProductComnameQueryPageList(data) {
+    return request({
+        url: 'crmProductComname/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 根据id删除品名
+export function crmProductComnameDelById(data) {
+    return request({
+        url: 'crmProductComname/delById',
+        method: 'post',
+        data: data,
+    })
+}
+// 新增或修改品名信息
+export function crmProductComnameAddOrUpdate (data) {
+    return request({
+        url: 'crmProductComname/addOrUpdate ',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 根据id查询品名信息
+export function crmProductComnameQueryById (data) {
+    return request({
+        url: 'crmProductComname/queryById',
+        method: 'post',
+        data: data,
+    })
+}

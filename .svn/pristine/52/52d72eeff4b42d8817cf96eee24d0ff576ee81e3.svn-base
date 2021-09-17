@@ -1,0 +1,92 @@
+
+import request from '@/utils/request'
+//列表查询
+export function crmJjfaQueryPageList(data) {
+    return request({
+        url: 'crmJjfa/queryPageList',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+//新增jjfa
+export function crmJjfaQueryForAdd(data) {
+    return request({
+        url: 'crmJjfa/queryForAdd',
+        method: 'post',
+        data: data
+    })
+}
+
+// 新增，编辑
+export function crmJjfaAddOrUpdate(data) {
+    return request({
+        url: 'crmJjfa/addOrUpdate',
+        method: 'post',
+        data: data,
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+    })
+}
+// 查看
+//根据id查询，查看、编辑、审核、删除jjfa
+export function crmJjfaQueryById(data) {
+    return request({
+        url: 'crmJjfa/queryById',
+        method: 'post', 
+        data: data,
+    })
+}
+//审核
+export function crmJjfaCheckStatus(data) {
+    return request({
+        url: 'crmJjfa/checkStatus',
+        method: 'post', 
+        data: data,
+    })
+}
+// 删除
+export function crmJjfaDeleteById(data) {
+    return request({
+        url: 'crmJjfa/deleteById',
+        method: 'post', 
+        data: data,
+    })
+}
+//// 附件上传
+export function crmJjfaFileUpload(data) {
+    var param = new FormData()
+    Object.keys(data).forEach(key => {
+        param.append(key, data[key])
+    })
+    return request({
+        url: 'crmJjfaFile/upload',
+        method: 'post',
+        data: param,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
+// 附件删除
+export function crmJjfaFileRemoveById(data) {
+    return request({
+        url: 'crmJjfaFile/removeById',
+        method: 'post', 
+        data: data,
+    })
+}
+// 查询上传
+export function crmJjfaFileQueryByJjfaId(data) {
+    return request({
+        url: 'crmJjfaFile/queryByJjfaId',
+        method: 'post', 
+        data: data,
+    })
+}
+
+

@@ -1,0 +1,116 @@
+import request from '@/utils/request'
+
+// logo保存
+export function adminSystemSave(data) {
+  return request({
+    url: 'sysConfig/setSysConfig',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// logo and name
+export function adminSystemIndex(data) {
+  return request({
+    url: 'sysConfig/querySysConfig',
+    method: 'post',
+    data: data
+  })
+}
+// 查询页表头
+export function filedGetTableField(data) {
+  return request({
+    url: 'field/queryListHead',
+    method: 'post',
+    data: data
+  })
+}
+// 列表宽度设置
+export function fieldColumnWidth(data) {
+  return request({
+    url: 'field/setFelidStyle',
+    method: 'post',
+    data: data
+  })
+}
+// 客户列表
+export function adminCompanyTabList(data) {
+  return request({
+    url: 'adminCompany/queryPageList',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
+  })
+}
+// 列表字段排序数据
+export function fieldConfigIndex(data) {
+  return request({
+    url: 'field/queryFieldConfig',
+    method: 'post',
+    data: data
+  })
+}
+// 列表排序编辑
+export function fieldConfig(data) {
+  return request({
+    url: 'field/fieldConfig',
+    method: 'post',
+    data: data
+  })
+}
+// 自定义字段(高级筛选)
+export function filterIndexfields(data) {
+  return request({
+    url: 'field/queryField',
+    method: 'post',
+    data: data
+  })
+}
+//客户新增接口
+export function companyAddOrUpdate(data) {
+  return request({
+    url: 'adminCompany/addOrUpdate',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
+  })
+}
+// 详情
+export function customerRead(data) {
+  return request({
+    url: 'adminCompany/queryById',
+    method: 'post',
+    data: data
+  })
+}
+// 删除
+export function companyDelete(data) {
+  return request({
+    url: 'adminCompany/deleteByIds',
+    method: 'post',
+    data: data
+  })
+}
+// 设为默认
+export function isdefault(data) {
+  return request({
+    url: 'adminCompany/setIsdefault',
+    method: 'post',
+    data: data
+  })
+}
+// 操作记录
+export function IndexFieldRecord(data) {
+  return request({
+    url: 'adminRecord/queryRecordList',
+    method: 'post',
+    data: data
+  })
+}

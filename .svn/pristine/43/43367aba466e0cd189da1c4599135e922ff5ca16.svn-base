@@ -1,0 +1,121 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="基本信息">
+          <div class="title">
+            <ul>
+              <li>从</li>
+              <li style="color:red" v-text="item[0]"></li>
+              <li>到</li>
+              <li style="color:red" v-text="item[1]"></li>
+              <li>：给</li>
+              <li style="color:red" v-text="gysName"></li>
+              <li>付款情况如下：</li>
+            </ul>
+          </div>
+          <el-table :data="tableData" style="width: 100%" :height="tableHeight">
+            <el-table-column prop="dh" label="付款单据号"></el-table-column>
+            <el-table-column prop="fkrq" label="付款日期"></el-table-column>
+            <el-table-column prop="djlx" label="单据类型"></el-table-column>
+            <el-table-column prop="fkfs" label="付款方式"></el-table-column>
+            <el-table-column prop="fkzh" label="付款账户"></el-table-column>
+            <el-table-column prop="je" label="金额"></el-table-column>
+            <el-table-column prop="czy" label="操作员"></el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-button @click="toView(scope.row)" type="text">查看详情</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="text-align:center;line-height:40px">
+            <el-button @click="hidenView" type="info" plain>关闭</el-button>
+          </div>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import createView from "../../../../components/createView";
+import sections from "../../../../components/sections";
+import { cgbbGrQueryGysYskList } from "@/api/jxc/jxc";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      item: "",
+      loading: false,
+      gysName: "",
+      tableData: [],
+      tableHeight: document.documentElement.clientHeight - 140, // 表的高度
+    };
+  },
+
+  methods: {
+    toView(row) {
+      if (row.type == "fkd") {
+        this.windowOpen("/cgbbtjGysyskFk", {
+          id: this.encode(row.fkdId),
+          type: row.type,
+        });
+      } else {
+        this.windowOpen("/cgbbtjGysjbxx", {
+          id: this.encode(row.fkdId),
+          type: row.type,
+        });
+      }
+    },
+    hidenView() {
+      window.top.close();
+    },
+    mxData() {
+      cgbbGrQueryGysYskList({
+        gysId: this.widowData.list.gysId,
+        startDate: this.item[0],
+        endDate: this.item[1],
+      })
+        .then((res) => {
+          this.tableData = res.data;
+        })
+        .catch((res) => {});
+    },
+    updateTableHeight() {
+      var offsetHei = document.documentElement.clientHeight;
+      var removeHeight = Object.keys(this.filterObj).length > 0 ? 310 : 240;
+      this.tableHeight = offsetHei - removeHeight;
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.list = JSON.parse(this.widowData.list);
+    this.gysName = this.widowData.list.gysName;
+    this.item = this.widowData.item;
+    /** 控制table的高度 */
+    window.onresize = () => {
+      this.updateTableHeight();
+    };
+    this.mxData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+.title {
+  ul {
+    width: 100%;
+    line-height: 40px;
+    li {
+      float: left;
+      font-size: 18px;
+    }
+  }
+}
+</style>

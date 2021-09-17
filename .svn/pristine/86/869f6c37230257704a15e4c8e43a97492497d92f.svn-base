@@ -1,0 +1,101 @@
+<template>
+  <createView :loading="loading" :body-style="{ height: '100%',padding:0,overflow: 'auto'}">
+    <flexbox direction="column" align="stretch" class="create-container">
+      <div class="create-flex">
+        <sections title="合同打印">
+          <div class="input-box">
+            <label class="input-label">采购合同模板：</label>
+            <el-select v-model="mb" placeholder="请选择" @change="mbChagne">
+              <el-option v-for="item in mbList" :key="item.id" :label="item.name" :value="item.id"></el-option>
+            </el-select>
+          </div>
+          <div style="float:left">
+            <div id="printTest">
+              <span v-html="content"></span>
+            </div>
+          </div>
+          <span class="bottomSpan">
+            <el-button @click="handleClose">关闭</el-button>
+            <el-button type="primary" v-print="'#printTest'">打印预览</el-button>
+          </span>
+        </sections>
+      </div>
+    </flexbox>
+  </createView>
+</template>
+
+<script>
+import { cgshFindCkCgshRkdList, sgdPrendPreview } from "@/api/jxc/jxc";
+import createView from "../../components/createView";
+import sections from "../../components/sections";
+export default {
+  name: "",
+  components: {
+    createView,
+    sections,
+  },
+  data() {
+    return {
+      mbList: [],
+      content: "",
+      loading: false,
+      mb: "",
+      flag: true,
+      cgshId: "",
+    };
+  },
+
+  methods: {
+    mbChagne(val) {
+      this.cgshId = val;
+      this.mbContent(this.mb);
+    },
+    mbContent(id) {
+      sgdPrendPreview({
+        htmbId: id,
+        cgshId: this.cgshId,
+      })
+        .then((res) => {
+          this.content = res.data;
+        })
+        .catch((res) => {});
+    },
+    handleClose() {
+      window.top.close();
+    },
+    logData() {
+      cgshFindCkCgshRkdList()
+        .then((res) => {
+          this.mbList = res.data;
+          this.mb = this.mbList[0].id;
+          this.mbContent(this.mb);
+        })
+        .catch((res) => {});
+    },
+  },
+
+  created() {},
+
+  mounted() {
+    this.widowData = this.$route.query;
+    this.widowData.id = this.decode(this.$route.query.id);
+    this.cgshId = this.widowData.id;
+    this.logData();
+  },
+};
+</script>
+<style lang='scss' scoped>
+@import "../../manage/styles/table.scss";
+@import "../../../styles/detail.scss";
+.input-box {
+  width: 100%;
+  .el-select {
+    width: 10%;
+  }
+}
+.bottomSpan {
+  float: left;
+  width: 100%;
+  text-align: center;
+}
+</style>
